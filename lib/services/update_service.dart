@@ -32,7 +32,7 @@ class UpdateCheckResult {
   final String? error;
 }
 
-/// Release channel inferred from the visible app version.
+/// Release channel for the running app.
 enum AppReleaseChannel {
   /// Public stable release.
   stable('Stable'),
@@ -50,6 +50,16 @@ enum AppReleaseChannel {
 
   /// User-visible English fallback label.
   final String label;
+
+  /// Parses the native channel identifier.
+  static AppReleaseChannel fromId(String? id) {
+    return switch (id) {
+      'stable' => AppReleaseChannel.stable,
+      'beta' => AppReleaseChannel.beta,
+      'nightly' => AppReleaseChannel.nightly,
+      _ => AppReleaseChannel.unknown,
+    };
+  }
 }
 
 /// App version information.
@@ -58,7 +68,11 @@ class AppVersion {
   ///
   /// [version] is the semantic version string (e.g., "1.2.3").
   /// [build] is the build number or identifier.
-  const AppVersion({required this.version, required this.build});
+  const AppVersion({
+    required this.version,
+    required this.build,
+    AppReleaseChannel? releaseChannel,
+  }) : _releaseChannel = releaseChannel;
 
   /// The semantic version string.
   final String version;
@@ -66,11 +80,17 @@ class AppVersion {
   /// The build number or identifier.
   final String build;
 
+  final AppReleaseChannel? _releaseChannel;
+
   /// Formatted display string combining version and build.
   String get displayString => '$version ($build)';
 
-  /// Release channel inferred from the version suffix.
+  /// Release channel reported by native code, or inferred from version suffix.
   AppReleaseChannel get releaseChannel {
+    if (_releaseChannel != null &&
+        _releaseChannel != AppReleaseChannel.unknown) {
+      return _releaseChannel;
+    }
     if (RegExp(r'^\d+\.\d+\.\d+$').hasMatch(version)) {
       return AppReleaseChannel.stable;
     }
@@ -236,6 +256,9 @@ class UpdateService {
       return AppVersion(
         version: result['version'] as String? ?? 'Unknown',
         build: result['build'] as String? ?? 'Unknown',
+        releaseChannel: AppReleaseChannel.fromId(
+          result['releaseChannel'] as String?,
+        ),
       );
     } on PlatformException catch (e) {
       _log.warning('Failed to get app version: ${e.message}');

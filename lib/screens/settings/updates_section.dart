@@ -224,7 +224,7 @@ class _UpdatesSettingsSectionState extends State<UpdatesSettingsSection> {
             icon: Icons.info_outline_rounded,
           ),
           title: l10n.versionLabel(_appVersion.version),
-          subtitle: l10n.buildAndChannelLabel(_appVersion.build, channelLabel),
+          subtitle: channelLabel,
           trailing: IconButton(
             key: const Key('copyAppDiagnostics-button'),
             tooltip: l10n.copyAppDiagnostics,

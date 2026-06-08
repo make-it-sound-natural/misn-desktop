@@ -21,6 +21,7 @@ void main() {
     String? updateCheckError,
     String version = '1.0.0',
     String build = '1',
+    String? releaseChannel,
   }) {
     const channel = MethodChannel('com.makeitsoundnatural/shortcut');
 
@@ -28,7 +29,11 @@ void main() {
         .setMockMethodCallHandler(channel, (call) async {
           switch (call.method) {
             case 'getAppVersion':
-              return {'version': version, 'build': build};
+              return {
+                'version': version,
+                'build': build,
+                if (releaseChannel != null) 'releaseChannel': releaseChannel,
+              };
             case 'getLastUpdateCheck':
               return lastUpdateCheck;
             case 'getAutomaticUpdateChecks':
@@ -149,10 +154,14 @@ void main() {
       },
     );
 
-    testWidgets('displays app information with version build and channel', (
+    testWidgets('displays app information with version and channel', (
       tester,
     ) async {
-      setupMockMethodChannel(version: '1.2.3-beta.1', build: '42');
+      setupMockMethodChannel(
+        version: '1.2.3',
+        build: '42',
+        releaseChannel: 'nightly',
+      );
 
       await tester.pumpWidget(createTestApp());
       await tester.pump(const Duration(milliseconds: 500));
@@ -160,8 +169,9 @@ void main() {
       await openUpdates(tester);
 
       expect(find.text('App information'), findsOneWidget);
-      expect(find.text('Version 1.2.3-beta.1'), findsOneWidget);
-      expect(find.text('Build 42 • Beta'), findsOneWidget);
+      expect(find.text('Version 1.2.3'), findsOneWidget);
+      expect(find.text('Nightly'), findsOneWidget);
+      expect(find.text('Build 42 • Nightly'), findsNothing);
     });
 
     testWidgets('copies app diagnostics to clipboard', (tester) async {

@@ -24,7 +24,11 @@ void main() {
               case 'checkForUpdates':
                 return {'success': true, 'error': null};
               case 'getAppVersion':
-                return {'version': '1.2.3', 'build': '42'};
+                return {
+                  'version': '1.2.3',
+                  'build': '42',
+                  'releaseChannel': 'stable',
+                };
               case 'getLastUpdateCheck':
                 return '2024-01-15T10:30:00Z';
               case 'getAutomaticUpdateChecks':
@@ -76,6 +80,7 @@ void main() {
       expect(methodCalls.any((c) => c.method == 'getAppVersion'), isTrue);
       expect(version.version, '1.2.3');
       expect(version.build, '42');
+      expect(version.releaseChannel, AppReleaseChannel.stable);
       expect(version.displayString, '1.2.3 (42)');
     });
 
@@ -154,6 +159,17 @@ void main() {
 
       expect(version.releaseChannel, AppReleaseChannel.stable);
       expect(version.releaseChannelLabel, 'Stable');
+    });
+
+    test('releaseChannel uses explicit native channel over version suffix', () {
+      const version = AppVersion(
+        version: '1.2.3',
+        build: '42',
+        releaseChannel: AppReleaseChannel.nightly,
+      );
+
+      expect(version.releaseChannel, AppReleaseChannel.nightly);
+      expect(version.releaseChannelLabel, 'Nightly');
     });
 
     test('releaseChannel infers beta from beta suffix', () {

@@ -586,9 +586,25 @@ extension MethodChannelHandler {
     }
 
     func handleGetAppVersion(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "Unknown"
-        result(["version": version, "build": build])
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = info?["CFBundleVersion"] as? String ?? "Unknown"
+        let bundleId = Bundle.main.bundleIdentifier ?? ""
+
+        let releaseChannel: String
+        if bundleId.hasSuffix(".nightly") {
+            releaseChannel = "nightly"
+        } else if bundleId.hasSuffix(".beta") {
+            releaseChannel = "beta"
+        } else {
+            releaseChannel = "stable"
+        }
+
+        result([
+            "version": version,
+            "build": build,
+            "releaseChannel": releaseChannel
+        ])
     }
 
     func handleGetLastUpdateCheck(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
