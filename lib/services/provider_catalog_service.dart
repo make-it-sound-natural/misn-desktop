@@ -47,7 +47,14 @@ class ProviderCatalogService {
     return values
         .map((value) {
           try {
-            final decoded = jsonDecode(value) as Map<String, dynamic>;
+            final decoded = jsonDecode(value);
+            if (decoded is! Map<String, Object?>) {
+              return const LlmProviderEntry(
+                id: '',
+                displayName: '',
+                baseUrl: '',
+              );
+            }
             return LlmProviderEntry.fromJson(decoded);
           } on FormatException {
             return const LlmProviderEntry(

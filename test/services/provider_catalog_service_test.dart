@@ -66,6 +66,24 @@ void main() {
       expect(provider.id, 'openai-2');
     });
 
+    test('ignores corrupt custom provider preferences', () async {
+      SharedPreferences.setMockInitialValues({
+        'llm_custom_providers': [
+          '[',
+          '[]',
+          '42',
+          '{"id":1,"displayName":"Bad","baseUrl":"https://bad.test"}',
+          '{"id":"ok","displayName":"OK","baseUrl":"https://ok.test"}',
+        ],
+      });
+      final service = ProviderCatalogService();
+
+      final customProviders = await service.customProviders();
+
+      expect(customProviders, hasLength(1));
+      expect(customProviders.single.id, 'ok');
+    });
+
     test('rejects provider names without letters or numbers', () async {
       final service = ProviderCatalogService();
 

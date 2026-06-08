@@ -60,8 +60,9 @@ class MethodChannelHandler {
         setupMethodCallHandler()
     }
 
-    static func customProviderKeychainAccount(provider: String) -> String {
+    static func customProviderKeychainAccount(provider: String) -> String? {
         let sanitized = provider
+            .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
             .replacingOccurrences(
                 of: "[^a-z0-9-]+",
@@ -69,6 +70,9 @@ class MethodChannelHandler {
                 options: .regularExpression
             )
             .trimmingCharacters(in: CharacterSet(charactersIn: "-"))
+        guard !sanitized.isEmpty else {
+            return nil
+        }
         return "custom_provider_api_key_\(sanitized)"
     }
 
@@ -253,8 +257,10 @@ class MethodChannelHandler {
         _ call: FlutterMethodCall,
         result: @escaping FlutterResult
     ) {
-        guard let args = customProviderArguments(call, result: result),
-              let apiKey = args.apiKey else {
+        guard let args = customProviderArguments(call, result: result) else {
+            return
+        }
+        guard let apiKey = args.apiKey else {
             result(FlutterError(
                 code: "INVALID_ARGUMENT",
                 message: "Custom provider API Key must be a string",
@@ -262,14 +268,16 @@ class MethodChannelHandler {
             ))
             return
         }
-        let account = Self.customProviderKeychainAccount(provider: args.provider)
         #if DEBUG
-        UserDefaults.standard.set(apiKey, forKey: devSecretKey(account: account))
+        UserDefaults.standard.set(
+            apiKey,
+            forKey: devSecretKey(account: args.keychainAccount)
+        )
         customProviderApiKeys[args.provider] = apiKey
         result(nil)
         #else
         do {
-            try keychain.write(apiKey, account: account)
+            try keychain.write(apiKey, account: args.keychainAccount)
             customProviderApiKeys[args.provider] = apiKey
             result(nil)
         } catch {
@@ -289,8 +297,7 @@ class MethodChannelHandler {
         guard let args = customProviderArguments(call, result: result) else {
             return
         }
-        let account = Self.customProviderKeychainAccount(provider: args.provider)
-        readKeychainValue(result: result, account: account)
+        readKeychainValue(result: result, account: args.keychainAccount)
     }
 
     private func handleDeleteStoredCustomProviderApiKey(
@@ -300,14 +307,15 @@ class MethodChannelHandler {
         guard let args = customProviderArguments(call, result: result) else {
             return
         }
-        let account = Self.customProviderKeychainAccount(provider: args.provider)
         #if DEBUG
-        UserDefaults.standard.removeObject(forKey: devSecretKey(account: account))
+        UserDefaults.standard.removeObject(
+            forKey: devSecretKey(account: args.keychainAccount)
+        )
         customProviderApiKeys.removeValue(forKey: args.provider)
         result(nil)
         #else
         do {
-            try keychain.delete(account: account)
+            try keychain.delete(account: args.keychainAccount)
             customProviderApiKeys.removeValue(forKey: args.provider)
             result(nil)
         } catch {
@@ -545,6 +553,7 @@ private extension MethodChannelHandler {
         let provider: String
         let apiKey: String?
         let baseUrl: String?
+        let keychainAccount: String
     }
 
     func customProviderArguments(
@@ -552,8 +561,7 @@ private extension MethodChannelHandler {
         result: @escaping FlutterResult
     ) -> CustomProviderChannelArguments? {
         guard let data = call.arguments as? [String: Any],
-              let provider = data["provider"] as? String,
-              !provider.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              let provider = data["provider"] as? String
         else {
             result(FlutterError(
                 code: "INVALID_ARGUMENT",
@@ -562,10 +570,22 @@ private extension MethodChannelHandler {
             ))
             return nil
         }
+        let normalizedProvider = provider.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let keychainAccount = Self.customProviderKeychainAccount(
+            provider: normalizedProvider
+        ) else {
+            result(FlutterError(
+                code: "INVALID_ARGUMENT",
+                message: "Custom provider must include provider",
+                details: nil
+            ))
+            return nil
+        }
         return CustomProviderChannelArguments(
-            provider: provider,
+            provider: normalizedProvider,
             apiKey: data["apiKey"] as? String,
-            baseUrl: data["baseUrl"] as? String
+            baseUrl: data["baseUrl"] as? String,
+            keychainAccount: keychainAccount
         )
     }
 

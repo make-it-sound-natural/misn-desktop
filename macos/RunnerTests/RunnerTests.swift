@@ -35,5 +35,12 @@ final class RunnerTests: XCTestCase {
             MethodChannelHandler.customProviderKeychainAccount(provider: "token guard"),
             "custom_provider_api_key_token-guard"
         )
+        XCTAssertEqual(
+            MethodChannelHandler.customProviderKeychainAccount(provider: " TokenGuard "),
+            "custom_provider_api_key_tokenguard"
+        )
+        XCTAssertNil(
+            MethodChannelHandler.customProviderKeychainAccount(provider: "!!!")
+        )
     }
 }

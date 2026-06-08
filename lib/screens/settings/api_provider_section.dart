@@ -782,9 +782,11 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
         case 'Provider name is required.':
         case 'Provider name must contain letters or numbers.':
           setErrors((name: message, url: null));
+          return;
         case 'Base URL is required.':
         case 'Base URL must be a valid HTTPS URL.':
           setErrors((name: null, url: message));
+          return;
         default:
           _showModelCatalogError(message);
       }

@@ -28,6 +28,20 @@ void main() {
       expect(entry.isBuiltIn, isFalse);
     });
 
+    test('ignores malformed persisted field values', () {
+      final entry = LlmProviderEntry.fromJson(const {
+        'id': 1,
+        'displayName': false,
+        'baseUrl': ['https://bad.test'],
+        'isBuiltIn': 'yes',
+      });
+
+      expect(entry.id, isEmpty);
+      expect(entry.displayName, isEmpty);
+      expect(entry.baseUrl, isEmpty);
+      expect(entry.isBuiltIn, isFalse);
+    });
+
     test('copyWith preserves generated id by default', () {
       const entry = LlmProviderEntry(
         id: 'tokenguard',

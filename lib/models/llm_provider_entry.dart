@@ -11,10 +11,10 @@ class LlmProviderEntry {
   /// Creates provider metadata from persisted JSON.
   factory LlmProviderEntry.fromJson(Map<String, Object?> json) {
     return LlmProviderEntry(
-      id: json['id'] as String? ?? '',
-      displayName: json['displayName'] as String? ?? '',
-      baseUrl: json['baseUrl'] as String? ?? '',
-      isBuiltIn: json['isBuiltIn'] as bool? ?? false,
+      id: _stringValue(json, 'id'),
+      displayName: _stringValue(json, 'displayName'),
+      baseUrl: _stringValue(json, 'baseUrl'),
+      isBuiltIn: _boolValue(json, 'isBuiltIn'),
     );
   }
 
@@ -53,5 +53,18 @@ class LlmProviderEntry {
       baseUrl: baseUrl ?? this.baseUrl,
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
     );
+  }
+
+  static String _stringValue(Map<String, Object?> json, String key) {
+    final value = json[key];
+    return value is String ? value : '';
+  }
+
+  static bool _boolValue(Map<String, Object?> json, String key) {
+    final value = json[key];
+    if (value is bool) {
+      return value;
+    }
+    return false;
   }
 }
