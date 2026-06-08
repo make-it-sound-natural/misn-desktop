@@ -1,0 +1,104 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.sdd/**'
+      - 'specs/**'
+  pull_request:
+    branches: [ master ]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+      - '.sdd/**'
+      - 'specs/**'
+
+concurrency:
+  group: test-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.38.0'
+  SWIFTLINT_VERSION: '0.63.3'
+
+jobs:
+  dart:
+    name: Dart format, analyze, and tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting and analyze code
+        run: make lint-flutter
+
+      - name: Run Flutter tests
+        run: make test-flutter
+
+  native:
+    name: Native macOS checks
+    needs: dart
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: macos/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('macos/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: CocoaPods
+        run: cd macos && pod install
+
+      - name: Restore SwiftLint
+        id: swiftlint-cache
+        uses: actions/cache@v4
+        with:
+          path: .cache/swiftlint
+          key: swiftlint-${{ runner.os }}-${{ runner.arch }}-${{ env.SWIFTLINT_VERSION }}
+
+      - name: Install SwiftLint
+        if: steps.swiftlint-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p .cache/swiftlint
+          curl -L \
+            "https://github.com/realm/SwiftLint/releases/download/${SWIFTLINT_VERSION}/portable_swiftlint.zip" \
+            -o /tmp/swiftlint.zip
+          unzip -q /tmp/swiftlint.zip -d /tmp/swiftlint
+          cp /tmp/swiftlint/swiftlint .cache/swiftlint/swiftlint
+          chmod +x .cache/swiftlint/swiftlint
+
+      - name: Run SwiftLint
+        run: SWIFTLINT="$PWD/.cache/swiftlint/swiftlint" make lint-swift
+
+      - name: Run macOS XCTest
+        run: make test-macos

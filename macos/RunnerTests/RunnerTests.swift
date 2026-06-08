@@ -1,0 +1,28 @@
+import XCTest
+@testable import Make_It_Sound_Natural
+
+final class RunnerTests: XCTestCase {
+    func testAccessibilityCheckDoesNotRequestPrompt() {
+        let result = AccessibilityPermissionProbe.status(
+            prompt: false,
+            isTrusted: { prompt in
+                XCTAssertFalse(prompt)
+                return false
+            }
+        )
+
+        XCTAssertFalse(result)
+    }
+
+    func testAccessibilityRequestUsesPrompt() {
+        let result = AccessibilityPermissionProbe.status(
+            prompt: true,
+            isTrusted: { prompt in
+                XCTAssertTrue(prompt)
+                return true
+            }
+        )
+
+        XCTAssertTrue(result)
+    }
+}

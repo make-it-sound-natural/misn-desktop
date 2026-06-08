@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <title>Make It Sound Natural Beta</title>
+        <link>https://github.com/make-it-sound-natural/misn-desktop</link>
+        <description>Beta updates for Make It Sound Natural</description>
+        <language>en</language>
+
+    </channel>
+</rss>

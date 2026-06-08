@@ -1,0 +1,534 @@
+name: Release Stable
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Stable version, e.g. 1.2.3'
+        required: true
+        type: string
+      start_from:
+        description: 'Start from job'
+        required: true
+        type: choice
+        default: 'build'
+        options:
+          - build
+          - notarize
+          - release
+      artifact_run_id:
+        description: 'Run ID to download existing artifacts when restarting'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: stable-${{ inputs.version }}
+  cancel-in-progress: false
+
+env:
+  APP_NAME: "Make It Sound Natural"
+  ARTIFACT_PREFIX: MakeItSoundNatural
+  FEED_PATH: appcast.xml
+  FLUTTER_VERSION: '3.38.0'
+  UPDATE_BASE_URL: ${{ vars.UPDATE_BASE_URL }}
+  UPDATE_PUBLISH_TARGET: ${{ vars.UPDATE_PUBLISH_TARGET }}
+  CLOUDFLARE_PAGES_PROJECT: ${{ vars.CLOUDFLARE_PAGES_PROJECT }}
+  CLOUDFLARE_PAGES_BRANCH: ${{ vars.CLOUDFLARE_PAGES_BRANCH }}
+
+jobs:
+  # =============================================================================
+  # JOB 1: Build and Sign
+  # =============================================================================
+  build-and-sign:
+    name: Build & Sign
+    if: inputs.start_from == 'build'
+    runs-on: macos-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Validate Stable source
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          dart run tool/release_manager.dart validate \
+            --channel stable \
+            --version "${{ inputs.version }}" \
+            --source-branch "$BRANCH"
+          test "$BRANCH" = "master"
+
+      - name: Validate Sparkle EdDSA Key
+        run: |
+          EDDSA_KEY=$(plutil -extract SUPublicEDKey raw macos/Runner/Info.plist 2>/dev/null || echo "")
+          if [ -z "$EDDSA_KEY" ]; then
+            echo "::error::SUPublicEDKey is not configured in Info.plist."
+            exit 1
+          fi
+          echo "EdDSA public key is configured"
+
+      - name: Extract version
+        id: version
+        run: |
+          VERSION="${{ inputs.version }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+          working-directory: macos
+
+      - name: Install Fastlane dependencies
+        run: |
+          cd macos
+          bundle install
+
+      - name: Import code signing certificates
+        env:
+          CERTIFICATE_P12: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+        run: |
+          chmod +x ./scripts/import_certificates.sh
+          ./scripts/import_certificates.sh
+
+      - name: Build and sign app
+        env:
+          DEVELOPER_ID: ${{ secrets.DEVELOPER_ID }}
+          APP_NAME: ${{ env.APP_NAME }}
+        run: |
+          cd macos
+          bundle exec fastlane mac build
+
+          cd ..
+          dart run tool/release_manager.dart configure-built-app \
+            --channel stable \
+            --release-dir "build/macos/Build/Products/Release" \
+            --repo "${{ github.repository }}" \
+            --update-base-url "${{ env.UPDATE_BASE_URL }}"
+          cd macos
+
+          APP_PATH="../build/macos/Build/Products/Release/${{ env.APP_NAME }}.app"
+          FRAMEWORKS_PATH="$APP_PATH/Contents/Frameworks"
+          SPARKLE_PATH="$FRAMEWORKS_PATH/Sparkle.framework"
+
+          if [ -d "$SPARKLE_PATH" ]; then
+            VERSIONS_DIR="$SPARKLE_PATH/Versions"
+            VERSION_LETTER=$(ls "$VERSIONS_DIR" | grep -E '^[A-Z]$' | head -1 || echo "B")
+            SPARKLE_VERSION_PATH="$VERSIONS_DIR/$VERSION_LETTER"
+
+            if [ -d "$SPARKLE_VERSION_PATH/XPCServices" ]; then
+              for xpc in "$SPARKLE_VERSION_PATH/XPCServices"/*.xpc; do
+                [ -e "$xpc" ] && codesign --force --timestamp --options runtime --sign "$DEVELOPER_ID" "$xpc"
+              done
+            fi
+
+            [ -e "$SPARKLE_VERSION_PATH/Updater.app" ] && codesign --force --timestamp --options runtime --sign "$DEVELOPER_ID" "$SPARKLE_VERSION_PATH/Updater.app"
+            [ -e "$SPARKLE_VERSION_PATH/Autoupdate" ] && codesign --force --timestamp --options runtime --sign "$DEVELOPER_ID" "$SPARKLE_VERSION_PATH/Autoupdate"
+          fi
+
+          for framework in "$FRAMEWORKS_PATH"/*.framework; do
+            [ -e "$framework" ] && codesign --force --timestamp --options runtime --sign "$DEVELOPER_ID" "$framework"
+          done
+
+          for dylib in "$FRAMEWORKS_PATH"/*.dylib; do
+            [ -e "$dylib" ] && codesign --force --timestamp --options runtime --sign "$DEVELOPER_ID" "$dylib"
+          done
+
+          codesign --force --timestamp --options runtime --entitlements "Runner/Release.entitlements" --sign "$DEVELOPER_ID" "$APP_PATH"
+          codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+          echo "App signed successfully"
+
+      - name: Create app archive for notarization
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          APP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}.app"
+          ZIP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}-${VERSION}-unsigned.app.zip"
+          ditto -c -k --rsrc --keepParent "$APP_PATH" "$ZIP_PATH"
+
+      - name: Upload signed app archive
+        uses: actions/upload-artifact@v6
+        with:
+          name: signed-app-${{ steps.version.outputs.version }}
+          path: build/macos/Build/Products/Release/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}-unsigned.app.zip
+          retention-days: 7
+
+      - name: Cleanup keychain
+        if: always()
+        run: security delete-keychain build.keychain || true
+
+  # =============================================================================
+  # JOB 2: Notarize
+  # =============================================================================
+  notarize:
+    name: Notarize
+    needs: [build-and-sign]
+    if: |
+      always() &&
+      (needs.build-and-sign.result == 'success' || inputs.start_from == 'notarize')
+    runs-on: macos-latest
+    timeout-minutes: 60
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION="${{ inputs.version }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Validate restart artifact source
+        if: inputs.start_from == 'notarize'
+        run: |
+          if [ -z "${{ inputs.artifact_run_id }}" ]; then
+            echo "::error::artifact_run_id is required when start_from is notarize."
+            exit 1
+          fi
+
+      - name: Download signed app archive
+        uses: actions/download-artifact@v7
+        with:
+          name: signed-app-${{ steps.version.outputs.version }}
+          path: build/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.start_from == 'notarize' && inputs.artifact_run_id || github.run_id }}
+
+      - name: Extract app archive
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          ZIP_PATH="build/${{ env.APP_NAME }}-${VERSION}-unsigned.app.zip"
+          mkdir -p "build/macos/Build/Products/Release"
+          ditto -x -k "$ZIP_PATH" "build/macos/Build/Products/Release/"
+
+      - name: Set up notarization credentials
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: |
+          xcrun notarytool store-credentials "notarytool-profile" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$TEAM_ID" \
+            --password "$APPLE_ID_PASSWORD"
+
+      - name: Submit for notarization
+        run: |
+          APP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}.app"
+          bash scripts/notarize_macos_app.sh "$APP_PATH"
+
+      - name: Staple notarization ticket
+        run: |
+          APP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}.app"
+          for attempt in {1..6}; do
+            if xcrun stapler staple "$APP_PATH"; then
+              xcrun stapler validate "$APP_PATH"
+              exit 0
+            fi
+            if [ "$attempt" -eq 6 ]; then
+              exit 1
+            fi
+            echo "Staple failed; waiting 30 seconds before retry $((attempt + 1))/6"
+            sleep 30
+          done
+
+      - name: Create notarized app archive
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          APP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}.app"
+          ZIP_PATH="build/${{ env.APP_NAME }}-${VERSION}-notarized.app.zip"
+          ditto -c -k --rsrc --keepParent "$APP_PATH" "$ZIP_PATH"
+
+      - name: Upload notarized app archive
+        uses: actions/upload-artifact@v6
+        with:
+          name: notarized-app-${{ steps.version.outputs.version }}
+          path: build/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}-notarized.app.zip
+          retention-days: 7
+
+  # =============================================================================
+  # JOB 3: Release
+  # =============================================================================
+  release:
+    name: Create Release
+    needs: [notarize]
+    if: |
+      always() &&
+      (needs.notarize.result == 'success' || inputs.start_from == 'release')
+    runs-on: macos-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION="${{ inputs.version }}"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Validate restart artifact source
+        if: inputs.start_from == 'release'
+        run: |
+          if [ -z "${{ inputs.artifact_run_id }}" ]; then
+            echo "::error::artifact_run_id is required when start_from is release."
+            exit 1
+          fi
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: 'stable'
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.1'
+          bundler-cache: true
+          working-directory: macos
+
+      - name: Install Fastlane dependencies
+        run: |
+          cd macos
+          bundle install
+
+      - name: Import code signing certificates
+        env:
+          CERTIFICATE_P12: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+        run: |
+          chmod +x ./scripts/import_certificates.sh
+          ./scripts/import_certificates.sh
+
+      - name: Download notarized app archive
+        uses: actions/download-artifact@v7
+        with:
+          name: notarized-app-${{ steps.version.outputs.version }}
+          path: build/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ inputs.start_from == 'release' && inputs.artifact_run_id || github.run_id }}
+
+      - name: Extract notarized app
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          ZIP_PATH="build/${{ env.APP_NAME }}-${VERSION}-notarized.app.zip"
+          mkdir -p "build/macos/Build/Products/Release"
+          ditto -x -k "$ZIP_PATH" "build/macos/Build/Products/Release/"
+
+      - name: Create browser download ZIP
+        id: app_zip
+        run: |
+          set -euo pipefail
+          VERSION=${{ steps.version.outputs.version }}
+          APP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}.app"
+          ZIP_PATH="build/macos/Build/Products/Release/${{ env.ARTIFACT_PREFIX }}-${VERSION}.app.zip"
+
+          if [ ! -d "$APP_PATH" ]; then
+            echo "::error::App not found at $APP_PATH"
+            exit 1
+          fi
+
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$ZIP_PATH"
+          echo "zip_path=$ZIP_PATH" >> $GITHUB_OUTPUT
+
+      - name: Create DMG
+        env:
+          APP_NAME: ${{ env.APP_NAME }}
+          ARTIFACT_PREFIX: ${{ env.ARTIFACT_PREFIX }}
+        run: |
+          cd macos
+          bundle exec fastlane create_dmg version:"${{ steps.version.outputs.version }}"
+
+      - name: Set up DMG notarization credentials
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: |
+          xcrun notarytool store-credentials "notarytool-profile" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$TEAM_ID" \
+            --password "$APPLE_ID_PASSWORD"
+
+      - name: Sign and notarize DMG
+        env:
+          DEVELOPER_ID: ${{ secrets.DEVELOPER_ID }}
+        run: |
+          set -euo pipefail
+          VERSION=${{ steps.version.outputs.version }}
+          DMG_PATH="build/macos/Build/Products/Release/${{ env.ARTIFACT_PREFIX }}-${VERSION}.dmg"
+
+          if [ ! -f "$DMG_PATH" ]; then
+            echo "::error::DMG not found at $DMG_PATH"
+            exit 1
+          fi
+
+          codesign --force --timestamp --sign "$DEVELOPER_ID" "$DMG_PATH"
+          codesign --verify --verbose=2 "$DMG_PATH"
+          bash scripts/notarize_macos_artifact.sh "$DMG_PATH"
+
+          for attempt in {1..6}; do
+            if xcrun stapler staple "$DMG_PATH"; then
+              xcrun stapler validate "$DMG_PATH"
+              exit 0
+            fi
+            if [ "$attempt" -eq 6 ]; then
+              exit 1
+            fi
+            echo "DMG staple failed; waiting 30 seconds before retry $((attempt + 1))/6"
+            sleep 30
+          done
+
+      - name: Set up Sparkle private key
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          if [ -z "$SPARKLE_PRIVATE_KEY" ]; then
+            echo "::error::SPARKLE_PRIVATE_KEY secret is required to sign Sparkle updates."
+            exit 1
+          fi
+          echo "$SPARKLE_PRIVATE_KEY" > /tmp/sparkle_private_key
+          chmod 600 /tmp/sparkle_private_key
+
+      - name: Generate Sparkle signature and get DMG info
+        id: artifacts
+        run: |
+          set -euo pipefail
+          VERSION=${{ steps.version.outputs.version }}
+          DMG_PATH="build/macos/Build/Products/Release/${{ env.ARTIFACT_PREFIX }}-${VERSION}.dmg"
+          echo "dmg_path=$DMG_PATH" >> $GITHUB_OUTPUT
+
+          if [ ! -f "$DMG_PATH" ]; then
+            echo "::error::DMG not found at $DMG_PATH"
+            exit 1
+          fi
+
+          if [ ! -f "/tmp/sparkle_private_key" ]; then
+            echo "::error::Sparkle private key file was not created."
+            exit 1
+          fi
+
+          DMG_SIZE=$(stat -f%z "$DMG_PATH")
+          echo "dmg_size=$DMG_SIZE" >> $GITHUB_OUTPUT
+
+          SPARKLE_SIGN_UPDATE=$(bash scripts/prepare_sparkle_tools.sh)
+          if [ ! -x "$SPARKLE_SIGN_UPDATE" ]; then
+            echo "::error::Sparkle sign_update tool is not available."
+            exit 1
+          fi
+          if ! SIGN_OUTPUT=$("$SPARKLE_SIGN_UPDATE" \
+            --ed-key-file /tmp/sparkle_private_key "$DMG_PATH" 2>&1); then
+            echo "::error::Sparkle signature generation failed."
+            printf '%s\n' "$SIGN_OUTPUT"
+            exit 1
+          fi
+          SPARKLE_SIG=$(printf '%s\n' "$SIGN_OUTPUT" | grep -o 'sparkle:edSignature="[^"]*"' || true)
+          if [ -z "$SPARKLE_SIG" ]; then
+            echo "::error::Sparkle signature generation returned an empty signature."
+            exit 1
+          fi
+          echo "sparkle_signature=$SPARKLE_SIG" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          mkdir -p build
+          chmod +x ./scripts/extract_version.sh
+          CHANGELOG=$(./scripts/extract_version.sh changelog 2>/dev/null || echo "Bug fixes and improvements")
+          printf '%s\n' "$CHANGELOG" > build/changelog.txt
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update Stable appcast
+        env:
+          SPARKLE_SIGNATURE: ${{ steps.artifacts.outputs.sparkle_signature }}
+        run: |
+          dart run tool/release_manager.dart update-appcast \
+            --channel stable \
+            --version "${{ steps.version.outputs.version }}" \
+            --repo "${{ github.repository }}" \
+            --update-base-url "${{ env.UPDATE_BASE_URL }}" \
+            --dmg-size "${{ steps.artifacts.outputs.dmg_size }}" \
+            --sparkle-signature "$SPARKLE_SIGNATURE" \
+            --notes-file build/changelog.txt
+
+      - name: Publish Sparkle update files
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          UPDATE_SSH_HOST: ${{ secrets.UPDATE_SSH_HOST }}
+          UPDATE_SSH_USER: ${{ secrets.UPDATE_SSH_USER }}
+          UPDATE_SSH_PRIVATE_KEY: ${{ secrets.UPDATE_SSH_PRIVATE_KEY }}
+          UPDATE_SSH_PATH: ${{ vars.UPDATE_SSH_PATH }}
+          UPDATE_SSH_PORT: ${{ vars.UPDATE_SSH_PORT }}
+        run: |
+          bash scripts/publish_update_files.sh \
+            "${{ steps.artifacts.outputs.dmg_path }}" \
+            "${{ env.FEED_PATH }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          files: |
+            ${{ steps.app_zip.outputs.zip_path }}
+            ${{ steps.artifacts.outputs.dmg_path }}
+          body: |
+            ## What's Changed
+
+            ${{ steps.changelog.outputs.changelog }}
+
+            ## Installation
+
+            1. Download the `.app.zip` file below
+            2. Open the ZIP
+            3. Drag "${{ env.APP_NAME }}.app" to your Applications folder
+            4. Launch from Applications
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit updated appcast
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet "${{ env.FEED_PATH }}"; then
+            echo "No changes to ${{ env.FEED_PATH }}"
+          else
+            git add "${{ env.FEED_PATH }}"
+            git commit -m "Update ${{ env.FEED_PATH }} for v${{ steps.version.outputs.version }}"
+            git push origin HEAD:${{ github.event.repository.default_branch }}
+          fi
+
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f /tmp/sparkle_private_key || true
+          security delete-keychain build.keychain || true

@@ -1,0 +1,372 @@
+# Fastfile for Make It Sound Natural - macOS
+# https://docs.fastlane.tools
+
+require "fileutils"
+require "shellwords"
+require "tmpdir"
+
+opt_out_usage
+
+default_platform(:mac)
+
+# Configuration
+APP_NAME = ENV.fetch("APP_NAME", "Make It Sound Natural")
+MACOS_DIR = File.expand_path("..", __dir__)
+PROJECT_ROOT = File.expand_path("..", MACOS_DIR)
+APP_PATH = File.join(
+  PROJECT_ROOT,
+  "build/macos/Build/Products/Release/#{APP_NAME}.app"
+)
+ENTITLEMENTS = File.join(MACOS_DIR, "Runner/Release.entitlements")
+INFO_PLIST = File.join(MACOS_DIR, "Runner/Info.plist")
+PODFILE = File.join(MACOS_DIR, "Podfile")
+APP_ICON = File.join(
+  MACOS_DIR,
+  "Runner/Assets.xcassets/AppIcon.appiconset/app_icon_512.png"
+)
+SPARKLE_SIGN_TOOL = File.join(MACOS_DIR, "Pods/Sparkle/bin/sign_update")
+
+def staple_with_retry(app_path)
+  6.times do |index|
+    begin
+      sh("xcrun stapler staple '#{app_path}'")
+      sh("xcrun stapler validate '#{app_path}'")
+      return
+    rescue => ex
+      raise ex if index == 5
+
+      UI.important(
+        "Staple failed; waiting 30 seconds before retry #{index + 2}/6"
+      )
+      sleep(30)
+    end
+  end
+end
+
+def shell_escape(value)
+  Shellwords.escape(value.to_s)
+end
+
+def detach_dmg_volume(volume_name)
+  Dir.glob("/Volumes/#{volume_name}*").each do |volume|
+    next unless File.directory?(volume)
+
+    sh("hdiutil detach -force #{shell_escape(volume)} || true")
+  end
+end
+
+def hdiutil_create_with_retry(volume_name, source_dir, dmg_path)
+  3.times do |index|
+    FileUtils.rm_f(dmg_path)
+    detach_dmg_volume(volume_name)
+
+    begin
+      sh(
+        "hdiutil create " \
+        "-volname #{shell_escape(volume_name)} " \
+        "-srcfolder #{shell_escape(source_dir)} " \
+        "-fs HFS+ " \
+        "-ov -format UDZO #{shell_escape(dmg_path)}"
+      )
+      return
+    rescue => ex
+      raise ex if index == 2
+
+      UI.important(
+        "hdiutil create failed; waiting 15 seconds before retry #{index + 2}/3"
+      )
+      sleep(15)
+    end
+  end
+end
+
+platform :mac do
+  # Private lane to validate Sparkle configuration
+  private_lane :validate_sparkle_config do
+    unless File.exist?(INFO_PLIST)
+      UI.user_error!("Info.plist not found at #{INFO_PLIST}")
+    end
+
+    # Extract SUPublicEDKey using PlistBuddy
+    eddsa_key = sh(
+      "/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' " \
+      "'#{INFO_PLIST}' 2>/dev/null || echo ''"
+    ).strip
+
+    if eddsa_key.empty?
+      UI.user_error!("SUPublicEDKey is not configured in Info.plist. Run ./Pods/Sparkle/bin/generate_keys to create one.")
+    end
+
+    UI.success("Sparkle EdDSA key is configured")
+  end
+
+  desc "Build release version of the app"
+  lane :build do
+    # Validate Sparkle configuration before building
+    validate_sparkle_config
+
+    # Ensure pods are installed
+    cocoapods(
+      podfile: PODFILE,
+      use_bundle_exec: false
+    )
+
+    # Build with Flutter
+    sh("cd '#{PROJECT_ROOT}' && flutter build macos --release")
+
+    UI.success("Build complete: #{APP_PATH}")
+  end
+
+  desc "Sign and notarize the app for distribution"
+  lane :notarize_app do |options|
+    # Get Developer ID from environment or parameter
+    developer_id = options[:developer_id] || ENV["DEVELOPER_ID"]
+
+    unless developer_id
+      UI.user_error!("DEVELOPER_ID is required. Set it via environment variable or pass developer_id: parameter")
+    end
+
+    UI.message("Signing app with Developer ID: #{developer_id}")
+
+    # Detect CI environment
+    is_ci = ENV["CI"] == "true" || ENV["GITHUB_ACTIONS"] == "true"
+
+    if is_ci
+      UI.message("Running in CI environment")
+      # In CI, the keychain is already set up by import_certificates.sh
+      # Set codesign to use the build keychain
+      ENV["CODESIGN_KEYCHAIN"] = "build.keychain"
+    end
+
+    # Sign nested frameworks first (inside-out signing)
+    frameworks_path = "#{APP_PATH}/Contents/Frameworks"
+    sparkle_path = "#{frameworks_path}/Sparkle.framework"
+
+    # Sign Sparkle's nested binaries first (required for notarization)
+    if File.directory?(sparkle_path)
+      # Find the actual version directory (usually "B")
+      versions_dir = "#{sparkle_path}/Versions"
+      version_letter = Dir.entries(versions_dir).find { |e| e.match?(/^[A-Z]$/) } rescue "B"
+      sparkle_version_path = "#{versions_dir}/#{version_letter}"
+
+      # Sign XPC services (innermost first)
+      xpc_services_path = "#{sparkle_version_path}/XPCServices"
+      if File.directory?(xpc_services_path)
+        Dir.glob("#{xpc_services_path}/*.xpc").each do |xpc|
+          sh("codesign --force --timestamp --options runtime --sign '#{developer_id}' '#{xpc}'")
+        end
+      end
+
+      # Sign Updater.app
+      updater_app = "#{sparkle_version_path}/Updater.app"
+      if File.exist?(updater_app)
+        sh("codesign --force --timestamp --options runtime --sign '#{developer_id}' '#{updater_app}'")
+      end
+
+      # Sign Autoupdate helper
+      autoupdate = "#{sparkle_version_path}/Autoupdate"
+      if File.exist?(autoupdate)
+        sh("codesign --force --timestamp --options runtime --sign '#{developer_id}' '#{autoupdate}'")
+      end
+    end
+
+    # Sign all frameworks (including Sparkle after its internals are signed)
+    if File.directory?(frameworks_path)
+      Dir.glob("#{frameworks_path}/*.framework").each do |framework|
+        sh("codesign --force --timestamp --options runtime --sign '#{developer_id}' '#{framework}'")
+      end
+      Dir.glob("#{frameworks_path}/*.dylib").each do |dylib|
+        sh("codesign --force --timestamp --options runtime --sign '#{developer_id}' '#{dylib}'")
+      end
+    end
+
+    # Sign the main app bundle with entitlements and hardened runtime
+    sh("codesign --force --timestamp --options runtime --entitlements '#{ENTITLEMENTS}' --sign '#{developer_id}' '#{APP_PATH}'")
+
+    # Verify signature
+    sh("codesign --verify --deep --strict --verbose=2 '#{APP_PATH}'")
+
+    UI.message("Notarizing app...")
+
+    # Use keychain profile for notarytool (set up via: xcrun notarytool store-credentials)
+    keychain_profile = ENV["NOTARYTOOL_PROFILE"] || "notarytool-profile"
+
+    # Create a zip for notarization
+    zip_path = "#{APP_PATH}.zip"
+    sh("ditto -c -k --rsrc --keepParent '#{APP_PATH}' '#{zip_path}'")
+
+    UI.message("Submitting to Apple for notarization using keychain profile '#{keychain_profile}'...")
+    UI.message("If this fails, run: xcrun notarytool store-credentials \"#{keychain_profile}\" --apple-id YOUR_APPLE_ID --team-id YOUR_TEAM_ID")
+
+    # Submit for notarization and wait for completion, capturing output
+    # Using --verbose to show progress during the wait
+    submit_output = sh("xcrun notarytool submit '#{zip_path}' --keychain-profile '#{keychain_profile}' --wait --verbose 2>&1")
+    UI.message(submit_output)
+
+    # Extract submission ID from output
+    submission_id = submit_output.match(/id: ([a-f0-9-]+)/i)&.[](1)
+
+    # Check if notarization was successful
+    if submit_output.include?("status: Accepted")
+      UI.success("Notarization accepted!")
+    else
+      UI.error("Notarization failed!")
+      if submission_id
+        UI.message("Fetching notarization log for submission #{submission_id}...")
+        log_output = sh("xcrun notarytool log '#{submission_id}' --keychain-profile '#{keychain_profile}' 2>&1", log: false) rescue "Could not fetch log"
+        UI.error("Notarization log:")
+        puts log_output
+      end
+      # Clean up zip before failing
+      sh("rm -f '#{zip_path}'")
+      UI.user_error!("Notarization was rejected by Apple. See log above for details.")
+    end
+
+    # Clean up zip
+    sh("rm -f '#{zip_path}'")
+
+    # Staple the notarization ticket to the app
+    UI.message("Stapling notarization ticket...")
+    staple_with_retry(APP_PATH)
+
+    UI.success("Notarization complete!")
+  end
+
+  desc "Create DMG for distribution"
+  lane :create_dmg do |options|
+    version = options[:version] || ENV["VERSION"] || sh("cd '#{PROJECT_ROOT}' && grep 'version:' pubspec.yaml | head -1 | awk '{print $2}' | cut -d'+' -f1").strip
+    artifact_prefix = ENV.fetch("ARTIFACT_PREFIX", "MakeItSoundNatural")
+    dmg_name = "#{artifact_prefix}-#{version}.dmg"
+    release_dir = File.join(
+      PROJECT_ROOT,
+      "build/macos/Build/Products/Release"
+    )
+    dmg_path = File.join(release_dir, dmg_name)
+
+    # Remove existing DMG
+    FileUtils.rm_f(dmg_path)
+    detach_dmg_volume(APP_NAME)
+
+    # Check if create-dmg is available
+    create_dmg_available = system("command -v create-dmg > /dev/null 2>&1")
+
+    if create_dmg_available
+      # Create DMG using create-dmg
+      sh(<<~CMD)
+        create-dmg \
+          --volname "#{APP_NAME}" \
+          --volicon "#{APP_ICON}" \
+          --window-pos 200 120 \
+          --window-size 600 400 \
+          --icon-size 100 \
+          --icon "#{APP_NAME}.app" 150 190 \
+          --hide-extension "#{APP_NAME}.app" \
+          --app-drop-link 450 185 \
+          "#{dmg_path}" \
+          "#{APP_PATH}"
+      CMD
+    else
+      # Fallback to hdiutil for CI environments
+      UI.message("create-dmg not found, using hdiutil")
+      Dir.mktmpdir("misn-dmg-") do |temp_dir|
+        FileUtils.cp_r(APP_PATH, temp_dir)
+        File.symlink("/Applications", File.join(temp_dir, "Applications"))
+        hdiutil_create_with_retry(APP_NAME, temp_dir, dmg_path)
+      end
+    end
+
+    UI.success("DMG created: #{dmg_path}")
+
+    # Output for CI
+    if ENV["GITHUB_OUTPUT"]
+      File.open(ENV["GITHUB_OUTPUT"], "a") do |f|
+        f.puts "dmg_path=#{dmg_path}"
+      end
+    end
+
+    dmg_path
+  end
+
+  desc "Sign DMG with Sparkle EdDSA key for auto-updates"
+  lane :sign_sparkle do
+    version = sh("cd '#{PROJECT_ROOT}' && grep 'version:' pubspec.yaml | head -1 | awk '{print $2}' | cut -d'+' -f1").strip
+    artifact_prefix = ENV.fetch("ARTIFACT_PREFIX", "MakeItSoundNatural")
+    dmg_path = "../../build/macos/Build/Products/Release/#{artifact_prefix}-#{version}.dmg"
+
+    unless File.exist?(dmg_path)
+      UI.user_error!("DMG not found at #{dmg_path}. Run create_dmg lane first.")
+    end
+
+    # Check if Sparkle signing tool is available
+    sign_tool_path = SPARKLE_SIGN_TOOL
+    unless File.exist?(sign_tool_path)
+      UI.important("Sparkle signing tool not found at #{sign_tool_path}")
+      UI.important("Skipping Sparkle signature (will need to be done manually)")
+      next ""
+    end
+
+    UI.message("Signing DMG with Sparkle EdDSA key...")
+    signature = sh("#{sign_tool_path} '#{dmg_path}'").strip
+
+    UI.success("Sparkle signature generated!")
+    UI.important("Add this edSignature to your appcast.xml:")
+    puts signature
+
+    # Output for CI
+    if ENV["GITHUB_OUTPUT"]
+      File.open(ENV["GITHUB_OUTPUT"], "a") do |f|
+        f.puts "sparkle_signature=#{signature}"
+      end
+    end
+
+    signature
+  end
+
+  desc "Full release: build, notarize, create DMG, and sign for Sparkle"
+  lane :release do |options|
+    is_ci = ENV["CI"] == "true" || ENV["GITHUB_ACTIONS"] == "true"
+
+    begin
+      build
+      notarize_app(options)
+      dmg_path = create_dmg
+      sparkle_sig = sign_sparkle
+
+      version = sh("cd '#{PROJECT_ROOT}' && grep 'version:' pubspec.yaml | head -1 | awk '{print $2}' | cut -d'+' -f1").strip
+
+      UI.success("Release #{version} complete!")
+
+      if is_ci
+        UI.message("DMG path: #{dmg_path}")
+        UI.message("Sparkle signature: #{sparkle_sig}") if sparkle_sig && !sparkle_sig.empty?
+      else
+        UI.important("Next steps:")
+        UI.message("1. Update appcast.xml with the new version and Sparkle signature")
+        UI.message("2. Commit and push changes")
+        UI.message("3. Create GitHub release and upload the DMG")
+      end
+
+      # Return data for CI
+      {
+        version: version,
+        dmg_path: dmg_path,
+        sparkle_signature: sparkle_sig
+      }
+    rescue => ex
+      UI.error("Release failed: #{ex.message}")
+      UI.error(ex.backtrace.join("\n")) if is_ci
+      raise ex
+    end
+  end
+
+  desc "Verify app signature and notarization"
+  lane :verify do
+    UI.message("Verifying code signature...")
+    sh("codesign --verify --deep --strict --verbose=2 '#{APP_PATH}'")
+
+    UI.message("Verifying notarization with Gatekeeper...")
+    sh("spctl --assess --type execute -vvv '#{APP_PATH}'")
+
+    UI.success("Verification complete!")
+  end
+end

@@ -1,0 +1,12 @@
+# Strict linting rules from Very Good Ventures (~86% of available lint rules)
+# https://pub.dev/packages/very_good_analysis
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+
+linter:
+  rules:
+    # Disable rules that require significant effort to adopt
+    public_member_api_docs: true

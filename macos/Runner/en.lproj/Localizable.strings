@@ -1,0 +1,26 @@
+/* Status bubble settings button */
+"Open Settings" = "Open Settings";
+
+/* Error message when API key is missing */
+"API key required" = "API key required";
+
+/* Error log message */
+"API Key not configured" = "API Key not configured";
+
+/* OpenAI quota exceeded error */
+"Quota exceeded. Check billing." = "Quota exceeded. Check billing.";
+
+/* OpenAI rate limit error */
+"Rate limited. Try again shortly." = "Rate limited. Try again shortly.";
+
+/* OpenAI invalid API key error */
+"Invalid API key. Check settings." = "Invalid API key. Check settings.";
+
+/* Network connectivity error */
+"Network error. Check connection." = "Network error. Check connection.";
+
+/* Menu bar item that opens the main window */
+"MenuBar.Open" = "Open";
+
+/* Menu bar item that quits the app */
+"MenuBar.Quit" = "Quit";

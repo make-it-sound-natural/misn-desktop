@@ -1,0 +1,26 @@
+/* Status bubble settings button */
+"Open Settings" = "Открыть настройки";
+
+/* Error message when API key is missing */
+"API key required" = "Требуется API-ключ";
+
+/* Error log message */
+"API Key not configured" = "API-ключ не настроен";
+
+/* OpenAI quota exceeded error */
+"Quota exceeded. Check billing." = "Лимит исчерпан. Проверьте оплату.";
+
+/* OpenAI rate limit error */
+"Rate limited. Try again shortly." = "Превышен лимит запросов. Повторите позже.";
+
+/* OpenAI invalid API key error */
+"Invalid API key. Check settings." = "Неверный API-ключ. Проверьте настройки.";
+
+/* Network connectivity error */
+"Network error. Check connection." = "Ошибка сети. Проверьте подключение.";
+
+/* Menu bar item that opens the main window */
+"MenuBar.Open" = "Открыть";
+
+/* Menu bar item that quits the app */
+"MenuBar.Quit" = "Выйти";

@@ -1,0 +1,8 @@
+# App identifier (bundle ID)
+app_identifier("dev.maximtop.makeitsoundnatural")
+
+# Apple ID email
+apple_id(ENV["APPLE_ID"])
+
+# Team ID from Apple Developer Portal
+team_id(ENV["TEAM_ID"])

@@ -1,0 +1,61 @@
+name: Bump Version
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel
+        required: true
+        type: choice
+        options: [stable, beta, nightly]
+      version:
+        description: Version without build suffix
+        required: true
+        type: string
+      build_number:
+        description: Build number or auto
+        required: true
+        default: auto
+        type: string
+      target_branch:
+        description: Branch to commit to
+        required: true
+        default: master
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: bump-version-${{ inputs.target_branch }}
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.target_branch }}
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - name: Validate version
+        run: |
+          dart run tool/release_manager.dart validate \
+            --channel "${{ inputs.channel }}" \
+            --version "${{ inputs.version }}" \
+            --source-branch "${{ inputs.target_branch }}"
+      - name: Bump pubspec version
+        run: |
+          dart run tool/release_manager.dart bump \
+            --version "${{ inputs.version }}" \
+            --build-number "${{ inputs.build_number }}"
+      - name: Commit version bump
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml
+          git commit -m "Bump ${{ inputs.channel }} version to ${{ inputs.version }}" || exit 0
+          git push origin HEAD:${{ inputs.target_branch }}

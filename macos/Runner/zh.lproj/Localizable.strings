@@ -1,0 +1,26 @@
+/* Status bubble settings button */
+"Open Settings" = "打开设置";
+
+/* Error message when API key is missing */
+"API key required" = "需要 API 密钥";
+
+/* Error log message */
+"API Key not configured" = "API 密钥未配置";
+
+/* OpenAI quota exceeded error */
+"Quota exceeded. Check billing." = "配额已用尽。请检查账单。";
+
+/* OpenAI rate limit error */
+"Rate limited. Try again shortly." = "请求频率受限。请稍后重试。";
+
+/* OpenAI invalid API key error */
+"Invalid API key. Check settings." = "无效的 API 密钥。请检查设置。";
+
+/* Network connectivity error */
+"Network error. Check connection." = "网络错误。请检查连接。";
+
+/* Menu bar item that opens the main window */
+"MenuBar.Open" = "打开";
+
+/* Menu bar item that quits the app */
+"MenuBar.Quit" = "退出";

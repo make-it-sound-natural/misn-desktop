@@ -1,0 +1,26 @@
+/* Status bubble settings button */
+"Open Settings" = "فتح الإعدادات";
+
+/* Error message when API key is missing */
+"API key required" = "مفتاح API مطلوب";
+
+/* Error log message */
+"API Key not configured" = "مفتاح API غير مُعدّ";
+
+/* OpenAI quota exceeded error */
+"Quota exceeded. Check billing." = "تم تجاوز الحصة. تحقق من الفواتير.";
+
+/* OpenAI rate limit error */
+"Rate limited. Try again shortly." = "تم تجاوز الحد. حاول مجدداً قريباً.";
+
+/* OpenAI invalid API key error */
+"Invalid API key. Check settings." = "مفتاح API غير صالح. تحقق من الإعدادات.";
+
+/* Network connectivity error */
+"Network error. Check connection." = "خطأ في الشبكة. تحقق من الاتصال.";
+
+/* Menu bar item that opens the main window */
+"MenuBar.Open" = "فتح";
+
+/* Menu bar item that quits the app */
+"MenuBar.Quit" = "إنهاء";

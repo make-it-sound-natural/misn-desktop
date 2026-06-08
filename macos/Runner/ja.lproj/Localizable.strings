@@ -1,0 +1,26 @@
+/* Status bubble settings button */
+"Open Settings" = "設定を開く";
+
+/* Error message when API key is missing */
+"API key required" = "APIキーが必要です";
+
+/* Error log message */
+"API Key not configured" = "APIキーが未設定です";
+
+/* OpenAI quota exceeded error */
+"Quota exceeded. Check billing." = "利用上限超過。請求を確認。";
+
+/* OpenAI rate limit error */
+"Rate limited. Try again shortly." = "レート制限中。しばらく待って再試行。";
+
+/* OpenAI invalid API key error */
+"Invalid API key. Check settings." = "無効なAPIキー。設定を確認。";
+
+/* Network connectivity error */
+"Network error. Check connection." = "ネットワークエラー。接続を確認。";
+
+/* Menu bar item that opens the main window */
+"MenuBar.Open" = "開く";
+
+/* Menu bar item that quits the app */
+"MenuBar.Quit" = "終了";

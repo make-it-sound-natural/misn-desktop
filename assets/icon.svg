@@ -1,0 +1,38 @@
+ <svg width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="112" y="112" width="800" height="800" rx="180" fill="#FFFFFF"/>
+
+  <!-- Precise 6-segment circle using exact arc coordinates -->
+  <!-- Circle: center (512,512), radius 280 -->
+  <!-- Each segment is exactly 60 degrees -->
+
+  <!-- Segment 1: Red (0° to 60°) - right to bottom-right -->
+  <path d="M792,512 A280,280 0 0,1 652,754" stroke="#E53935" stroke-width="55" stroke-linecap="round" fill="none"/>
+
+  <!-- Segment 2: Orange (60° to 120°) - bottom-right to bottom-left -->
+  <path d="M652,754 A280,280 0 0,1 372,754" stroke="#FB8C00" stroke-width="55" stroke-linecap="round" fill="none"/>
+
+  <!-- Segment 3: Green (120° to 180°) - bottom-left to left -->
+  <path d="M372,754 A280,280 0 0,1 232,512" stroke="#43A047" stroke-width="55" stroke-linecap="round" fill="none"/>
+
+  <!-- Segment 4: Blue (180° to 240°) - left to top-left -->
+  <path d="M232,512 A280,280 0 0,1 372,270" stroke="#1E88E5" stroke-width="55" stroke-linecap="round" fill="none"/>
+
+  <!-- Segment 5: Purple (240° to 300°) - top-left to top-right -->
+  <path d="M372,270 A280,280 0 0,1 652,270" stroke="#8E24AA" stroke-width="55" stroke-linecap="round" fill="none"/>
+
+  <!-- Segment 6: Pink (300° to 360°) - top-right to right -->
+  <path d="M652,270 A280,280 0 0,1 792,512" stroke="#D81B60" stroke-width="55" stroke-linecap="round" fill="none"/>
+
+  <!-- Wave with gradient showing unity -->
+  <path d="M300,512 C370,340 450,340 512,512 C574,684 654,684 724,512" stroke="url(#unity_wave)" stroke-width="50" stroke-linecap="round" fill="none"/>
+
+  <defs>
+    <linearGradient id="unity_wave" x1="300" y1="512" x2="724" y2="512" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E53935"/>
+      <stop offset="0.25" stop-color="#FB8C00"/>
+      <stop offset="0.5" stop-color="#43A047"/>
+      <stop offset="0.75" stop-color="#1E88E5"/>
+      <stop offset="1" stop-color="#8E24AA"/>
+    </linearGradient>
+  </defs>
+</svg>
