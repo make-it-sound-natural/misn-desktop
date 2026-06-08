@@ -32,7 +32,9 @@ void main() {
               return {
                 'version': version,
                 'build': build,
-                if (releaseChannel != null) 'releaseChannel': releaseChannel,
+                ...?(releaseChannel == null
+                    ? null
+                    : {'releaseChannel': releaseChannel}),
               };
             case 'getLastUpdateCheck':
               return lastUpdateCheck;

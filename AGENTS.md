@@ -116,6 +116,12 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
 
   For a quick pass without Swift: `make format-check` then `flutter analyze`.
 
+- Before committing and pushing remotely, run the relevant checks for the
+  changed surface. At minimum for Dart/Flutter changes, run
+  `make lint-flutter`; for Swift changes, also run `make lint-swift` and a
+  debug macOS build. If a required check is blocked by the local environment,
+  report the exact blocker before pushing.
+
 - You MUST add or update **unit/widget tests** for changed Dart logic and
   **XCTest** when changing native behavior covered by `RunnerTests/`.
 
