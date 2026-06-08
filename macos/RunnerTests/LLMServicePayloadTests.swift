@@ -12,6 +12,8 @@ final class LLMServicePayloadTests: XCTestCase {
             provider: "openai",
             apiKey: "key",
             openRouterApiKey: "",
+            customProviderApiKey: "",
+            customProviderBaseUrl: nil,
             model: "gpt-5.4-mini",
             customPrompt: nil,
             context: "Slack thread about pnpm and axios security",
@@ -48,6 +50,8 @@ final class LLMServicePayloadTests: XCTestCase {
             provider: "openai",
             apiKey: "key",
             openRouterApiKey: "",
+            customProviderApiKey: "",
+            customProviderBaseUrl: nil,
             model: "gpt-5.4-mini",
             customPrompt: nil,
             context: "private context",
@@ -67,6 +71,8 @@ final class LLMServicePayloadTests: XCTestCase {
             provider: "openai",
             apiKey: "key",
             openRouterApiKey: "",
+            customProviderApiKey: "",
+            customProviderBaseUrl: nil,
             model: "gpt-5.4-mini",
             customPrompt: nil,
             context: nil,
@@ -94,6 +100,8 @@ final class LLMServicePayloadTests: XCTestCase {
             provider: "openai",
             apiKey: "key",
             openRouterApiKey: "",
+            customProviderApiKey: "",
+            customProviderBaseUrl: nil,
             model: "gpt-5.4-mini",
             customPrompt: nil,
             context: nil,
@@ -130,6 +138,8 @@ final class LLMServicePayloadTests: XCTestCase {
             provider: AppDefaults.openRouterProvider,
             apiKey: AppDefaults.apiKey,
             openRouterApiKey: "openrouter-key",
+            customProviderApiKey: "",
+            customProviderBaseUrl: nil,
             model: "openai/gpt-5-mini:nitro",
             customPrompt: nil,
             context: nil,
@@ -152,5 +162,91 @@ final class LLMServicePayloadTests: XCTestCase {
             imageURL["url"] as? String,
             "data:image/jpeg;base64,abc123"
         )
+    }
+
+    func testCustomProviderRequestUsesNormalizedUrlAndCustomKey() throws {
+        let service = LLMService()
+        let config = LLMService.Configuration(
+            provider: "tokenguard",
+            apiKey: "openai-key",
+            openRouterApiKey: "openrouter-key",
+            customProviderApiKey: "custom-key",
+            customProviderBaseUrl: "https://tokenguard.int.agrd.dev/api/v1",
+            model: "kimi-k2.6",
+            customPrompt: nil,
+            context: nil,
+            targetProfileInstruction: nil,
+            screenshotAttachment: nil
+        )
+
+        let request = try XCTUnwrap(service.buildRequestForTesting(
+            text: "hello",
+            config: config,
+            systemInstructions: "system"
+        ))
+
+        XCTAssertEqual(
+            request.url?.absoluteString,
+            "https://tokenguard.int.agrd.dev/api/v1/chat/completions"
+        )
+        XCTAssertEqual(
+            request.value(forHTTPHeaderField: "Authorization"),
+            "Bearer custom-key"
+        )
+        XCTAssertNil(request.value(forHTTPHeaderField: "X-Title"))
+    }
+
+    func testCustomProviderDoesNotDoubleAppendChatCompletions() throws {
+        let service = LLMService()
+        let config = LLMService.Configuration(
+            provider: "tokenguard",
+            apiKey: "",
+            openRouterApiKey: "",
+            customProviderApiKey: "custom-key",
+            customProviderBaseUrl:
+                "https://tokenguard.int.agrd.dev/api/v1/chat/completions",
+            model: "kimi-k2.6",
+            customPrompt: nil,
+            context: nil,
+            targetProfileInstruction: nil,
+            screenshotAttachment: nil
+        )
+
+        let request = try XCTUnwrap(service.buildRequestForTesting(
+            text: "hello",
+            config: config,
+            systemInstructions: "system"
+        ))
+
+        XCTAssertEqual(
+            request.url?.absoluteString,
+            "https://tokenguard.int.agrd.dev/api/v1/chat/completions"
+        )
+    }
+
+    func testCustomProviderFallbackPayloadOmitsResponseFormat() {
+        let service = LLMService()
+        let config = LLMService.Configuration(
+            provider: "tokenguard",
+            apiKey: "",
+            openRouterApiKey: "",
+            customProviderApiKey: "custom-key",
+            customProviderBaseUrl: "https://tokenguard.int.agrd.dev/api/v1",
+            model: "deepseek-v4-flash",
+            customPrompt: nil,
+            context: nil,
+            targetProfileInstruction: nil,
+            screenshotAttachment: nil
+        )
+
+        let payload = service.buildPayloadForTesting(
+            text: "hello",
+            config: config,
+            systemInstructions: "Return only JSON.",
+            includeResponseFormat: false
+        )
+
+        XCTAssertNil(payload["response_format"])
+        XCTAssertEqual(payload["model"] as? String, "deepseek-v4-flash")
     }
 }

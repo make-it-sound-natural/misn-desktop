@@ -16,6 +16,8 @@ class LLMService {
         let provider: String
         let apiKey: String
         let openRouterApiKey: String
+        let customProviderApiKey: String
+        let customProviderBaseUrl: String?
         let model: String
         let customPrompt: String?
         let context: String?
@@ -47,6 +49,17 @@ class LLMService {
             "Target profile instruction: " +
             targetProfileLogValue(config.targetProfileInstruction)
         )
+
+        if let configurationError = configurationError(for: config) {
+            delegate?.llmService(
+                self,
+                didFailWithError: configurationError,
+                isAuthenticationFailure: false,
+                provider: provider
+            )
+            completion(nil, configurationError)
+            return
+        }
 
         #if DEBUG
         debugLog("═══════════════ LLM REQUEST ═══════════════")
@@ -84,7 +97,8 @@ class LLMService {
         guard let request = buildRequest(
             text: text,
             config: config,
-            systemInstructions: finalInstructionsWithScreenshot
+            systemInstructions: finalInstructionsWithScreenshot,
+            includeResponseFormat: true
         ) else {
             delegate?.llmService(
                 self,
@@ -96,10 +110,17 @@ class LLMService {
             return
         }
 
+        let fallbackRequest = responseFormatFallbackRequest(
+            text: text,
+            config: config,
+            systemInstructions: finalInstructionsWithScreenshot
+        )
+
         executeRequest(
             request,
             provider: provider,
             model: model,
+            fallbackRequest: fallbackRequest,
             completion: completion
         )
     }
@@ -158,13 +179,10 @@ class LLMService {
     private func buildRequest(
         text: String,
         config: Configuration,
-        systemInstructions: String
+        systemInstructions: String,
+        includeResponseFormat: Bool
     ) -> URLRequest? {
-        let baseURL = config.provider == "openrouter"
-            ? "https://openrouter.ai/api/v1/chat/completions"
-            : "https://api.openai.com/v1/chat/completions"
-
-        guard let url = URL(string: baseURL) else {
+        guard let url = requestUrl(for: config) else {
             log("Error: Invalid URL for provider \(config.provider)")
             return nil
         }
@@ -176,7 +194,8 @@ class LLMService {
         let payload = buildPayload(
             text: text,
             config: config,
-            systemInstructions: systemInstructions
+            systemInstructions: systemInstructions,
+            includeResponseFormat: includeResponseFormat
         )
 
         do {
@@ -188,13 +207,123 @@ class LLMService {
         }
     }
 
+    private func requestUrl(for config: Configuration) -> URL? {
+        let rawUrl: String
+        if config.provider == AppDefaults.openRouterProvider {
+            rawUrl = "https://openrouter.ai/api/v1/chat/completions"
+        } else if config.provider == "openai" {
+            rawUrl = "https://api.openai.com/v1/chat/completions"
+        } else {
+            rawUrl = normalizeChatCompletionsUrl(
+                config.customProviderBaseUrl ?? ""
+            )
+        }
+        return URL(string: rawUrl)
+    }
+
+    private func normalizeChatCompletionsUrl(_ rawUrl: String) -> String {
+        let trimmed = rawUrl.trimmingCharacters(in: .whitespacesAndNewlines)
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        guard !trimmed.isEmpty else { return "" }
+        if trimmed.hasSuffix("/chat/completions") {
+            return trimmed
+        }
+        return "\(trimmed)/chat/completions"
+    }
+
     private func configureRequestHeaders(_ request: inout URLRequest, config: Configuration) {
-        let activeApiKey = config.provider == "openrouter" ? config.openRouterApiKey : config.apiKey
+        let activeApiKey = activeApiKey(config: config)
         request.setValue("Bearer \(activeApiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if config.provider == "openrouter" {
+        if config.provider == AppDefaults.openRouterProvider {
             request.setValue(AppDefaults.appName, forHTTPHeaderField: "X-Title")
         }
+    }
+
+    private func activeApiKey(config: Configuration) -> String {
+        if config.provider == AppDefaults.openRouterProvider {
+            return config.openRouterApiKey
+        }
+        if config.provider == "openai" {
+            return config.apiKey
+        }
+        return config.customProviderApiKey
+    }
+}
+
+extension LLMService {
+    private func configurationError(for config: Configuration) -> String? {
+        if activeApiKey(config: config)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .isEmpty {
+            return "Add an API key for the selected provider in Settings."
+        }
+
+        if config.model
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .isEmpty {
+            return "Add a model for the selected provider in Settings."
+        }
+
+        return nil
+    }
+
+    private func isBuiltInProvider(_ provider: String) -> Bool {
+        provider == AppDefaults.openRouterProvider || provider == "openai"
+    }
+
+    private func responseFormatFallbackRequest(
+        text: String,
+        config: Configuration,
+        systemInstructions: String
+    ) -> URLRequest? {
+        guard !isBuiltInProvider(config.provider) else { return nil }
+
+        return buildRequest(
+            text: text,
+            config: config,
+            systemInstructions: fallbackJsonInstructions(systemInstructions),
+            includeResponseFormat: false
+        )
+    }
+
+    private func fallbackJsonInstructions(_ systemInstructions: String) -> String {
+        systemInstructions + """
+
+
+<provider_compatibility_output_format>
+The provider does not support the response_format request parameter. Return
+ONLY a valid JSON object with exactly these string keys: balanced, casual,
+formal, concise. Do not wrap it in markdown. Do not add commentary.
+</provider_compatibility_output_format>
+"""
+    }
+
+    func buildRequestForTesting(
+        text: String,
+        config: Configuration,
+        systemInstructions: String
+    ) -> URLRequest? {
+        buildRequest(
+            text: text,
+            config: config,
+            systemInstructions: systemInstructions,
+            includeResponseFormat: true
+        )
+    }
+
+    func buildPayloadForTesting(
+        text: String,
+        config: Configuration,
+        systemInstructions: String,
+        includeResponseFormat: Bool
+    ) -> [String: Any] {
+        buildPayload(
+            text: text,
+            config: config,
+            systemInstructions: systemInstructions,
+            includeResponseFormat: includeResponseFormat
+        )
     }
 
     func buildPayloadForTesting(
@@ -205,7 +334,8 @@ class LLMService {
         buildPayload(
             text: text,
             config: config,
-            systemInstructions: systemInstructions
+            systemInstructions: systemInstructions,
+            includeResponseFormat: true
         )
     }
 
@@ -222,7 +352,8 @@ class LLMService {
     private func buildPayload(
         text: String,
         config: Configuration,
-        systemInstructions: String
+        systemInstructions: String,
+        includeResponseFormat: Bool
     ) -> [String: Any] {
         var payload: [String: Any] = [
             "model": config.model,
@@ -235,8 +366,10 @@ class LLMService {
                         screenshotAttachment: config.screenshotAttachment
                     )
                 ]
-            ],
-            "response_format": [
+            ]
+        ]
+        if includeResponseFormat {
+            payload["response_format"] = [
                 "type": "json_schema",
                 "json_schema": [
                     "name": "correction_variants",
@@ -254,7 +387,7 @@ class LLMService {
                     ]
                 ]
             ]
-        ]
+        }
         if config.provider == "openai" {
             payload["service_tier"] = "priority"
         }
@@ -301,6 +434,7 @@ they are needed to preserve the selected text's intended meaning.
         _ request: URLRequest,
         provider: String,
         model: String,
+        fallbackRequest: URLRequest? = nil,
         completion: @escaping (String?, String?) -> Void
     ) {
         let startTime = Date()
@@ -335,10 +469,28 @@ they are needed to preserve the selected text's intended meaning.
             self.log("HTTP Status Code: \(httpResponse.statusCode)")
 
             guard httpResponse.statusCode == 200 else {
-                self.handleErrorResponse(
-                    httpResponse.statusCode,
+                let errorInfo = self.parseErrorInfo(
+                    from: data,
+                    statusCode: httpResponse.statusCode
+                )
+                if let fallbackRequest = fallbackRequest,
+                   self.shouldRetryWithoutResponseFormat(errorInfo.message) {
+                    self.log(
+                        "Retrying custom provider request without " +
+                        "response_format."
+                    )
+                    self.executeRequest(
+                        fallbackRequest,
+                        provider: provider,
+                        model: model,
+                        completion: completion
+                    )
+                    return
+                }
+
+                self.reportErrorResponse(
+                    errorInfo,
                     provider: provider,
-                    data: data,
                     completion: completion
                 )
                 return
@@ -382,13 +534,11 @@ they are needed to preserve the selected text's intended meaning.
         completion(nil, nil)
     }
 
-    private func handleErrorResponse(
-        _ statusCode: Int,
+    private func reportErrorResponse(
+        _ errorInfo: LLMErrorMessageParser.ErrorInfo,
         provider: String,
-        data: Data?,
         completion: @escaping (String?, String?) -> Void
     ) {
-        let errorInfo = parseErrorInfo(from: data, statusCode: statusCode)
         delegate?.llmService(
             self,
             didFailWithError: errorInfo.message,
@@ -396,6 +546,14 @@ they are needed to preserve the selected text's intended meaning.
             provider: provider
         )
         completion(nil, errorInfo.message)
+    }
+
+    private func shouldRetryWithoutResponseFormat(_ message: String) -> Bool {
+        let lowercased = message.lowercased()
+        return lowercased.contains("response_format") &&
+            (lowercased.contains("unavailable") ||
+             lowercased.contains("unsupported") ||
+             lowercased.contains("not support"))
     }
 
     private func parseErrorInfo(

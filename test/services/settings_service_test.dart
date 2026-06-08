@@ -224,11 +224,57 @@ void main() {
           });
 
       final service = SettingsService();
-      await service.setOpenRouterApiKey('openrouter-key');
+      await service.setOpenRouterApiKey('  openrouter-key  ');
 
       expect(secureValues['openrouter'], 'openrouter-key');
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('openrouter_api_key'), isNull);
+    });
+
+    test('stores custom provider API key outside shared preferences', () async {
+      final secureValues = <String, String>{};
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            switch (call.method) {
+              case MethodChannelMethods.storeCustomProviderApiKey:
+                final args = Map<String, Object?>.from(call.arguments! as Map);
+                secureValues[args['provider']! as String] =
+                    args['apiKey']! as String;
+                return null;
+              case MethodChannelMethods.getStoredCustomProviderApiKey:
+                final args = Map<String, Object?>.from(call.arguments! as Map);
+                return secureValues[args['provider']! as String] ?? '';
+            }
+            throw MissingPluginException();
+          });
+
+      final service = SettingsService();
+      await service.setCustomProviderApiKey('tokenguard', '  secret-key  ');
+
+      expect(await service.getCustomProviderApiKey('tokenguard'), 'secret-key');
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('custom_provider_api_key_tokenguard'), isNull);
+    });
+
+    test('trims OpenAI API key before secure storage', () async {
+      final secureValues = <String, String>{};
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            switch (call.method) {
+              case MethodChannelMethods.storeApiKey:
+                secureValues['openai'] = call.arguments as String;
+                return null;
+              case MethodChannelMethods.getStoredApiKey:
+                return secureValues['openai'];
+            }
+            throw MissingPluginException();
+          });
+
+      final service = SettingsService();
+      await service.setApiKey('  openai-key  ');
+
+      expect(secureValues['openai'], 'openai-key');
+      expect(await service.getApiKey(), 'openai-key');
     });
 
     test('checks OpenAI key for active OpenAI provider', () async {
@@ -264,6 +310,79 @@ void main() {
       expect(await service.hasApiKeyForActiveProvider(), isFalse);
     });
 
+    test('checks custom key for active custom provider', () async {
+      SharedPreferences.setMockInitialValues({
+        'api_provider': 'tokenguard',
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method ==
+                MethodChannelMethods.getStoredCustomProviderApiKey) {
+              return 'custom-key';
+            }
+            throw MissingPluginException();
+          });
+      final service = SettingsService();
+
+      expect(await service.hasApiKeyForActiveProvider(), isTrue);
+    });
+
+    test(
+      'requires visible model for active custom provider readiness',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'api_provider': 'tokenguard',
+          'llm_custom_providers': [
+            jsonEncode({
+              'id': 'tokenguard',
+              'displayName': 'TokenGuard',
+              'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
+              'isBuiltIn': false,
+            }),
+          ],
+        });
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              if (call.method ==
+                  MethodChannelMethods.getStoredCustomProviderApiKey) {
+                return 'custom-key';
+              }
+              throw MissingPluginException();
+            });
+        final service = SettingsService();
+
+        expect(await service.hasReadyActiveProviderForRewrite(), isFalse);
+      },
+    );
+
+    test(
+      'accepts custom provider readiness with key and visible model',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'api_provider': 'tokenguard',
+          'llm_custom_models': [
+            jsonEncode({
+              'provider': 'tokenguard',
+              'slug': 'kimi-k2.6',
+              'isBuiltIn': false,
+              'isHidden': false,
+            }),
+          ],
+        });
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              if (call.method ==
+                  MethodChannelMethods.getStoredCustomProviderApiKey) {
+                return 'custom-key';
+              }
+              throw MissingPluginException();
+            });
+        final service = SettingsService();
+
+        expect(await service.hasReadyActiveProviderForRewrite(), isTrue);
+      },
+    );
+
     test('records provider auth failure without storing the API key', () async {
       final service = SettingsService();
 
@@ -293,6 +412,37 @@ void main() {
         await service.getProviderAuthFailure(AppDefaults.openRouterProvider),
         isNull,
       );
+    });
+
+    test('custom provider auth failure is provider scoped', () async {
+      final secureValues = <String, String>{};
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            switch (call.method) {
+              case MethodChannelMethods.storeCustomProviderApiKey:
+                final args = Map<String, Object?>.from(call.arguments! as Map);
+                secureValues[args['provider']! as String] =
+                    args['apiKey']! as String;
+                return null;
+            }
+            throw MissingPluginException();
+          });
+      final service = SettingsService();
+
+      await service.recordProviderAuthFailure(
+        provider: 'tokenguard',
+        message: 'Invalid API key. Check settings.',
+      );
+
+      expect(
+        (await service.getProviderAuthFailure('tokenguard'))?.message,
+        'Invalid API key. Check settings.',
+      );
+
+      await service.setCustomProviderApiKey('tokenguard', 'new-key');
+
+      expect(await service.getProviderAuthFailure('tokenguard'), isNull);
+      expect(secureValues['tokenguard'], 'new-key');
     });
   });
 }

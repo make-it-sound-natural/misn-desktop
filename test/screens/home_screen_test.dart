@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -323,7 +324,10 @@ void main() {
 
       await pumpHomeScreen(tester);
 
-      expect(find.text('API key required for corrections'), findsNothing);
+      expect(
+        find.text('Provider setup required for corrections'),
+        findsNothing,
+      );
     });
 
     testWidgets('shows banner when OpenRouter provider has no key', (
@@ -339,7 +343,10 @@ void main() {
 
       await pumpHomeScreen(tester);
 
-      expect(find.text('API key required for corrections'), findsOneWidget);
+      expect(
+        find.text('Provider setup required for corrections'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('shows banner when OpenAI provider has no OpenAI key', (
@@ -355,7 +362,51 @@ void main() {
 
       await pumpHomeScreen(tester);
 
-      expect(find.text('API key required for corrections'), findsOneWidget);
+      expect(
+        find.text('Provider setup required for corrections'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows banner when custom provider has no visible model', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({
+        'target_profile_selection_confirmed': true,
+        'target_profile_selected_id': 'americanEnglish',
+        'api_provider': 'tokenguard',
+        'llm_custom_providers': [
+          jsonEncode({
+            'id': 'tokenguard',
+            'displayName': 'TokenGuard',
+            'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
+            'isBuiltIn': false,
+          }),
+        ],
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async {
+              switch (call.method) {
+                case MethodChannelMethods.checkAccessibilityPermissions:
+                  return false;
+                case MethodChannelMethods.getDefaultPrompt:
+                  return 'Default prompt text';
+                case MethodChannelMethods.getStoredCustomProviderApiKey:
+                  return 'custom-key';
+                default:
+                  return null;
+              }
+            },
+          );
+
+      await pumpHomeScreen(tester);
+
+      expect(
+        find.text('Provider setup required for corrections'),
+        findsOneWidget,
+      );
     });
   });
 

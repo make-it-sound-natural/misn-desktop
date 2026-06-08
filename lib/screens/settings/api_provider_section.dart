@@ -5,8 +5,10 @@ import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/model_catalog_defaults.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/models/llm_model_entry.dart';
+import 'package:make_it_sound_natural/models/llm_provider_entry.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
+import 'package:make_it_sound_natural/services/provider_catalog_service.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
 import 'package:make_it_sound_natural/services/speed_tracking_service.dart';
@@ -32,39 +34,85 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
   final _apiKeyFocusNode = FocusNode();
   final _openRouterApiKeyController = TextEditingController();
   final _openRouterApiKeyFocusNode = FocusNode();
+  final _customProviderApiKeyController = TextEditingController();
+  final _customProviderApiKeyFocusNode = FocusNode();
   final _settingsService = SettingsService();
   final _shortcutService = ShortcutService();
   final _speedTrackingService = SpeedTrackingService();
   final _modelCatalogService = ModelCatalogService();
+  final _providerCatalogService = ProviderCatalogService();
 
   String _selectedProvider = AppDefaults.apiProvider;
   String _selectedModel = AppDefaults.model;
   Map<String, List<String>> _visibleModelsByProvider = {};
   List<LlmModelEntry> _openRouterCatalog = [];
+  List<LlmProviderEntry> _providers = [];
   Map<String, ({double? avg, int count})> _speedStats = {};
   ProviderAuthFailure? _activeAuthFailure;
   String _lastSavedApiKey = '';
   String _lastSavedOpenRouterApiKey = '';
+  String _lastSavedCustomProviderApiKey = '';
   bool _isApiKeyVisible = false;
 
   List<String> get _availableModels =>
       _visibleModelsByProvider[_selectedProvider] ??
       ModelCatalogDefaults.modelsForProvider(_selectedProvider);
 
-  TextEditingController get _activeApiKeyController =>
-      _selectedProvider == 'openrouter'
-      ? _openRouterApiKeyController
-      : _apiKeyController;
+  LlmProviderEntry? get _selectedProviderEntry {
+    for (final provider in _providers) {
+      if (provider.id == _selectedProvider) return provider;
+    }
+    return null;
+  }
 
-  FocusNode get _activeApiKeyFocusNode => _selectedProvider == 'openrouter'
-      ? _openRouterApiKeyFocusNode
-      : _apiKeyFocusNode;
+  bool get _isCustomProvider => _selectedProviderEntry?.isBuiltIn == false;
 
-  String get _apiKeyHint =>
-      _selectedProvider == 'openrouter' ? 'sk-or-...' : 'sk-...';
+  List<LlmProviderEntry> get _providerOptions {
+    if (_providers.isNotEmpty) return _providers;
+    return const [
+      LlmProviderEntry(
+        id: AppDefaults.openRouterProvider,
+        displayName: 'OpenRouter',
+        baseUrl: 'https://openrouter.ai/api/v1',
+        isBuiltIn: true,
+      ),
+      LlmProviderEntry(
+        id: AppDefaults.openAiProvider,
+        displayName: 'OpenAI',
+        baseUrl: 'https://api.openai.com/v1',
+        isBuiltIn: true,
+      ),
+    ];
+  }
+
+  TextEditingController get _activeApiKeyController {
+    if (_selectedProvider == AppDefaults.openRouterProvider) {
+      return _openRouterApiKeyController;
+    }
+    if (_selectedProvider == AppDefaults.openAiProvider) {
+      return _apiKeyController;
+    }
+    return _customProviderApiKeyController;
+  }
+
+  FocusNode get _activeApiKeyFocusNode {
+    if (_selectedProvider == AppDefaults.openRouterProvider) {
+      return _openRouterApiKeyFocusNode;
+    }
+    if (_selectedProvider == AppDefaults.openAiProvider) {
+      return _apiKeyFocusNode;
+    }
+    return _customProviderApiKeyFocusNode;
+  }
+
+  String get _apiKeyHint {
+    if (_selectedProvider == AppDefaults.openRouterProvider) return 'sk-or-...';
+    if (_selectedProvider == AppDefaults.openAiProvider) return 'sk-...';
+    return 'Bearer token';
+  }
 
   String _normalizeProvider(String provider) {
-    if (ModelCatalogDefaults.hasProvider(provider)) {
+    if (_providers.any((entry) => entry.id == provider)) {
       return provider;
     }
     return AppDefaults.apiProvider;
@@ -91,6 +139,9 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     unawaited(_loadSettings());
     _apiKeyFocusNode.addListener(_onApiKeyFocusChange);
     _openRouterApiKeyFocusNode.addListener(_onOpenRouterApiKeyFocusChange);
+    _customProviderApiKeyFocusNode.addListener(
+      _onCustomProviderApiKeyFocusChange,
+    );
   }
 
   @override
@@ -101,22 +152,33 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     _openRouterApiKeyFocusNode
       ..removeListener(_onOpenRouterApiKeyFocusChange)
       ..dispose();
+    _customProviderApiKeyFocusNode
+      ..removeListener(_onCustomProviderApiKeyFocusChange)
+      ..dispose();
     _apiKeyController.dispose();
     _openRouterApiKeyController.dispose();
+    _customProviderApiKeyController.dispose();
     super.dispose();
   }
 
   Future<void> _loadSettings() async {
     final provider = await _settingsService.getProvider();
+    final providers = await _providerCatalogService.allProviders();
     final apiKey = await _settingsService.getApiKey();
     final openRouterApiKey = await _settingsService.getOpenRouterApiKey();
+    final customProviderApiKey = await _settingsService.getCustomProviderApiKey(
+      provider,
+    );
     final model = await _settingsService.getModel();
     final speedStats = await _speedTrackingService.getAllStats();
-    final visibleModelsByProvider = await _loadVisibleModelsByProvider();
-    final openRouterCatalog = await _modelCatalogService.allModels(
-      'openrouter',
+    final visibleModelsByProvider = await _loadVisibleModelsByProvider(
+      providers,
     );
+    _providers = providers;
     final resolvedProvider = _normalizeProvider(provider);
+    final openRouterCatalog = await _modelCatalogService.allModels(
+      resolvedProvider,
+    );
     final resolvedModel = _resolveModelForProvider(
       resolvedProvider,
       model,
@@ -136,9 +198,10 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
         _lastSavedApiKey = apiKey;
         _openRouterApiKeyController.text = openRouterApiKey;
         _lastSavedOpenRouterApiKey = openRouterApiKey;
-        if (resolvedModel != null) {
-          _selectedModel = resolvedModel;
-        }
+        _customProviderApiKeyController.text = customProviderApiKey;
+        _lastSavedCustomProviderApiKey = customProviderApiKey;
+        _providers = providers;
+        _selectedModel = resolvedModel ?? '';
         _speedStats = speedStats;
       });
     }
@@ -148,23 +211,33 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
       await _shortcutService.setProvider(resolvedProvider);
     }
 
-    if (resolvedModel != null && resolvedModel != model) {
-      await _settingsService.setModel(resolvedModel);
-      await _shortcutService.setModel(resolvedModel);
+    final modelToSync = resolvedModel ?? '';
+    if (modelToSync != model) {
+      await _settingsService.setModel(modelToSync);
+      await _shortcutService.setModel(modelToSync);
     }
+    await _syncSelectedCustomProviderConfig();
   }
 
-  Future<Map<String, List<String>>> _loadVisibleModelsByProvider() async {
-    return {
-      'openai': await _modelCatalogService.visibleModelSlugs('openai'),
-      'openrouter': await _modelCatalogService.visibleModelSlugs('openrouter'),
-    };
+  Future<Map<String, List<String>>> _loadVisibleModelsByProvider(
+    List<LlmProviderEntry> providers,
+  ) async {
+    final result = <String, List<String>>{};
+    for (final provider in providers) {
+      result[provider.id] = await _modelCatalogService.visibleModelSlugs(
+        provider.id,
+      );
+    }
+    return result;
   }
 
   Future<void> _reloadModelCatalogAndResolveSelection() async {
-    final visibleModelsByProvider = await _loadVisibleModelsByProvider();
+    final providers = await _providerCatalogService.allProviders();
+    final visibleModelsByProvider = await _loadVisibleModelsByProvider(
+      providers,
+    );
     final openRouterCatalog = await _modelCatalogService.allModels(
-      'openrouter',
+      _selectedProvider,
     );
     final resolvedModel = _resolveModelForProvider(
       _selectedProvider,
@@ -176,15 +249,12 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     setState(() {
       _visibleModelsByProvider = visibleModelsByProvider;
       _openRouterCatalog = openRouterCatalog;
-      if (resolvedModel != null) {
-        _selectedModel = resolvedModel;
-      }
+      _providers = providers;
+      _selectedModel = resolvedModel ?? '';
     });
 
-    if (resolvedModel != null) {
-      await _settingsService.setModel(resolvedModel);
-      await _shortcutService.setModel(resolvedModel);
-    }
+    await _settingsService.setModel(resolvedModel ?? '');
+    await _shortcutService.setModel(resolvedModel ?? '');
   }
 
   Future<void> _setOpenRouterModelHidden(
@@ -228,8 +298,17 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     }
   }
 
+  void _onCustomProviderApiKeyFocusChange() {
+    if (!_customProviderApiKeyFocusNode.hasFocus) {
+      unawaited(_saveCustomProviderApiKeyIfChanged());
+    }
+  }
+
   Future<void> _saveApiKeyIfChanged() async {
-    final currentKey = _apiKeyController.text;
+    final currentKey = _apiKeyController.text.trim();
+    if (_apiKeyController.text != currentKey) {
+      _apiKeyController.text = currentKey;
+    }
     if (currentKey != _lastSavedApiKey) {
       _lastSavedApiKey = currentKey;
       await _settingsService.setApiKey(currentKey);
@@ -244,7 +323,10 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
   }
 
   Future<void> _saveOpenRouterApiKeyIfChanged() async {
-    final currentKey = _openRouterApiKeyController.text;
+    final currentKey = _openRouterApiKeyController.text.trim();
+    if (_openRouterApiKeyController.text != currentKey) {
+      _openRouterApiKeyController.text = currentKey;
+    }
     if (currentKey != _lastSavedOpenRouterApiKey) {
       _lastSavedOpenRouterApiKey = currentKey;
       await _settingsService.setOpenRouterApiKey(currentKey);
@@ -258,12 +340,47 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     }
   }
 
+  Future<void> _saveCustomProviderApiKeyIfChanged() async {
+    final currentKey = _customProviderApiKeyController.text.trim();
+    if (_customProviderApiKeyController.text != currentKey) {
+      _customProviderApiKeyController.text = currentKey;
+    }
+    if (currentKey != _lastSavedCustomProviderApiKey) {
+      _lastSavedCustomProviderApiKey = currentKey;
+      await _settingsService.setCustomProviderApiKey(
+        _selectedProvider,
+        currentKey,
+      );
+      await _syncSelectedCustomProviderConfig();
+      if (mounted && _isCustomProvider) {
+        setState(() => _activeAuthFailure = null);
+      }
+      if (mounted && currentKey.isNotEmpty) {
+        _showSavedSnackBar();
+      }
+    }
+  }
+
   Future<void> _saveActiveApiKeyIfChanged() async {
-    if (_selectedProvider == 'openrouter') {
+    if (_selectedProvider == AppDefaults.openRouterProvider) {
       await _saveOpenRouterApiKeyIfChanged();
       return;
     }
+    if (_isCustomProvider) {
+      await _saveCustomProviderApiKeyIfChanged();
+      return;
+    }
     await _saveApiKeyIfChanged();
+  }
+
+  Future<void> _syncSelectedCustomProviderConfig() async {
+    final provider = _selectedProviderEntry;
+    if (provider == null || provider.isBuiltIn) return;
+    await _shortcutService.setCustomProviderConfig(
+      provider: provider.id,
+      baseUrl: provider.baseUrl,
+      apiKey: _customProviderApiKeyController.text.trim(),
+    );
   }
 
   void _showSavedSnackBar() {
@@ -305,10 +422,18 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
                   ? l10n.apiKeyStoredLocally
                   : l10n.apiKeyNeedsAttention,
               modelSelector: _buildModelSelector(initialModelValue),
+              modelSubtitle: _isCustomProvider && _availableModels.isEmpty
+                  ? l10n.customProviderNoModels
+                  : l10n.modelUsedForRewrite,
             ),
           ],
         ),
-        if (_selectedProvider == 'openrouter') ...[
+        const SizedBox(height: AppSpacing.lg),
+        _buildCustomProviderManagementPanel(),
+        const SizedBox(height: AppSpacing.sm),
+        _ApiKeySecurityNote(text: l10n.customProviderCompatibilityNote),
+        if (_selectedProvider == AppDefaults.openRouterProvider ||
+            _isCustomProvider) ...[
           const SizedBox(height: AppSpacing.lg),
           _buildOpenRouterModelManagementPanel(l10n),
         ],
@@ -322,7 +447,10 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     final colorScheme = Theme.of(context).colorScheme;
     return DropdownButtonFormField<String>(
       key: const Key('apiProvider-providerSelector'),
-      initialValue: _selectedProvider,
+      initialValue:
+          _providerOptions.any((entry) => entry.id == _selectedProvider)
+          ? _selectedProvider
+          : null,
       isExpanded: true,
       dropdownColor: _fieldFillColor(),
       iconEnabledColor: colorScheme.onSurfaceVariant,
@@ -335,36 +463,54 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
         ),
       ),
       icon: const Icon(Icons.keyboard_arrow_down_rounded),
-      items: const [
-        DropdownMenuItem(
-          value: 'openrouter',
-          child: Text('OpenRouter', overflow: TextOverflow.ellipsis),
-        ),
-        DropdownMenuItem(
-          value: 'openai',
-          child: Text('OpenAI', overflow: TextOverflow.ellipsis),
-        ),
-      ],
+      items: _providerOptions.map((provider) {
+        return DropdownMenuItem(
+          value: provider.id,
+          child: Text(provider.displayName, overflow: TextOverflow.ellipsis),
+        );
+      }).toList(),
       onChanged: (newValue) async {
         if (newValue == null || newValue == _selectedProvider) return;
-        final models =
-            _visibleModelsByProvider[newValue] ??
-            ModelCatalogDefaults.modelsForProvider(newValue);
-        final model = models.isNotEmpty ? models.first : _selectedModel;
+        final providers = await _providerCatalogService.allProviders();
+        final visibleModelsByProvider = await _loadVisibleModelsByProvider(
+          providers,
+        );
+        final catalog = await _modelCatalogService.allModels(newValue);
+        final model =
+            _resolveModelForProvider(
+              newValue,
+              _selectedModel,
+              visibleModelsByProvider,
+            ) ??
+            '';
         final authFailure = await _settingsService.getProviderAuthFailure(
           newValue,
         );
+        final providerEntry = providers
+            .where((entry) => entry.id == newValue)
+            .firstOrNull;
+        final customApiKey = providerEntry != null && !providerEntry.isBuiltIn
+            ? await _settingsService.getCustomProviderApiKey(newValue)
+            : '';
         if (!mounted) return;
         setState(() {
           _selectedProvider = newValue;
           _selectedModel = model;
           _activeAuthFailure = authFailure;
+          _visibleModelsByProvider = visibleModelsByProvider;
+          _openRouterCatalog = catalog;
+          _providers = providers;
           _isApiKeyVisible = false;
+          if (providerEntry != null && !providerEntry.isBuiltIn) {
+            _customProviderApiKeyController.text = customApiKey;
+            _lastSavedCustomProviderApiKey = customApiKey;
+          }
         });
         await _settingsService.setProvider(newValue);
         await _shortcutService.setProvider(newValue);
         await _settingsService.setModel(model);
         await _shortcutService.setModel(model);
+        await _syncSelectedCustomProviderConfig();
       },
     );
   }
@@ -446,13 +592,13 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     try {
       if (entry == null) {
         await _modelCatalogService.addCustomModel(
-          provider: 'openrouter',
+          provider: _selectedProvider,
           slug: controller.text,
         );
       } else {
         final newSlug = controller.text.trim();
         await _modelCatalogService.editCustomModel(
-          provider: 'openrouter',
+          provider: entry.provider,
           oldSlug: entry.slug,
           newSlug: newSlug,
         );
@@ -516,6 +662,227 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
         _localizedModelCatalogError(l10n, error.message),
       );
     }
+  }
+
+  Future<void> _showProviderDialog({LlmProviderEntry? entry}) async {
+    final l10n = AppLocalizations.of(context)!;
+    final nameController = TextEditingController(
+      text: entry?.displayName ?? '',
+    );
+    final urlController = TextEditingController(text: entry?.baseUrl ?? '');
+    String? nameErrorText;
+    String? urlErrorText;
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AppDialogEscapeDismiss<bool>(
+              result: false,
+              child: AlertDialog(
+                title: Text(
+                  entry == null ? l10n.addProvider : l10n.editProvider,
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      key: const Key('apiProvider-providerNameField'),
+                      controller: nameController,
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        labelText: l10n.providerName,
+                        errorText: nameErrorText,
+                      ),
+                      onChanged: (_) {
+                        if (nameErrorText == null) return;
+                        setDialogState(() => nameErrorText = null);
+                      },
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    TextField(
+                      key: const Key('apiProvider-providerBaseUrlField'),
+                      controller: urlController,
+                      decoration: InputDecoration(
+                        labelText: l10n.providerBaseUrl,
+                        errorText: urlErrorText,
+                      ),
+                      onChanged: (_) {
+                        if (urlErrorText == null) return;
+                        setDialogState(() => urlErrorText = null);
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: Text(l10n.cancel),
+                  ),
+                  FilledButton(
+                    key: const Key('apiProvider-saveProvider'),
+                    onPressed: () {
+                      unawaited(
+                        _saveProviderDialog(
+                          context: context,
+                          entry: entry,
+                          nameController: nameController,
+                          urlController: urlController,
+                          setErrors: (errors) {
+                            setDialogState(() {
+                              nameErrorText = errors.name;
+                              urlErrorText = errors.url;
+                            });
+                          },
+                        ),
+                      );
+                    },
+                    child: Text(l10n.save),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+    if (saved ?? false) {
+      await _loadSettings();
+    }
+  }
+
+  Future<void> _saveProviderDialog({
+    required BuildContext context,
+    required LlmProviderEntry? entry,
+    required TextEditingController nameController,
+    required TextEditingController urlController,
+    required ValueChanged<({String? name, String? url})> setErrors,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    setErrors((name: null, url: null));
+    try {
+      if (entry == null) {
+        await _providerCatalogService.addCustomProvider(
+          displayName: nameController.text,
+          baseUrl: urlController.text,
+        );
+      } else {
+        await _providerCatalogService.editCustomProvider(
+          id: entry.id,
+          displayName: nameController.text,
+          baseUrl: urlController.text,
+        );
+      }
+      if (context.mounted) {
+        Navigator.of(context).pop(true);
+      }
+    } on ProviderCatalogValidationException catch (error) {
+      final message = _localizedProviderCatalogError(l10n, error.message);
+      switch (error.message) {
+        case 'Provider name is required.':
+        case 'Provider name must contain letters or numbers.':
+          setErrors((name: message, url: null));
+        case 'Base URL is required.':
+        case 'Base URL must be a valid HTTPS URL.':
+          setErrors((name: null, url: message));
+        default:
+          _showModelCatalogError(message);
+      }
+    }
+  }
+
+  String _localizedProviderCatalogError(
+    AppLocalizations l10n,
+    String message,
+  ) {
+    return switch (message) {
+      'Provider name is required.' => l10n.providerNameRequired,
+      'Base URL is required.' => l10n.providerUrlRequired,
+      'Base URL must be a valid HTTPS URL.' => l10n.providerUrlInvalid,
+      'Provider name must contain letters or numbers.' =>
+        l10n.providerNameInvalid,
+      _ => message,
+    };
+  }
+
+  Future<void> _confirmDeleteProvider(LlmProviderEntry entry) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AppDialogEscapeDismiss<bool>(
+          result: false,
+          child: AlertDialog(
+            title: Text(l10n.deleteProviderTitle),
+            content: Text(entry.displayName),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                key: const Key('apiProvider-confirmDeleteProvider'),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(l10n.deleteProvider),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    if (!(confirmed ?? false)) return;
+    await _providerCatalogService.deleteCustomProvider(entry.id);
+    await _modelCatalogService.deleteProviderModels(entry.id);
+    await _settingsService.deleteCustomProviderApiKey(entry.id);
+    if (_selectedProvider == entry.id) {
+      final fallbackModel = await _modelCatalogService.resolveVisibleModel(
+        provider: AppDefaults.apiProvider,
+        selectedModel: AppDefaults.model,
+      );
+      _selectedProvider = AppDefaults.apiProvider;
+      _selectedModel = fallbackModel ?? AppDefaults.model;
+      await _settingsService.setProvider(_selectedProvider);
+      await _settingsService.setModel(_selectedModel);
+      await _shortcutService.setProvider(_selectedProvider);
+      await _shortcutService.setModel(_selectedModel);
+    }
+    await _loadSettings();
+  }
+
+  Widget _buildCustomProviderManagementPanel() {
+    final l10n = AppLocalizations.of(context)!;
+    final customProviders = _providerOptions
+        .where((entry) => !entry.isBuiltIn)
+        .toList(growable: false);
+    return AppSettingsSection(
+      key: const Key('apiProvider-providerManagementPanel'),
+      title: l10n.customProviders,
+      subtitle: l10n.customProvidersDescription,
+      children: [
+        AppSettingsRow(
+          leading: const AppSettingsIconTile(icon: Icons.hub_rounded),
+          title: l10n.addProvider,
+          minHeight: AppSizes.compactRowHeight,
+          trailing: OutlinedButton.icon(
+            key: const Key('apiProvider-addProvider'),
+            onPressed: () => unawaited(_showProviderDialog()),
+            icon: const Icon(Icons.add_rounded, size: 18),
+            label: Text(l10n.addProvider),
+          ),
+        ),
+        if (customProviders.isNotEmpty) const AppSettingsDivider(),
+        for (final (index, provider) in customProviders.indexed) ...[
+          _CustomProviderRow(
+            provider: provider,
+            editTooltip: l10n.editProvider,
+            deleteTooltip: l10n.deleteProvider,
+            onEdit: () => unawaited(_showProviderDialog(entry: provider)),
+            onDelete: () => unawaited(_confirmDeleteProvider(provider)),
+          ),
+          if (index < customProviders.length - 1) const AppSettingsDivider(),
+        ],
+      ],
+    );
   }
 
   Widget _buildApiKeyField(AppLocalizations l10n) {
@@ -582,22 +949,32 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
           ),
         );
       }).toList(),
-      onChanged: (newValue) async {
-        if (newValue == null) return;
-        setState(() {
-          _selectedModel = newValue;
-        });
-        await _settingsService.setModel(newValue);
-        await _shortcutService.setModel(newValue);
-      },
+      onChanged: _availableModels.isEmpty
+          ? null
+          : (newValue) async {
+              if (newValue == null) return;
+              setState(() {
+                _selectedModel = newValue;
+              });
+              await _settingsService.setModel(newValue);
+              await _shortcutService.setModel(newValue);
+            },
     );
   }
 
   Widget _buildOpenRouterModelManagementPanel(AppLocalizations l10n) {
+    final title = _selectedProvider == AppDefaults.openRouterProvider
+        ? l10n.openRouterModels
+        : l10n.customProviderModels(
+            _selectedProviderEntry?.displayName ?? l10n.customModel,
+          );
+    final subtitle = _selectedProvider == AppDefaults.openRouterProvider
+        ? l10n.openRouterModelsDescription
+        : l10n.customProviderModelsDescription;
     return AppSettingsSection(
       key: const Key('apiProvider-modelManagementPanel'),
-      title: l10n.openRouterModels,
-      subtitle: l10n.openRouterModelsDescription,
+      title: title,
+      subtitle: subtitle,
       children: [
         AppSettingsRow(
           leading: const AppSettingsIconTile(
@@ -680,6 +1057,54 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
       return AppColors.darkControlSurface;
     }
     return theme.colorScheme.surfaceContainerHighest;
+  }
+}
+
+class _CustomProviderRow extends StatelessWidget {
+  const _CustomProviderRow({
+    required this.provider,
+    required this.editTooltip,
+    required this.deleteTooltip,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final LlmProviderEntry provider;
+  final String editTooltip;
+  final String deleteTooltip;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return AppSettingsRow(
+      leading: AppSettingsIconTile(
+        icon: Icons.hub_rounded,
+        backgroundColor: colorScheme.surfaceContainerHighest,
+        iconColor: colorScheme.onSurfaceVariant,
+      ),
+      title: provider.displayName,
+      subtitle: provider.baseUrl,
+      minHeight: AppSizes.compactRowHeight,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            key: Key('apiProvider-editProvider-${provider.id}'),
+            tooltip: editTooltip,
+            icon: const Icon(Icons.edit_rounded),
+            onPressed: onEdit,
+          ),
+          IconButton(
+            key: Key('apiProvider-deleteProvider-${provider.id}'),
+            tooltip: deleteTooltip,
+            icon: const Icon(Icons.delete_outline_rounded),
+            onPressed: onDelete,
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -767,12 +1192,14 @@ class _ProviderSettingsPanel extends StatelessWidget {
     required this.apiKeyField,
     required this.apiKeySubtitle,
     required this.modelSelector,
+    required this.modelSubtitle,
   });
 
   final Widget providerSelector;
   final Widget apiKeyField;
   final String apiKeySubtitle;
   final Widget modelSelector;
+  final String modelSubtitle;
 
   @override
   Widget build(BuildContext context) {
@@ -801,7 +1228,7 @@ class _ProviderSettingsPanel extends StatelessWidget {
           icon: Icons.view_in_ar_outlined,
           iconBackground: colorScheme.secondaryContainer,
           title: l10n.model,
-          subtitle: l10n.modelUsedForRewrite,
+          subtitle: modelSubtitle,
           trailing: modelSelector,
         ),
       ],

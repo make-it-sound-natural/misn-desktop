@@ -22,6 +22,8 @@ void main() {
     String? model = 'google/gemini-3-flash-preview',
     String openAiKey = 'openai-key',
     String openRouterKey = 'openrouter-key',
+    String customProviderKey = 'custom-key',
+    List<String> customProviders = const [],
     List<String> customModels = const [],
     List<String> hiddenModels = const [],
   }) {
@@ -29,6 +31,7 @@ void main() {
     secureValues = {
       'openai': openAiKey,
       'openrouter': openRouterKey,
+      'tokenguard': customProviderKey,
     };
     final initialValues = <String, Object>{
       'app_shortcut': AppDefaults.correctionShortcut,
@@ -38,6 +41,7 @@ void main() {
       'custom_prompt': '',
       'target_profile_selection_confirmed': true,
       'target_profile_selected_id': 'americanEnglish',
+      if (customProviders.isNotEmpty) 'llm_custom_providers': customProviders,
       if (customModels.isNotEmpty) 'llm_custom_models': customModels,
       if (hiddenModels.isNotEmpty) 'llm_hidden_models': hiddenModels,
     };
@@ -63,6 +67,18 @@ void main() {
                 return null;
               case MethodChannelMethods.storeOpenRouterApiKey:
                 secureValues['openrouter'] = call.arguments as String;
+                return null;
+              case MethodChannelMethods.getStoredCustomProviderApiKey:
+                final args = Map<String, Object?>.from(call.arguments! as Map);
+                return secureValues[args['provider']! as String] ?? '';
+              case MethodChannelMethods.storeCustomProviderApiKey:
+                final args = Map<String, Object?>.from(call.arguments! as Map);
+                secureValues[args['provider']! as String] =
+                    args['apiKey']! as String;
+                return null;
+              case MethodChannelMethods.deleteStoredCustomProviderApiKey:
+                final args = Map<String, Object?>.from(call.arguments! as Map);
+                secureValues.remove(args['provider']! as String);
                 return null;
               case MethodChannelMethods.checkAccessibilityPermissions:
                 return true;
@@ -95,6 +111,19 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 500));
     await tester.pump(const Duration(milliseconds: 500));
+  }
+
+  Future<void> openAddProviderDialog(WidgetTester tester) async {
+    await tester.ensureVisible(
+      find.byKey(const Key('apiProvider-addProvider')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('apiProvider-addProvider')));
+    await tester.pumpAndSettle();
+  }
+
+  String? textFieldError(WidgetTester tester, Key key) {
+    return tester.widget<TextField>(find.byKey(key)).decoration?.errorText;
   }
 
   Future<void> pumpDarkSettings(WidgetTester tester) async {
@@ -503,6 +532,295 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('A model with this slug already exists.'), findsOneWidget);
+  });
+
+  testWidgets('adds custom provider without requiring model', (tester) async {
+    setupSettings();
+    await pumpSettings(tester);
+
+    await openAddProviderDialog(tester);
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-providerNameField')),
+      'TokenGuard',
+    );
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-providerBaseUrlField')),
+      'https://tokenguard.int.agrd.dev/api/v1',
+    );
+    await tester.tap(find.byKey(const Key('apiProvider-saveProvider')));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(find.text('TokenGuard'), findsWidgets);
+    expect(prefs.getStringList('llm_custom_providers'), isNotNull);
+    expect(
+      prefs.getStringList('llm_custom_providers')!.single,
+      contains('"id":"tokenguard"'),
+    );
+  });
+
+  testWidgets('shows missing provider name error on provider name field', (
+    tester,
+  ) async {
+    setupSettings();
+    await pumpSettings(tester);
+
+    await openAddProviderDialog(tester);
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-providerBaseUrlField')),
+      'https://tokenguard.int.agrd.dev/api/v1',
+    );
+    await tester.tap(find.byKey(const Key('apiProvider-saveProvider')));
+    await tester.pumpAndSettle();
+
+    expect(
+      textFieldError(
+        tester,
+        const Key('apiProvider-providerNameField'),
+      ),
+      'Provider name is required.',
+    );
+    expect(
+      textFieldError(
+        tester,
+        const Key('apiProvider-providerBaseUrlField'),
+      ),
+      isNull,
+    );
+  });
+
+  testWidgets('shows missing provider URL error on base URL field', (
+    tester,
+  ) async {
+    setupSettings();
+    await pumpSettings(tester);
+
+    await openAddProviderDialog(tester);
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-providerNameField')),
+      'TokenGuard',
+    );
+    await tester.tap(find.byKey(const Key('apiProvider-saveProvider')));
+    await tester.pumpAndSettle();
+
+    expect(
+      textFieldError(
+        tester,
+        const Key('apiProvider-providerNameField'),
+      ),
+      isNull,
+    );
+    expect(
+      textFieldError(
+        tester,
+        const Key('apiProvider-providerBaseUrlField'),
+      ),
+      'Base URL is required.',
+    );
+  });
+
+  testWidgets('shows invalid provider URL error on base URL field', (
+    tester,
+  ) async {
+    setupSettings();
+    await pumpSettings(tester);
+
+    await openAddProviderDialog(tester);
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-providerNameField')),
+      'TokenGuard',
+    );
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-providerBaseUrlField')),
+      'http://tokenguard.int.agrd.dev/api/v1',
+    );
+    await tester.tap(find.byKey(const Key('apiProvider-saveProvider')));
+    await tester.pumpAndSettle();
+
+    expect(
+      textFieldError(
+        tester,
+        const Key('apiProvider-providerNameField'),
+      ),
+      isNull,
+    );
+    expect(
+      textFieldError(
+        tester,
+        const Key('apiProvider-providerBaseUrlField'),
+      ),
+      'Base URL must be a valid HTTPS URL.',
+    );
+  });
+
+  testWidgets('selecting custom provider with no models clears stale model', (
+    tester,
+  ) async {
+    setupSettings(
+      customProviders: [
+        jsonEncode({
+          'id': 'tokenguard',
+          'displayName': 'TokenGuard',
+          'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
+          'isBuiltIn': false,
+        }),
+      ],
+    );
+    await pumpSettings(tester);
+
+    await tester.tap(find.byKey(const Key('apiProvider-providerSelector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('TokenGuard').last);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    final modelField = tester.widget<DropdownButtonFormField<String>>(
+      find.byKey(const Key('apiProvider-modelSelector')),
+    );
+    expect(prefs.getString('api_provider'), 'tokenguard');
+    expect(prefs.getString('openai_model'), '');
+    expect(modelField.initialValue, isNull);
+    expect(
+      find.text('Add a model before using this provider.'),
+      findsOneWidget,
+    );
+    expect(
+      methodCalls.any(
+        (call) =>
+            call.method == MethodChannelMethods.setModel &&
+            call.arguments == '',
+      ),
+      isTrue,
+    );
+  });
+
+  testWidgets('selecting custom provider refreshes provider model catalog', (
+    tester,
+  ) async {
+    setupSettings(
+      customProviders: [
+        jsonEncode({
+          'id': 'tokenguard',
+          'displayName': 'TokenGuard',
+          'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
+          'isBuiltIn': false,
+        }),
+      ],
+      customModels: [
+        jsonEncode({
+          'provider': 'tokenguard',
+          'slug': 'kimi-k2.6',
+          'isBuiltIn': false,
+          'isHidden': false,
+        }),
+      ],
+    );
+    await pumpSettings(tester);
+
+    await tester.tap(find.byKey(const Key('apiProvider-providerSelector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('TokenGuard').last);
+    await tester.pumpAndSettle();
+
+    final modelField = tester.widget<DropdownButtonFormField<String>>(
+      find.byKey(const Key('apiProvider-modelSelector')),
+    );
+    expect(modelField.initialValue, 'kimi-k2.6');
+    expect(
+      find.byKey(const Key('apiProvider-hideModel-tokenguard::kimi-k2.6')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(
+        const Key(
+          'apiProvider-hideModel-openrouter::google/gemini-3-flash-preview',
+        ),
+      ),
+      findsNothing,
+    );
+  });
+
+  testWidgets('trims custom provider API key before saving and syncing', (
+    tester,
+  ) async {
+    setupSettings(
+      provider: 'tokenguard',
+      customProviderKey: 'old-key',
+      customProviders: [
+        jsonEncode({
+          'id': 'tokenguard',
+          'displayName': 'TokenGuard',
+          'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
+          'isBuiltIn': false,
+        }),
+      ],
+      customModels: [
+        jsonEncode({
+          'provider': 'tokenguard',
+          'slug': 'kimi-k2.6',
+          'isBuiltIn': false,
+          'isHidden': false,
+        }),
+      ],
+    );
+    await pumpSettings(tester);
+
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-apiKeyField')),
+      '  new-key  ',
+    );
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(secureValues['tokenguard'], 'new-key');
+    expect(
+      methodCalls.any((call) {
+        return call.method == MethodChannelMethods.setCustomProviderConfig &&
+            (call.arguments as Map<Object?, Object?>)['apiKey'] == 'new-key';
+      }),
+      isTrue,
+    );
+  });
+
+  testWidgets('adds model for selected custom provider', (tester) async {
+    setupSettings(
+      provider: 'tokenguard',
+      model: null,
+      customProviders: [
+        jsonEncode({
+          'id': 'tokenguard',
+          'displayName': 'TokenGuard',
+          'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
+          'isBuiltIn': false,
+        }),
+      ],
+    );
+    await pumpSettings(tester);
+
+    await tester.ensureVisible(
+      find.byKey(const Key('apiProvider-addOpenRouterModel')),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('apiProvider-addOpenRouterModel')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-modelSlugField')),
+      'kimi-k2.6',
+    );
+    await tester.tap(find.byKey(const Key('apiProvider-saveModelSlug')));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    final modelField = tester.widget<DropdownButtonFormField<String>>(
+      find.byKey(const Key('apiProvider-modelSelector')),
+    );
+    expect(find.text('kimi-k2.6'), findsWidgets);
+    expect(modelField.initialValue, 'kimi-k2.6');
+    expect(prefs.getString('openai_model'), 'kimi-k2.6');
+    expect(
+      prefs.getStringList('llm_custom_models')!.single,
+      contains('"provider":"tokenguard"'),
+    );
   });
 
   testWidgets('shows target language only in Language settings', (

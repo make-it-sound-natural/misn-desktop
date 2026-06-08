@@ -100,6 +100,19 @@ final class LLMErrorMessageParserTests: XCTestCase {
         XCTAssertEqual(msg, "Model does not support image input")
     }
 
+    func testTokenGuardImagePayloadErrorSurfacesProviderMessage() {
+        let json = """
+        {"error":{"message":"Failed to deserialize the JSON body into the target type: messages[1]: unknown variant image_url, expected text","type":"invalid_request_error"}}
+        """
+
+        let msg = LLMErrorMessageParser.userMessage(
+            from: Data(json.utf8),
+            statusCode: 400
+        )
+
+        XCTAssertTrue(msg.contains("unknown variant image_url"))
+    }
+
     func testInvalidJsonFallsBackToHttp() {
         let data = Data("{not-json".utf8)
         XCTAssertEqual(

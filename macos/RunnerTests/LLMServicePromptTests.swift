@@ -19,6 +19,8 @@ final class LLMServicePromptTests: XCTestCase {
             provider: "openai",
             apiKey: "key",
             openRouterApiKey: "",
+            customProviderApiKey: "",
+            customProviderBaseUrl: nil,
             model: "gpt-5.4-nano",
             customPrompt: nil,
             context: nil,

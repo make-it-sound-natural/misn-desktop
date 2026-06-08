@@ -85,6 +85,13 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 apiKey: apiKey,
                 openRouterApiKey: self.methodChannelHandler?
                     .getOpenRouterApiKey() ?? AppDefaults.apiKey,
+                customProviderApiKey: self.methodChannelHandler?
+                    .getCustomProviderApiKey(
+                        provider: self.methodChannelHandler?.getProvider()
+                            ?? AppDefaults.apiProvider
+                    ) ?? AppDefaults.apiKey,
+                customProviderBaseUrl: self.methodChannelHandler?
+                    .getCustomProviderBaseUrl(),
                 model: model,
                 customPrompt: self.methodChannelHandler?.getCustomPrompt(),
                 context: self.methodChannelHandler?.getContext(),
@@ -260,6 +267,11 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                         apiKey: apiKey,
                         openRouterApiKey: self.methodChannelHandler?
                             .getOpenRouterApiKey() ?? AppDefaults.apiKey,
+                        customProviderApiKey: self.methodChannelHandler?
+                            .getCustomProviderApiKey(provider: provider)
+                            ?? AppDefaults.apiKey,
+                        customProviderBaseUrl: self.methodChannelHandler?
+                            .getCustomProviderBaseUrl(),
                         model: model,
                         customPrompt: self.methodChannelHandler?.getCustomPrompt(),
                         context: self.methodChannelHandler?.getContext(),

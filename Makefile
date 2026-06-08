@@ -1,4 +1,4 @@
-.PHONY: start build clean clean-xcode-derived clean-nightly-install format format-check lint lint-flutter lint-swift l10n-check test test-flutter test-macos release notarize dmg sign-dmg full-release verify version bump-version fastlane-setup toolchain
+.PHONY: start build clean clean-xcode-derived clean-nightly-install format format-check lint lint-flutter lint-swift l10n-check test test-flutter test-macos release notarize dmg sign-dmg full-release verify version bump-version fastlane-setup toolchain pub-get
 
 # Configuration
 APP_NAME = Make It Sound Natural
@@ -33,12 +33,15 @@ toolchain:
 	@echo "Dart: $(DART)"
 	@$(DART) --version
 
+pub-get:
+	@$(FLUTTER) pub get
+
 # Note: "Failed to foreground app; open returned 1" is a harmless Flutter message
 # for LSUIElement (agent) apps when `open` cannot foreground the bundle.
-start:
+start: pub-get
 	@MISN_SAVE_SCREENSHOT_CONTEXT=1 $(FLUTTER) run -d macos --no-pub
 
-build:
+build: pub-get
 	@$(FLUTTER) build macos --no-pub
 
 # Flutter builds with -derivedDataPath under build/macos; Xcode may still use a
@@ -99,7 +102,7 @@ format-check:
 lint: lint-flutter lint-swift
 
 # Lint Flutter/Dart code (format check first—same order as CI)
-lint-flutter: format-check
+lint-flutter: pub-get format-check
 	@echo "Linting Flutter/Dart files..."
 	@$(FLUTTER) analyze
 
@@ -109,14 +112,14 @@ lint-swift:
 	@$(SWIFTLINT) lint --config .swiftlint.yml
 
 # Verify localization files have matching keys and translated values
-l10n-check:
+l10n-check: pub-get
 	@$(DART) run tool/check_l10n.dart
 
 # Run all tests: Flutter (`test/`) then native XCTest (`macos/RunnerTests/`)
 test: test-flutter test-macos
 
 # Flutter / Dart tests (--no-pub skips dependency check for faster runs)
-test-flutter:
+test-flutter: pub-get
 	@echo "Running Flutter tests..."
 	@$(FLUTTER) test --no-pub
 
@@ -124,7 +127,7 @@ test-flutter:
 # `flutter build macos --config-only` materializes macos/Flutter/ephemeral/
 # (FlutterInputs/Outputs.xcfilelist, etc.); without it, Xcode fails to load
 # those file lists on fresh checkouts (e.g. CI).
-test-macos:
+test-macos: pub-get
 	@echo "Running macOS XCTest..."
 	@$(FLUTTER) build macos --config-only --no-pub
 	@cd macos && xcodebuild -workspace Runner.xcworkspace -scheme Runner \
@@ -218,6 +221,7 @@ help:
 	@echo ""
 	@echo "Development:"
 	@echo "  make toolchain      - Show Flutter/Dart tool paths used by Make"
+	@echo "  make pub-get        - Resolve dependencies with the pinned Flutter SDK"
 	@echo "  make start          - Run debug app with screenshot debug-save enabled"
 	@echo "  make build          - Build debug version"
 	@echo "  make clean          - Clean build artifacts and Xcode DerivedData"

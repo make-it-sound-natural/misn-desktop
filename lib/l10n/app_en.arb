@@ -65,6 +65,9 @@
   "apiKeyRequired": "API key required for corrections",
   "@apiKeyRequired": { "description": "Banner text when API key is missing" },
 
+  "providerSetupRequired": "Provider setup required for corrections",
+  "@providerSetupRequired": { "description": "Banner text when selected provider is missing a key or visible model" },
+
   "configure": "Configure",
   "@configure": { "description": "Button to open settings" },
 
@@ -412,6 +415,62 @@
 
   "openRouterModelsDescription": "Choose which OpenRouter models appear in the model selector.",
   "@openRouterModelsDescription": { "description": "Description for OpenRouter model management panel" },
+
+  "customProviders": "Custom Providers",
+  "@customProviders": { "description": "Title for custom provider management panel" },
+
+  "customProvidersDescription": "Add OpenAI-compatible providers with local API keys and model ids.",
+  "@customProvidersDescription": { "description": "Description for custom provider management panel" },
+
+  "customProviderCompatibilityNote": "Custom providers must support non-stream Chat Completions. Screenshot context also requires image input support.",
+  "@customProviderCompatibilityNote": { "description": "Compatibility note for custom provider setup" },
+
+  "addProvider": "Add Provider",
+  "@addProvider": { "description": "Button to add a custom provider" },
+
+  "editProvider": "Edit Provider",
+  "@editProvider": { "description": "Tooltip or title for editing a custom provider" },
+
+  "deleteProvider": "Delete Provider",
+  "@deleteProvider": { "description": "Tooltip or button for deleting a custom provider" },
+
+  "deleteProviderTitle": "Delete provider?",
+  "@deleteProviderTitle": { "description": "Confirmation dialog title for deleting a custom provider" },
+
+  "noCustomProviders": "No custom providers yet.",
+  "@noCustomProviders": { "description": "Empty state text for custom provider management" },
+
+  "providerName": "Provider name",
+  "@providerName": { "description": "Text field label for custom provider name" },
+
+  "providerNameRequired": "Provider name is required.",
+  "@providerNameRequired": { "description": "Validation message when custom provider name is empty" },
+
+  "providerNameInvalid": "Provider name must contain letters or numbers.",
+  "@providerNameInvalid": { "description": "Validation message when custom provider name cannot generate a provider id" },
+
+  "providerBaseUrl": "Base URL",
+  "@providerBaseUrl": { "description": "Text field label for custom provider base URL" },
+
+  "providerUrlRequired": "Base URL is required.",
+  "@providerUrlRequired": { "description": "Validation message when custom provider URL is empty" },
+
+  "providerUrlInvalid": "Base URL must be a valid HTTPS URL.",
+  "@providerUrlInvalid": { "description": "Validation message when custom provider URL is invalid" },
+
+  "customProviderModels": "{provider} Models",
+  "@customProviderModels": {
+    "description": "Title for a custom provider model management panel",
+    "placeholders": {
+      "provider": { "type": "String", "example": "TokenGuard" }
+    }
+  },
+
+  "customProviderModelsDescription": "Choose which custom provider models appear in the model selector.",
+  "@customProviderModelsDescription": { "description": "Description for custom provider model management panel" },
+
+  "customProviderNoModels": "Add a model before using this provider.",
+  "@customProviderNoModels": { "description": "Model row helper when selected custom provider has no visible models" },
 
   "addModel": "Add Model",
   "@addModel": { "description": "Button to add a provider model" },
