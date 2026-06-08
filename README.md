@@ -104,4 +104,4 @@ See [Privacy Policy](PRIVACY_POLICY.md) for details.
 
 ## License
 
-This software is proprietary. All rights reserved.
+MIT. See [LICENSE](LICENSE).
