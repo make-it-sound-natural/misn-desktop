@@ -262,5 +262,31 @@ void main() {
         throwsA(isA<ModelCatalogValidationException>()),
       );
     });
+
+    test('allows custom provider to have zero models', () async {
+      final service = ModelCatalogService();
+
+      expect(await service.allModels('tokenguard'), isEmpty);
+      expect(await service.visibleModelSlugs('tokenguard'), isEmpty);
+    });
+
+    test('removes custom models and hidden ids for deleted provider', () async {
+      final service = ModelCatalogService();
+      await service.addCustomModel(provider: 'tokenguard', slug: 'kimi-k2.6');
+      await service.addCustomModel(
+        provider: 'tokenguard',
+        slug: 'kimi-k2.6-fast',
+      );
+      await service.setModelHidden(
+        provider: 'tokenguard',
+        slug: 'kimi-k2.6',
+        hidden: true,
+      );
+
+      await service.deleteProviderModels('tokenguard');
+
+      expect(await service.allModels('tokenguard'), isEmpty);
+      expect(await service.visibleModelSlugs('tokenguard'), isEmpty);
+    });
   });
 }

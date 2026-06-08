@@ -6,6 +6,7 @@ import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/models/appearance_preferences.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
+import 'package:make_it_sound_natural/services/model_catalog_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Service for managing application settings persistence.
@@ -90,7 +91,7 @@ class SettingsService {
     await _setSecureString(
       storeMethod: MethodChannelMethods.storeApiKey,
       legacyKey: _apiKeyKey,
-      value: apiKey,
+      value: apiKey.trim(),
     );
     await clearProviderAuthFailure(AppDefaults.openAiProvider);
   }
@@ -121,18 +122,70 @@ class SettingsService {
     await _setSecureString(
       storeMethod: MethodChannelMethods.storeOpenRouterApiKey,
       legacyKey: _openRouterApiKeyKey,
-      value: apiKey,
+      value: apiKey.trim(),
     );
     await clearProviderAuthFailure(AppDefaults.openRouterProvider);
+  }
+
+  /// Gets a custom provider API key from secure storage.
+  Future<String> getCustomProviderApiKey(String provider) async {
+    try {
+      final apiKey = await _channel.invokeMethod<String>(
+        MethodChannelMethods.getStoredCustomProviderApiKey,
+        {'provider': provider},
+      );
+      return apiKey?.trim() ?? '';
+    } on MissingPluginException {
+      return '';
+    }
+  }
+
+  /// Saves a custom provider API key in secure storage.
+  Future<void> setCustomProviderApiKey(String provider, String apiKey) async {
+    try {
+      await _channel.invokeMethod<void>(
+        MethodChannelMethods.storeCustomProviderApiKey,
+        {'provider': provider, 'apiKey': apiKey.trim()},
+      );
+    } on MissingPluginException {
+      return;
+    }
+    await clearProviderAuthFailure(provider);
+  }
+
+  /// Deletes a custom provider API key from secure storage.
+  Future<void> deleteCustomProviderApiKey(String provider) async {
+    try {
+      await _channel.invokeMethod<void>(
+        MethodChannelMethods.deleteStoredCustomProviderApiKey,
+        {'provider': provider},
+      );
+    } on MissingPluginException {
+      return;
+    }
+    await clearProviderAuthFailure(provider);
   }
 
   /// Returns whether the selected provider has a usable API key.
   Future<bool> hasApiKeyForActiveProvider() async {
     final provider = await getProvider();
-    final key = provider == 'openrouter'
-        ? await getOpenRouterApiKey()
-        : await getApiKey();
+    final key = switch (provider) {
+      AppDefaults.openRouterProvider => await getOpenRouterApiKey(),
+      AppDefaults.openAiProvider => await getApiKey(),
+      _ => await getCustomProviderApiKey(provider),
+    };
     return key.trim().isNotEmpty;
+  }
+
+  /// Returns whether the selected provider has key and visible model.
+  Future<bool> hasReadyActiveProviderForRewrite() async {
+    final provider = await getProvider();
+    if (!await hasApiKeyForActiveProvider()) return false;
+
+    final visibleModels = await ModelCatalogService().visibleModelSlugs(
+      provider,
+    );
+    return visibleModels.isNotEmpty;
   }
 
   /// Records non-secret auth-failure metadata for a provider.
@@ -361,10 +414,10 @@ class SettingsService {
     try {
       final stored = await _channel.invokeMethod<String>(getMethod);
       if (stored != null && stored.isNotEmpty) {
-        return stored;
+        return stored.trim();
       }
 
-      final legacyValue = await _readLegacyString(legacyKey);
+      final legacyValue = (await _readLegacyString(legacyKey)).trim();
       if (legacyValue.isEmpty) {
         return '';
       }
@@ -382,12 +435,13 @@ class SettingsService {
     required String legacyKey,
     required String value,
   }) async {
+    final normalized = value.trim();
     try {
-      await _channel.invokeMethod<void>(storeMethod, value);
+      await _channel.invokeMethod<void>(storeMethod, normalized);
       await _removeLegacyString(legacyKey);
     } on MissingPluginException {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(legacyKey, value);
+      await prefs.setString(legacyKey, normalized);
     }
   }
 
@@ -402,8 +456,7 @@ class SettingsService {
   }
 
   bool _isSupportedAuthFailureProvider(String provider) {
-    return provider == AppDefaults.openAiProvider ||
-        provider == AppDefaults.openRouterProvider;
+    return provider.trim().isNotEmpty;
   }
 
   String _providerAuthFailureKey(String provider) {

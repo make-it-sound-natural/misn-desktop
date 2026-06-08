@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
@@ -843,5 +845,69 @@ void main() {
         );
       },
     );
+  });
+
+  group('ShortcutService custom provider sync', () {
+    late List<MethodCall> methodCalls;
+
+    setUp(() {
+      methodCalls = [];
+      SharedPreferences.setMockInitialValues({
+        'api_provider': 'tokenguard',
+        'openai_model': 'kimi-k2.6',
+        'llm_custom_providers': [
+          jsonEncode({
+            'id': 'tokenguard',
+            'displayName': 'TokenGuard',
+            'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
+            'isBuiltIn': false,
+          }),
+        ],
+        'llm_custom_models': [
+          jsonEncode({
+            'provider': 'tokenguard',
+            'slug': 'kimi-k2.6',
+            'isBuiltIn': false,
+            'isHidden': false,
+          }),
+        ],
+        'target_profile_selection_confirmed': true,
+        'target_profile_selected_id': 'americanEnglish',
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async {
+              methodCalls.add(call);
+              if (call.method ==
+                  MethodChannelMethods.getStoredCustomProviderApiKey) {
+                return '  custom-key  ';
+              }
+              return null;
+            },
+          );
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            null,
+          );
+    });
+
+    test('loadAndSyncSettings sends selected custom provider config', () async {
+      await ShortcutService().loadAndSyncSettings();
+
+      final calls = methodCalls.where((call) {
+        return call.method == MethodChannelMethods.setCustomProviderConfig;
+      }).toList();
+      expect(calls, hasLength(1));
+      expect(calls.single.arguments, {
+        'provider': 'tokenguard',
+        'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
+        'apiKey': 'custom-key',
+      });
+    });
   });
 }

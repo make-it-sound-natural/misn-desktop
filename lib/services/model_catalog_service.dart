@@ -127,6 +127,17 @@ class ModelCatalogService {
     await _removeHiddenModelId(provider: provider, slug: slug);
   }
 
+  /// Deletes all custom and hidden model state for [provider].
+  Future<void> deleteProviderModels(String provider) async {
+    final custom = await _customModels();
+    await _saveCustomModels(
+      custom.where((entry) => entry.provider != provider).toList(),
+    );
+    final hiddenIds = await _hiddenModelIds();
+    hiddenIds.removeWhere((id) => id.startsWith('$provider::'));
+    await _saveHiddenModelIds(hiddenIds);
+  }
+
   /// Updates model visibility for built-in or custom models.
   Future<void> setModelHidden({
     required String provider,

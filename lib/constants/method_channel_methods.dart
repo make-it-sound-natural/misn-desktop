@@ -48,6 +48,20 @@ abstract class MethodChannelMethods {
   /// Reads the OpenRouter API key from macOS Keychain.
   static const String getStoredOpenRouterApiKey = 'getStoredOpenRouterApiKey';
 
+  /// Sets active custom provider config in native code.
+  static const String setCustomProviderConfig = 'setCustomProviderConfig';
+
+  /// Stores a custom provider API key in macOS Keychain.
+  static const String storeCustomProviderApiKey = 'storeCustomProviderApiKey';
+
+  /// Reads a custom provider API key from macOS Keychain.
+  static const String getStoredCustomProviderApiKey =
+      'getStoredCustomProviderApiKey';
+
+  /// Deletes a custom provider API key from macOS Keychain.
+  static const String deleteStoredCustomProviderApiKey =
+      'deleteStoredCustomProviderApiKey';
+
   /// Sets the user context for text generation.
   static const String setContext = 'setContext';
 

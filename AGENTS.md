@@ -205,6 +205,10 @@ business rules that belong in shared Dart unless required for OS integration.
 
 ### Code quality
 
+- **Fix root causes, not symptoms.** Before patching a local issue, first look
+  for a way to simplify the codebase and make it more consistent, so the fix
+  fits the existing code structure without hacks, duplication, or special
+  cases.
 - **Dart**: follow **Effective Dart**; null-safe code; avoid `!` unless
   proven; `async`/`await` for async work; `Stream`s for event sequences; pattern
   matching and exhaustive `switch` where useful; `try`/`catch` with sensible

@@ -7,6 +7,7 @@ import 'package:make_it_sound_natural/constants/shortcut_status.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/models/target_profile.dart';
+import 'package:make_it_sound_natural/services/provider_catalog_service.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/speed_tracking_service.dart';
 import 'package:make_it_sound_natural/services/target_profile_service.dart';
@@ -111,6 +112,17 @@ class ShortcutService {
     // Load and sync model
     final model = await settings.getModel();
     await setModel(model);
+
+    final providerCatalog = ProviderCatalogService();
+    final providerEntry = await providerCatalog.providerById(provider);
+    if (providerEntry != null && !providerEntry.isBuiltIn) {
+      final customKey = await settings.getCustomProviderApiKey(provider);
+      await setCustomProviderConfig(
+        provider: provider,
+        baseUrl: providerEntry.baseUrl,
+        apiKey: customKey,
+      );
+    }
 
     // Load and sync shortcut
     final shortcut = await settings.getShortcut();
@@ -284,6 +296,24 @@ class ShortcutService {
       );
     } on PlatformException catch (e) {
       _log.warning('Failed to set OpenRouter API key: ${e.message}');
+    }
+  }
+
+  /// Sets active custom provider config in the native layer.
+  Future<void> setCustomProviderConfig({
+    required String provider,
+    required String baseUrl,
+    required String apiKey,
+  }) async {
+    try {
+      await _channel.invokeMethod(
+        MethodChannelMethods.setCustomProviderConfig,
+        {'provider': provider, 'baseUrl': baseUrl, 'apiKey': apiKey},
+      );
+    } on PlatformException catch (e) {
+      _log.warning('Failed to set custom provider config: ${e.message}');
+    } on MissingPluginException catch (e) {
+      _log.warning('Custom provider channel unavailable: $e');
     }
   }
 

@@ -127,7 +127,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   Future<void> _checkApiKey() async {
-    final hasApiKey = await _settingsService.hasApiKeyForActiveProvider();
+    final hasApiKey = await _settingsService.hasReadyActiveProviderForRewrite();
     if (mounted) {
       setState(() => _isApiKeyMissing = !hasApiKey);
     }
@@ -757,7 +757,7 @@ class _ApiKeyBanner extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
           Expanded(
             child: Text(
-              AppLocalizations.of(context)!.apiKeyRequired,
+              AppLocalizations.of(context)!.providerSetupRequired,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurface,
               ),
