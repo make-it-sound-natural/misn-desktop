@@ -5,6 +5,7 @@ import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/screens/settings/advanced_section.dart';
 import 'package:make_it_sound_natural/screens/settings/api_provider_section.dart';
 import 'package:make_it_sound_natural/screens/settings/appearance_section.dart';
+import 'package:make_it_sound_natural/screens/settings/permissions_section.dart';
 import 'package:make_it_sound_natural/screens/settings/preferences_section.dart';
 import 'package:make_it_sound_natural/screens/settings/shortcuts_section.dart';
 import 'package:make_it_sound_natural/screens/settings/target_profile_section.dart';
@@ -14,15 +15,13 @@ import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
 import 'package:make_it_sound_natural/widgets/app_window_header.dart';
 
-const double _wideSidebarWidth = 316;
-const double _mediumSidebarWidth = 284;
-
 enum _SettingsDestination {
   aiProvider,
   appearance,
   writing,
   language,
   shortcuts,
+  permissions,
   updates,
   advanced,
 }
@@ -48,7 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       body: Column(
         children: [
           AppWindowHeader(
@@ -57,31 +56,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             onSettings: () {},
           ),
           Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final sidebarWidth = constraints.maxWidth >= 1500
-                    ? _wideSidebarWidth
-                    : constraints.maxWidth >= 980
-                    ? _mediumSidebarWidth
-                    : 260.0;
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _SettingsSidebar(
-                      width: sidebarWidth,
-                      selected: _selectedDestination,
-                      onSelected: (destination) {
-                        setState(
-                          () => _selectedDestination = destination,
-                        );
-                      },
-                    ),
-                    Expanded(
-                      child: _buildSettingsContent(_selectedDestination),
-                    ),
-                  ],
-                );
-              },
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _SettingsSidebar(
+                  selected: _selectedDestination,
+                  onSelected: (destination) {
+                    setState(() => _selectedDestination = destination);
+                  },
+                ),
+                Expanded(
+                  child: _buildSettingsContent(_selectedDestination),
+                ),
+              ],
             ),
           ),
         ],
@@ -113,6 +100,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _SettingsDestination.appearance => const _SettingsContentFrame(
         child: AppearanceSettingsSection(),
       ),
+      _SettingsDestination.permissions => const _SettingsContentFrame(
+        child: PermissionsSettingsSection(),
+      ),
       _SettingsDestination.updates => const _SettingsContentFrame(
         child: UpdatesSettingsSection(),
       ),
@@ -130,6 +120,7 @@ class _LanguageSettingsContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppSettingsSection(
       title: AppLocalizations.of(context)!.settingsNavLanguage,
+      subtitle: AppLocalizations.of(context)!.languageSectionDescription,
       children: const [TargetProfileSettingsRow()],
     );
   }
@@ -137,12 +128,10 @@ class _LanguageSettingsContent extends StatelessWidget {
 
 class _SettingsSidebar extends StatelessWidget {
   const _SettingsSidebar({
-    required this.width,
     required this.selected,
     required this.onSelected,
   });
 
-  final double width;
   final _SettingsDestination selected;
   final ValueChanged<_SettingsDestination> onSelected;
 
@@ -181,6 +170,12 @@ class _SettingsSidebar extends StatelessWidget {
         key: 'shortcuts',
       ),
       (
+        destination: _SettingsDestination.permissions,
+        label: l10n.permissions,
+        icon: Icons.shield_outlined,
+        key: 'permissions',
+      ),
+      (
         destination: _SettingsDestination.updates,
         label: l10n.updates,
         icon: Icons.update_rounded,
@@ -195,11 +190,11 @@ class _SettingsSidebar extends StatelessWidget {
     ];
 
     return Container(
-      width: width,
-      padding: EdgeInsets.fromLTRB(
-        width >= 316 ? AppSpacing.lg : AppSpacing.md,
-        AppSpacing.xxl,
+      width: AppSizes.settingsSidebarWidth,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.sm,
         AppSpacing.lg,
+        AppSpacing.sm,
         0,
       ),
       decoration: BoxDecoration(
@@ -211,11 +206,16 @@ class _SettingsSidebar extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.settings,
-              style: AppTextStyles.pageTitleOf(context),
+            Padding(
+              // Matches the nav rows' horizontal inset so the two most
+              // prominent left edges of the screen share one column.
+              padding: const EdgeInsets.only(left: AppSpacing.sm),
+              child: Text(
+                l10n.settings,
+                style: AppTextStyles.pageTitleOf(context),
+              ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.sm),
             for (final item in items) ...[
               _SettingsSidebarItem(
                 key: Key('settingsNav-${item.key}'),
@@ -224,7 +224,7 @@ class _SettingsSidebar extends StatelessWidget {
                 selected: selected == item.destination,
                 onTap: () => onSelected(item.destination),
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.xxs),
             ],
           ],
         ),
@@ -249,51 +249,41 @@ class _SettingsSidebarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final textColor = Theme.of(context).textTheme.bodyMedium?.color;
-    final selectedColor = Theme.of(context).brightness == Brightness.light
-        ? const Color(0xFFF0EAFE)
-        : colorScheme.primaryContainer;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    // `onPrimaryContainer` is the role for content sitting on a
+    // `primaryContainer` fill; it resolves to the same tint but survives a
+    // palette change that `primary` would not.
+    final foreground = selected
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
+
     return Semantics(
       selected: selected,
       button: true,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Container(
-          height: AppSizes.compactRowHeight,
+          height: AppSizes.sidebarRowHeight,
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
           decoration: BoxDecoration(
-            color: selected ? selectedColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            color: selected ? colorScheme.primaryContainer : null,
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Row(
             children: [
-              SizedBox(
-                width: 4,
-                height: double.infinity,
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: selected ? colorScheme.primary : Colors.transparent,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Icon(
-                icon,
-                size: 22,
-                color: selected ? colorScheme.primary : textColor,
-              ),
+              Icon(icon, size: AppSizes.iconLg, color: foreground),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
                   label,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: selected ? colorScheme.primary : textColor,
-                    fontSize: Theme.of(context).textTheme.bodyMedium?.fontSize,
-                    fontWeight: FontWeight.w700,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: selected
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSurface,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -313,13 +303,23 @@ class _SettingsContentFrame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      // Top and sides match the Rewrite tab's 24 so content does not shift
+      // when you switch tabs; the deeper bottom inset is the mockup's.
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.xl,
-        AppSpacing.xxl,
-        AppSpacing.xxl,
+        AppSpacing.xl,
+        AppSpacing.xl,
         AppSpacing.xxl,
       ),
-      child: child,
+      child: Align(
+        alignment: Alignment.topLeft,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxWidth: AppSizes.settingsMaxContentWidth,
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 }

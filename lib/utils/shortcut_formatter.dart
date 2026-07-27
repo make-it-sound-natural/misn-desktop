@@ -45,14 +45,24 @@ class ShortcutFormatter {
     return parts.join('+');
   }
 
-  /// Validates that a shortcut string includes at least one modifier key.
+  /// Validates that a shortcut has a command modifier and a real key.
   ///
-  /// Returns true if the shortcut contains 'cmd', 'ctrl', or 'meta'.
+  /// Checks the parts rather than the joined string: a substring test lets
+  /// `cmd+ctrl+shift` pass, which is a chord no key can complete.
   static bool validateShortcutStructure(String shortcut) {
-    final lowerShortcut = shortcut.toLowerCase();
-    return lowerShortcut.contains('cmd') ||
-        lowerShortcut.contains('ctrl') ||
-        lowerShortcut.contains('meta');
+    final parts = shortcut
+        .toLowerCase()
+        .split('+')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList();
+
+    const commandModifiers = {'cmd', 'ctrl', 'meta'};
+    const modifiers = {...commandModifiers, 'shift', 'alt', 'opt', 'option'};
+
+    final hasCommandModifier = parts.any(commandModifiers.contains);
+    final hasKey = parts.any((part) => !modifiers.contains(part));
+    return hasCommandModifier && hasKey;
   }
 
   static String _keyLabel(LogicalKeyboardKey key) {

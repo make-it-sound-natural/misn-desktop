@@ -190,12 +190,16 @@ void main() {
 
     await tester.tap(find.byKey(const Key('targetProfilePickerButton')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('addTargetProfileButton')),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('addTargetProfileButton')));
     await tester.pumpAndSettle();
 
     expect(find.text('Required'), findsNWidgets(2));
-    final saveButton = tester.widget<ElevatedButton>(
-      find.widgetWithText(ElevatedButton, 'Save'),
+    final saveButton = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, 'Save'),
     );
     expect(saveButton.onPressed, isNull);
   });
@@ -208,6 +212,10 @@ void main() {
     await openLanguage(tester);
 
     await tester.tap(find.byKey(const Key('targetProfilePickerButton')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('addTargetProfileButton')),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('addTargetProfileButton')));
     await tester.pumpAndSettle();
@@ -242,6 +250,10 @@ void main() {
     await openLanguage(tester);
 
     await tester.tap(find.byKey(const Key('targetProfilePickerButton')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.byKey(const Key('addTargetProfileButton')),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('addTargetProfileButton')));
     await tester.pumpAndSettle();

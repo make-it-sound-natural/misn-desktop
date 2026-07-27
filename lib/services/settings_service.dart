@@ -26,6 +26,7 @@ class SettingsService {
   static const String _shortcutAppendKey = 'app_shortcut_append';
   static const String _defaultVariantKey = 'default_variant';
   static const String _screenshotContextModeKey = 'screenshot_context_mode';
+  static const String _sourceEditorShareKey = 'rewrite_source_editor_share';
   static const String _pendingScreenshotContextModeKey =
       'pending_screenshot_context_mode';
   static const String _appearancePreferencesKey =
@@ -254,6 +255,22 @@ class SettingsService {
   Future<String> getContext() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_contextKey) ?? '';
+  }
+
+  /// Share of the source panel's two-field region the editor takes.
+  ///
+  /// A ratio rather than a pixel height, so the split the user dragged holds
+  /// its proportions when the window is resized. Null until they first move
+  /// the divider; the panel clamps whatever it reads.
+  Future<double?> getSourceEditorShare() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_sourceEditorShareKey);
+  }
+
+  /// Persists the dragged split.
+  Future<void> setSourceEditorShare(double share) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_sourceEditorShareKey, share);
   }
 
   /// Saves the user context.

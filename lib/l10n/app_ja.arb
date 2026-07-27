@@ -2,19 +2,16 @@
   "@@locale": "ja",
   "contextCleared": "コンテキストをクリアしました",
   "windowChanged": "ウィンドウが変更されました — 手動でバリアントを選択してください",
-  "appliedLabel": "{label}を適用しました",
   "copiedToClipboard": "クリップボードにコピーしました",
   "contextOptional": "コンテキスト（任意）",
   "clear": "クリア",
-  "addContextHint": "結果を改善するためにコンテキストを追加...",
-  "contextHelper": "⌘⇧J 置換、⌘⇧L 追加",
-  "selectTextInstruction": "任意のアプリでテキストを選択して押す",
+  "addContextHint": "モデルが推測できない読み手・トーン・背景…",
   "applied": "適用済み",
   "balanced": "バランス",
   "casual": "カジュアル",
   "formal": "フォーマル",
   "concise": "簡潔",
-  "autoApplyVariant": "自動適用: {label}",
+  "autoApplyVariant": "自動適用",
   "apply": "適用",
   "copy": "コピー",
   "apiKeyRequired": "修正にはAPIキーが必要です",
@@ -25,7 +22,6 @@
   "apiKeySaved": "APIキーを保存しました",
   "openAccessibilitySettings": "システム設定 > プライバシーとセキュリティ > アクセシビリティを開いてください",
   "settings": "設定",
-  "globalShortcut": "グローバルショートカット",
   "shortcutCorrection": "修正",
   "shortcutReplaceContext": "コンテキストを置換",
   "shortcutAppendContext": "コンテキストに追加",
@@ -83,10 +79,9 @@
   "promptSaved": "プロンプトを保存しました",
   "promptReset": "プロンプトをリセットしました",
   "textToImprove": "改善するテキスト",
-  "textToImproveHint": "改善するテキストを入力または貼り付け...",
+  "textToImproveHint": "自然な表現にしたいテキストを貼り付けるか入力してください…",
   "process": "処理",
-  "processing": "処理中...",
-  "noTextToProcess": "処理するテキストを入力してください",
+  "processing": "処理中…",
   "updates": "アップデート",
   "checkForUpdates": "アップデートを確認",
   "checkingUpdates": "確認中...",
@@ -110,7 +105,6 @@
   "automaticChecksSubtitle": "起動時にアップデートを確認",
   "apiProvider": "APIプロバイダー",
   "provider": "プロバイダー",
-  "chooseProvider": "AIプロバイダーを選択",
   "openaiApiKey": "OpenAI APIキー",
   "openaiApiKeyHelper": "OpenAI APIキー",
   "openrouterApiKey": "OpenRouter APIキー",
@@ -118,18 +112,9 @@
   "settingsNavShortcuts": "ショートカット",
   "settingsNavWriting": "文章",
   "settingsNavLanguage": "言語",
-  "aiProviderDescription": "AIプロバイダーを選び、APIキーを管理し、書き換え生成に使うモデルを選択します。",
-  "apiKeyStoredLocally": "Keychainにローカル保存",
-  "apiKeyNeedsAttention": "APIキーの確認が必要です",
-  "apiKeyAuthFailureFallback": "プロバイダーがこのAPIキーを拒否しました。",
-  "modelUsedForRewrite": "書き換え生成に使用",
   "apiKeySecurityNote": "APIキーはmacOS Keychainに安全に保存され、アプリが送信することはありません。",
-  "showApiKey": "APIキーを表示",
-  "hideApiKey": "APIキーを非表示",
   "openRouterModels": "OpenRouterモデル",
-  "openRouterModelsDescription": "モデル選択に表示するOpenRouterモデルを選択します。",
   "customProviders": "カスタムプロバイダー",
-  "customProvidersDescription": "ローカルのAPIキーとモデルIDでOpenAI互換プロバイダーを追加します。",
   "customProviderCompatibilityNote": "カスタムプロバイダーは非ストリーミングのChat Completionsをサポートする必要があります。スクリーンショットコンテキストには画像入力のサポートも必要です。",
   "addProvider": "プロバイダーを追加",
   "editProvider": "プロバイダーを編集",
@@ -142,9 +127,6 @@
   "providerBaseUrl": "ベースURL",
   "providerUrlRequired": "ベースURLは必須です。",
   "providerUrlInvalid": "ベースURLは有効なHTTPS URLである必要があります。",
-  "customProviderModels": "{provider}モデル",
-  "customProviderModelsDescription": "モデル選択に表示するカスタムプロバイダーのモデルを選択します。",
-  "customProviderNoModels": "このプロバイダーを使用する前にモデルを追加してください。",
   "addModel": "モデルを追加",
   "editModel": "モデルを編集",
   "deleteModel": "モデルを削除",
@@ -187,111 +169,203 @@
   "screenRecordingPermissionDebugHint": "Debug: macOS が Terminal または iTerm を求めた場合は、その起動元を許可するか、ビルド済みの .app を直接開いてください。",
   "openSystemSettings": "システム設定を開く",
   "revealInFinder": "Finder に表示",
-
   "appearance": "外観",
-  "@appearance": { "description": "Settings sidebar appearance item and page title" },
-
+  "@appearance": {
+    "description": "Settings sidebar appearance item and page title"
+  },
   "appearanceTheme": "テーマ",
-  "@appearanceTheme": { "description": "Appearance setting title for theme mode" },
-
+  "@appearanceTheme": {
+    "description": "Appearance setting title for theme mode"
+  },
   "appearanceThemeHelper": "ライト、ダーク、またはmacOSに合わせる",
-  "@appearanceThemeHelper": { "description": "Helper text for theme mode setting" },
-
+  "@appearanceThemeHelper": {
+    "description": "Helper text for theme mode setting"
+  },
   "appearanceThemeSystem": "システム",
-  "@appearanceThemeSystem": { "description": "Theme option that follows macOS" },
-
+  "@appearanceThemeSystem": {
+    "description": "Theme option that follows macOS"
+  },
   "appearanceThemeLight": "ライト",
-  "@appearanceThemeLight": { "description": "Light theme option" },
-
+  "@appearanceThemeLight": {
+    "description": "Light theme option"
+  },
   "appearanceThemeDark": "ダーク",
-  "@appearanceThemeDark": { "description": "Dark theme option" },
-
+  "@appearanceThemeDark": {
+    "description": "Dark theme option"
+  },
   "appearanceMenuFontSize": "メニューのフォントサイズ",
-  "@appearanceMenuFontSize": { "description": "Appearance setting title for menu and UI font size" },
-
+  "@appearanceMenuFontSize": {
+    "description": "Appearance setting title for menu and UI font size"
+  },
   "appearanceMenuFontSizeHelper": "ナビゲーション、ラベル、ボタン、ダイアログに使用",
-  "@appearanceMenuFontSizeHelper": { "description": "Helper text for menu and UI font size" },
-
+  "@appearanceMenuFontSizeHelper": {
+    "description": "Helper text for menu and UI font size"
+  },
   "appearanceEditorFontSize": "エディタのフォントサイズ",
-  "@appearanceEditorFontSize": { "description": "Appearance setting title for editor and context text font size" },
-
+  "@appearanceEditorFontSize": {
+    "description": "Appearance setting title for editor and context text font size"
+  },
   "appearanceEditorFontSizeHelper": "書き換えテキストとコンテキスト入力に使用",
-  "@appearanceEditorFontSizeHelper": { "description": "Helper text for editor and context text font size" },
-
+  "@appearanceEditorFontSizeHelper": {
+    "description": "Helper text for editor and context text font size"
+  },
   "appearanceReset": "外観をリセット",
-  "@appearanceReset": { "description": "Button to reset appearance settings" },
-
+  "@appearanceReset": {
+    "description": "Button to reset appearance settings"
+  },
   "appearanceResetDone": "外観をリセットしました",
-  "@appearanceResetDone": { "description": "SnackBar message after appearance settings reset" },
-
+  "@appearanceResetDone": {
+    "description": "SnackBar message after appearance settings reset"
+  },
   "pixelsUnit": "px",
-  "@pixelsUnit": { "description": "Pixel unit label for font size inputs" }
-,
-
+  "@pixelsUnit": {
+    "description": "Pixel unit label for font size inputs"
+  },
   "onboardingTitle": "Make It Sound Natural を設定",
-  "@onboardingTitle": { "description": "First-run onboarding screen title" },
-
+  "@onboardingTitle": {
+    "description": "First-run onboarding screen title"
+  },
   "onboardingProviderTitle": "AI プロバイダー",
-  "@onboardingProviderTitle": { "description": "Onboarding provider setup step title" },
-
+  "@onboardingProviderTitle": {
+    "description": "Onboarding provider setup step title"
+  },
   "onboardingProviderDescription": "OpenRouter と google/gemini-3-flash-preview がデフォルトで選択されています。準備ができたら設定で API キーを追加してください。",
-  "@onboardingProviderDescription": { "description": "Onboarding provider setup step description" },
-
+  "@onboardingProviderDescription": {
+    "description": "Onboarding provider setup step description"
+  },
   "onboardingAccessibilityTitle": "アクセシビリティ",
-  "@onboardingAccessibilityTitle": { "description": "Onboarding Accessibility permission step title" },
-
+  "@onboardingAccessibilityTitle": {
+    "description": "Onboarding Accessibility permission step title"
+  },
   "onboardingAccessibilityDescription": "アクセシビリティにより、ショートカットが他のアプリで選択したテキストを読み取り、置き換えられます。",
-  "@onboardingAccessibilityDescription": { "description": "Onboarding Accessibility permission explanation" },
-
+  "@onboardingAccessibilityDescription": {
+    "description": "Onboarding Accessibility permission explanation"
+  },
   "onboardingAccessibilityGrant": "アクセシビリティ設定を開く",
-  "@onboardingAccessibilityGrant": { "description": "Button to request or open Accessibility permission settings" },
-
+  "@onboardingAccessibilityGrant": {
+    "description": "Button to request or open Accessibility permission settings"
+  },
   "onboardingAccessibilityGranted": "アクセシビリティが許可されています。",
-  "@onboardingAccessibilityGranted": { "description": "Onboarding status when Accessibility is granted" },
-
+  "@onboardingAccessibilityGranted": {
+    "description": "Onboarding status when Accessibility is granted"
+  },
   "onboardingAccessibilityMissing": "ショートカットでの書き換えにはアクセシビリティが必要です。",
-  "@onboardingAccessibilityMissing": { "description": "Onboarding status when Accessibility is missing" },
-
+  "@onboardingAccessibilityMissing": {
+    "description": "Onboarding status when Accessibility is missing"
+  },
   "onboardingAccessibilitySkipped": "アクセシビリティが許可されるまで、ショートカットでの書き換えは動作しません。",
-  "@onboardingAccessibilitySkipped": { "description": "Onboarding warning when Accessibility was skipped" },
-
+  "@onboardingAccessibilitySkipped": {
+    "description": "Onboarding warning when Accessibility was skipped"
+  },
   "onboardingAccessibilityStillMissing": "アクセシビリティがまだ不足しています。システム設定で Make It Sound Natural を有効にしてから、もう一度確認してください。",
-  "@onboardingAccessibilityStillMissing": { "description": "Onboarding warning after Accessibility request still finds no permission" },
-
+  "@onboardingAccessibilityStillMissing": {
+    "description": "Onboarding warning after Accessibility request still finds no permission"
+  },
   "onboardingAccessibilitySkip": "今はスキップ",
-  "@onboardingAccessibilitySkip": { "description": "Button to skip Accessibility permission during onboarding" },
-
+  "@onboardingAccessibilitySkip": {
+    "description": "Button to skip Accessibility permission during onboarding"
+  },
   "onboardingAccessibilityCheckAgain": "もう一度確認",
-  "@onboardingAccessibilityCheckAgain": { "description": "Button to recheck Accessibility permission status" },
-
+  "@onboardingAccessibilityCheckAgain": {
+    "description": "Button to recheck Accessibility permission status"
+  },
   "onboardingScreenshotTitle": "スクリーンショットのコンテキスト",
-  "@onboardingScreenshotTitle": { "description": "Onboarding Screenshot context step title" },
-
+  "@onboardingScreenshotTitle": {
+    "description": "Onboarding Screenshot context step title"
+  },
   "onboardingScreenshotDescription": "任意のスクリーンショットコンテキストは書き換えを改善できますが、機密性の高い表示内容を含む場合があります。",
-  "@onboardingScreenshotDescription": { "description": "Onboarding Screenshot context privacy explanation" },
-
+  "@onboardingScreenshotDescription": {
+    "description": "Onboarding Screenshot context privacy explanation"
+  },
   "onboardingScreenshotModeLabel": "スクリーンショットコンテキストモード",
-  "@onboardingScreenshotModeLabel": { "description": "Accessible label for Screenshot context mode choices in onboarding" },
-
+  "@onboardingScreenshotModeLabel": {
+    "description": "Accessible label for Screenshot context mode choices in onboarding"
+  },
   "onboardingScreenshotOffStatus": "スクリーンショットコンテキストはオフです。画面収録の許可は要求されません。",
-  "@onboardingScreenshotOffStatus": { "description": "Onboarding status when Screenshot context remains off" },
-
+  "@onboardingScreenshotOffStatus": {
+    "description": "Onboarding status when Screenshot context remains off"
+  },
   "onboardingScreenshotPermissionGranted": "スクリーンショットコンテキストが有効です。",
-  "@onboardingScreenshotPermissionGranted": { "description": "Onboarding status after Screen Recording is granted" },
-
+  "@onboardingScreenshotPermissionGranted": {
+    "description": "Onboarding status after Screen Recording is granted"
+  },
   "onboardingScreenshotPermissionNeeded": "スクリーンショットコンテキストを使用するには、画面収録の許可がまだ必要です。",
-  "@onboardingScreenshotPermissionNeeded": { "description": "Onboarding status after non-Off Screenshot context could not be enabled" },
-
+  "@onboardingScreenshotPermissionNeeded": {
+    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+  },
   "onboardingScreenshotUnsupported": "スクリーンショットコンテキストには macOS 14 以降が必要です。",
-  "@onboardingScreenshotUnsupported": { "description": "Onboarding status when Screenshot context is unsupported" },
-
+  "@onboardingScreenshotUnsupported": {
+    "description": "Onboarding status when Screenshot context is unsupported"
+  },
   "onboardingContinue": "続ける",
-  "@onboardingContinue": { "description": "Continue button in first-run onboarding" },
-
+  "@onboardingContinue": {
+    "description": "Continue button in first-run onboarding"
+  },
   "onboardingSkipOptional": "任意項目をスキップ",
-  "@onboardingSkipOptional": { "description": "Skip optional onboarding content button" },
-
+  "@onboardingSkipOptional": {
+    "description": "Skip optional onboarding content button"
+  },
   "onboardingComplete": "設定を完了",
-  "@onboardingComplete": { "description": "Finish onboarding button" }
-
+  "@onboardingComplete": {
+    "description": "Finish onboarding button"
+  },
+  "processingCancelled": "処理をキャンセルしました",
+  "appliedCopiedToClipboard": "{label} を適用しました — クリップボードにコピーしました",
+  "notEditableGeneric": "カーソルが編集可能なフィールドにありません",
+  "variantsEmptyStateError": "キーを修正してから「処理」を実行すると 4 つのトーン候補が表示されます。",
+  "authFailureBannerTitle": "プロバイダーが API キーを拒否しました。",
+  "authFailureBannerBody": "{provider} のキーを確認してから、もう一度お試しください。",
+  "checkApiKey": "API キーを確認",
+  "retry": "再試行",
+  "escCancelHint": "キャンセル",
+  "hintProcess": "処理",
+  "generatingVariants": "4 つの候補を生成しています…",
+  "sourceEyebrow": "元のテキスト",
+  "variantsEyebrow": "候補",
+  "aiProviderSectionDescription": "プロバイダーを追加し、それぞれにキーとモデルを設定して、書き換えに使うモデルを1 つのリストから選びます。",
+  "appearanceSectionDescription": "テーマと文字サイズ。",
+  "writingSectionDescription": "既定の候補とスクリーンショットのコンテキスト。",
+  "languageSectionDescription": "ターゲットプロファイルは、すべての候補の言い回しと言語を決めます。",
+  "shortcutsSectionDescription": "グローバルショートカットは、アプリがバックグラウンドで動作している間に使えます。",
+  "permissionsSectionDescription": "これらの権限は macOS の「システム設定」で管理します。",
+  "updatesSectionDescription": "アプリ情報とアップデートの確認。",
+  "advancedSectionDescription": "プロンプトの上書き。",
+  "modelRowDescription": "書き換えに使用します。モデルを選ぶと、その提供元も選択されます。",
+  "providersGroupTitle": "プロバイダー",
+  "modelsGroupTitle": "モデル",
+  "builtInProvider": "組み込みプロバイダー",
+  "apiKeySet": "キー設定済み",
+  "noApiKeyStatus": "APIキーなし",
+  "setApiKeyAction": "API キーを設定",
+  "changeApiKeyAction": "API キーを変更",
+  "providerKeyDialogSubtitle": "{provider} · macOS キーチェーンにローカル保存されます",
+  "apiKeyRemoved": "API キーを削除しました",
+  "providerAdded": "プロバイダーを追加しました — 次にモデルを追加してください",
+  "providerUpdated": "プロバイダーを更新しました",
+  "providerDeleted": "プロバイダーを削除しました",
+  "deleteProviderMessage": "「{name}」とその API キー・モデルをこの Mac から削除します。",
+  "addProviderDialogSubtitle": "OpenAI 互換のエンドポイント。非ストリーミングの Chat Completions が必要です。",
+  "modelAddedTo": "{provider} にモデルを追加しました",
+  "modelUpdated": "モデルを更新しました",
+  "modelDeleted": "モデルを削除しました",
+  "modelShownInPicker": "モデルを選択リストに表示します",
+  "modelHiddenFromPicker": "モデルを選択リストから隠しました",
+  "authFailureNote": "{provider} の認証に失敗しました（{message}）。下でキーを更新して、もう一度お試しください。",
+  "latencyAvg": "平均 {seconds} 秒",
+  "noModelsYet": "モデルがまだありません",
+  "noModelsYetDescription": "書き換えを実行するにはモデルを追加してください。",
+  "deleteAction": "削除",
+  "chooseTargetForcedSubtitle": "書き換えに使うプロファイルを選択してください。続行するには必須です。",
+  "variantDefaultTag": "既定",
+  "rewriteTab": "書き換え",
+  "emptyPrimerSubtitle": "選んだトーンはカーソル位置に挿入され、ほかの候補はここに残ります。",
+  "onboardingDoneDescription": "設定は完了です。どこでもテキストを選択してショートカットを使ってください。",
+  "onboardingDoneTitle": "準備完了です",
+  "shortcutsResetConfirm": "3つのグローバルショートカットが既定値に戻ります。",
+  "shortcutsFixedNote": "⌘↵ は Rewrite 画面で書き換えを開始し、Esc は実行中の処理を取り消します。この2つは変更できません。",
+  "emptyPrimerLead": "任意のアプリでテキストを選択して",
+  "emptyPrimerRewriteTail": "を押すと書き換えられます。",
+  "contextShortcutHintLead": "テキストを選択して",
+  "contextShortcutHintReplace": "でこのコンテキストを置き換え、",
+  "contextShortcutHintAppend": "で末尾に追加します。"
 }

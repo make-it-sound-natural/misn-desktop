@@ -39,6 +39,16 @@ class AppDelegate: FlutterAppDelegate {
     windowLifecycleController.handleReopen(hasVisibleWindows: flag)
   }
 
+  /// Backs the standard Preferences… menu item.
+  ///
+  /// The item shipped with its Cmd+, key equivalent but no action connection,
+  /// so AppKit rendered it permanently disabled and the shortcut did nothing.
+  @IBAction func openPreferences(_ sender: Any?) {
+    guard let window = mainFlutterWindow as? MainFlutterWindow else { return }
+    NSApp.activate(ignoringOtherApps: true)
+    window.requestSettings()
+  }
+
   override func applicationSupportsSecureRestorableState(
     _ app: NSApplication
   ) -> Bool {

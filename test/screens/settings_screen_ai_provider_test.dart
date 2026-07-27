@@ -8,7 +8,7 @@ import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/screens/settings_screen.dart';
-import 'package:make_it_sound_natural/theme/app_theme.dart';
+import 'package:make_it_sound_natural/widgets/app_popup_select.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -122,33 +122,6 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  String? textFieldError(WidgetTester tester, Key key) {
-    return tester.widget<TextField>(find.byKey(key)).decoration?.errorText;
-  }
-
-  Future<void> pumpDarkSettings(WidgetTester tester) async {
-    await tester.binding.setSurfaceSize(const Size(1536, 1024));
-    addTearDown(() => tester.binding.setSurfaceSize(null));
-    await tester.pumpWidget(
-      MaterialApp(
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        locale: const Locale('en'),
-        theme: AppTheme.light(menuFontSize: AppDefaults.menuFontSize),
-        darkTheme: AppTheme.dark(menuFontSize: AppDefaults.menuFontSize),
-        themeMode: ThemeMode.dark,
-        home: const SettingsScreen(),
-      ),
-    );
-    await tester.pump(const Duration(milliseconds: 500));
-    await tester.pump(const Duration(milliseconds: 500));
-  }
-
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
@@ -157,384 +130,141 @@ void main() {
         );
   });
 
-  testWidgets('renders screenshot AI Provider layout by default', (
-    tester,
-  ) async {
+  Future<void> openAddModelDialog(WidgetTester tester) async {
+    await tester.ensureVisible(find.byKey(const Key('apiProvider-addModel')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('apiProvider-addModel')));
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> tapRowAction(WidgetTester tester, Key key) async {
+    await tester.ensureVisible(find.byKey(key));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(key));
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('renders the restructured AI Provider layout', (tester) async {
     setupSettings();
     await pumpSettings(tester);
 
-    expect(find.text('Make It Sound Natural'), findsOneWidget);
-    expect(find.text('Rewrite'), findsOneWidget);
-    expect(find.text('Settings'), findsWidgets);
-    expect(find.text('Shortcuts'), findsOneWidget);
-    expect(find.text('Writing'), findsOneWidget);
-    expect(find.text('Language'), findsOneWidget);
-    expect(find.text('AI Provider'), findsWidgets);
-    expect(find.text('Updates'), findsOneWidget);
-    expect(find.text('Advanced'), findsOneWidget);
-    expect(find.byKey(const Key('settingsNav-aiProvider')), findsOneWidget);
-    expect(
-      tester.getTopLeft(find.byKey(const Key('settingsNav-aiProvider'))).dy,
-      lessThan(
-        tester.getTopLeft(find.byKey(const Key('settingsNav-writing'))).dy,
-      ),
-    );
-    final selectedContainers = tester.widgetList<Container>(
-      find.descendant(
-        of: find.byKey(const Key('settingsNav-aiProvider')),
-        matching: find.byType(Container),
-      ),
-    );
-    expect(
-      selectedContainers.any((container) {
-        final decoration = container.decoration;
-        return decoration is BoxDecoration &&
-            decoration.color == const Color(0xFFF0EAFE);
-      }),
-      isTrue,
-    );
-    expect(find.text('Choose your AI provider'), findsOneWidget);
-    expect(find.text('Stored locally in Keychain'), findsOneWidget);
-    expect(find.text('Used for rewrite generation'), findsOneWidget);
-    expect(find.text('Test Connection'), findsNothing);
-    expect(
-      find.text(
-        'Your API key is stored securely in macOS Keychain and is never sent '
-        'by the app.',
-      ),
-      findsOneWidget,
-    );
+    expect(find.byKey(const Key('apiProvider-modelPicker')), findsOneWidget);
+    expect(find.text('Providers'), findsOneWidget);
+    expect(find.text('Models'), findsOneWidget);
+    expect(find.text('OpenRouter'), findsWidgets);
+    expect(find.text('OpenAI'), findsWidgets);
+    // The provider dropdown is gone: the model picker selects the provider.
+    expect(find.byKey(const Key('apiProvider-providerSelector')), findsNothing);
   });
 
-  testWidgets('defaults clean install to OpenRouter and Gemini flash', (
+  testWidgets('defaults a clean install to OpenRouter and Gemini flash', (
     tester,
   ) async {
     setupSettings(provider: null, model: null);
     await pumpSettings(tester);
 
-    final providerField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-providerSelector')),
+    final picker = tester.widget<AppPopupSelect<String>>(
+      find.byKey(const Key('apiProvider-modelPicker')),
     );
-    final modelField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-modelSelector')),
-    );
-
-    expect(providerField.initialValue, 'openrouter');
-    expect(modelField.initialValue, 'google/gemini-3-flash-preview');
-
-    await tester.tap(find.byKey(const Key('apiProvider-providerSelector')));
-    await tester.pumpAndSettle();
-    final openRouterTop = tester.getTopLeft(find.text('OpenRouter').last);
-    final openAiTop = tester.getTopLeft(find.text('OpenAI').last);
-    expect(openRouterTop.dy, lessThan(openAiTop.dy));
+    expect(picker.value, '${AppDefaults.apiProvider}::${AppDefaults.model}');
   });
 
-  testWidgets('obscures and reveals the active provider API key', (
+  testWidgets('provider rows show key status inline', (tester) async {
+    setupSettings(openAiKey: '');
+    await pumpSettings(tester);
+
+    expect(find.textContaining('API key set'), findsWidgets);
+    expect(find.textContaining('No API key'), findsWidgets);
+  });
+
+  testWidgets('key button opens the per-provider Keychain modal', (
     tester,
   ) async {
-    setupSettings(openRouterKey: 'sk-or-secret');
-    await pumpSettings(tester);
-
-    var field = tester.widget<TextField>(
-      find.byKey(const Key('apiProvider-apiKeyField')),
-    );
-    expect(field.obscureText, isTrue);
-
-    await tester.tap(find.byKey(const Key('apiProvider-toggleApiKey')));
-    await tester.pump();
-
-    field = tester.widget<TextField>(
-      find.byKey(const Key('apiProvider-apiKeyField')),
-    );
-    expect(field.obscureText, isFalse);
-    expect(find.text('sk-or-secret'), findsOneWidget);
-  });
-
-  testWidgets('shows auth failure near OpenRouter API key', (tester) async {
     setupSettings();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'provider_auth_failure_openrouter',
-      jsonEncode({
-        'provider': 'openrouter',
-        'message': 'Invalid API key. Check settings.',
-        'occurredAt': DateTime.utc(2026, 6, 8).toIso8601String(),
-      }),
-    );
-
     await pumpSettings(tester);
 
-    expect(find.text('API key needs attention'), findsOneWidget);
-    expect(find.text('Invalid API key. Check settings.'), findsOneWidget);
+    await tapRowAction(tester, const Key('apiProvider-keyButton-openrouter'));
+
+    expect(find.byKey(const Key('apiProvider-keyDialogField')), findsOneWidget);
     expect(
-      find.byKey(const Key('apiProvider-apiKeyAuthFailure')),
+      find.textContaining('stored locally in the macOS Keychain'),
       findsOneWidget,
     );
+    // A saved key is never shown again: the field starts empty.
+    expect(
+      tester.widget<TextField>(find.byType(TextField).last).controller?.text,
+      isEmpty,
+    );
   });
 
-  testWidgets('editing API key clears auth failure message', (tester) async {
-    setupSettings();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-      'provider_auth_failure_openrouter',
-      jsonEncode({
-        'provider': 'openrouter',
-        'message': 'Invalid API key. Check settings.',
-        'occurredAt': DateTime.utc(2026, 6, 8).toIso8601String(),
-      }),
-    );
-
+  testWidgets('saving a key from the modal persists it', (tester) async {
+    setupSettings(openRouterKey: '');
     await pumpSettings(tester);
+
+    await tapRowAction(tester, const Key('apiProvider-keyButton-openrouter'));
     await tester.enterText(
-      find.byKey(const Key('apiProvider-apiKeyField')),
-      'sk-or-new',
+      find.byKey(const Key('apiProvider-keyDialogField')),
+      'sk-or-new-key',
     );
-    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.tap(find.byKey(const Key('apiProvider-saveKey')));
     await tester.pumpAndSettle();
 
-    expect(find.text('API key needs attention'), findsNothing);
+    expect(secureValues['openrouter'], 'sk-or-new-key');
+  });
+
+  testWidgets('shows the auth failure note for the selected provider', (
+    tester,
+  ) async {
+    setupSettings();
+    SharedPreferences.setMockInitialValues({
+      'api_provider': 'openrouter',
+      'openai_model': 'google/gemini-3-flash-preview',
+      'target_profile_selection_confirmed': true,
+      'target_profile_selected_id': 'americanEnglish',
+      'provider_auth_failure_openrouter': jsonEncode({
+        'provider': 'openrouter',
+        'message': 'invalid_api_key',
+        'occurredAt': DateTime.utc(2026).toIso8601String(),
+      }),
+    });
+    await pumpSettings(tester);
+
+    expect(find.textContaining('invalid_api_key'), findsOneWidget);
+
+    // Fixing the key must clear the note; a stale banner would tell the user
+    // their working key is still rejected.
+    await tapRowAction(tester, const Key('apiProvider-keyButton-openrouter'));
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-keyDialogField')),
+      'sk-or-fixed',
+    );
+    await tester.tap(find.byKey(const Key('apiProvider-saveKey')));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('invalid_api_key'), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('provider_auth_failure_openrouter'), isNull);
   });
 
-  testWidgets('switches provider and persists first model for provider', (
+  testWidgets('picking a model selects its provider and persists both', (
     tester,
   ) async {
     setupSettings();
     await pumpSettings(tester);
 
-    await tester.tap(find.byKey(const Key('apiProvider-providerSelector')));
+    await tester.tap(find.byKey(const Key('apiProvider-modelPicker')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('OpenAI').last);
+    await tester.tap(find.text('gpt-5.4-mini').last);
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('api_provider'), 'openai');
-    expect(prefs.getString('openai_model'), 'gpt-5.4-nano');
-    expect(
-      methodCalls.where((call) => call.method == MethodChannelMethods.setModel),
-      isNotEmpty,
-    );
+    expect(prefs.getString('openai_model'), 'gpt-5.4-mini');
   });
 
-  testWidgets('falls back when stored model is invalid for provider', (
+  testWidgets('adds a custom provider without requiring a model', (
     tester,
   ) async {
-    setupSettings(model: 'removed/model');
-    await pumpSettings(tester);
-
-    final modelField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-modelSelector')),
-    );
-    expect(modelField.initialValue, 'google/gemini-3-flash-preview');
-  });
-
-  testWidgets('shows custom OpenRouter model in model selector', (
-    tester,
-  ) async {
-    setupSettings(
-      model: 'anthropic/claude-sonnet-4.6',
-      customModels: [
-        jsonEncode({
-          'provider': 'openrouter',
-          'slug': 'anthropic/claude-sonnet-4.6',
-          'isBuiltIn': false,
-          'isHidden': false,
-        }),
-      ],
-    );
-    await pumpSettings(tester);
-
-    final modelField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-modelSelector')),
-    );
-    expect(modelField.initialValue, 'anthropic/claude-sonnet-4.6');
-    expect(find.text('anthropic/claude-sonnet-4.6'), findsWidgets);
-  });
-
-  testWidgets('falls back when stored OpenRouter model is hidden', (
-    tester,
-  ) async {
-    setupSettings(
-      customModels: [
-        jsonEncode({
-          'provider': 'openrouter',
-          'slug': 'anthropic/claude-sonnet-4.6',
-          'isBuiltIn': false,
-          'isHidden': false,
-        }),
-      ],
-      hiddenModels: const [
-        'openrouter::google/gemini-3-flash-preview',
-      ],
-    );
-    await pumpSettings(tester);
-
-    final modelField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-modelSelector')),
-    );
-    expect(modelField.initialValue, 'anthropic/claude-sonnet-4.6');
-  });
-
-  testWidgets('hides and shows OpenRouter models from management panel', (
-    tester,
-  ) async {
-    setupSettings(
-      customModels: [
-        jsonEncode({
-          'provider': 'openrouter',
-          'slug': 'anthropic/claude-sonnet-4.6',
-          'isBuiltIn': false,
-          'isHidden': false,
-        }),
-      ],
-    );
-    await pumpSettings(tester);
-
-    expect(
-      find.byKey(const Key('apiProvider-modelManagementPanel')),
-      findsOneWidget,
-    );
-    expect(find.text('google/gemini-3-flash-preview'), findsWidgets);
-
-    await tester.tap(
-      find.byKey(
-        const Key(
-          'apiProvider-hideModel-openrouter::google/gemini-3-flash-preview',
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    var modelField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-modelSelector')),
-    );
-    expect(modelField.initialValue, 'anthropic/claude-sonnet-4.6');
-    final prefs = await SharedPreferences.getInstance();
-    expect(
-      prefs.getStringList('llm_hidden_models'),
-      contains('openrouter::google/gemini-3-flash-preview'),
-    );
-
-    await tester.tap(
-      find.byKey(
-        const Key(
-          'apiProvider-showModel-openrouter::google/gemini-3-flash-preview',
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    modelField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-modelSelector')),
-    );
-    expect(modelField.initialValue, 'anthropic/claude-sonnet-4.6');
-    expect(prefs.getStringList('llm_hidden_models') ?? [], isEmpty);
-  });
-
-  testWidgets('uses readable dark colors for OpenRouter model names', (
-    tester,
-  ) async {
-    setupSettings();
-    await pumpDarkSettings(tester);
-
-    final modelText = tester
-        .widgetList<Text>(
-          find.text('google/gemini-3-flash-preview'),
-        )
-        .where((text) => text.style != null);
-    final modelColors = modelText.map((text) => text.style!.color).nonNulls;
-
-    expect(modelColors.any((color) => color.computeLuminance() > 0.6), isTrue);
-    expect(
-      modelColors.any((color) => color == const Color(0xFF101828)),
-      isFalse,
-    );
-  });
-
-  testWidgets('adds edits and deletes custom OpenRouter model', (
-    tester,
-  ) async {
-    setupSettings();
-    await pumpSettings(tester);
-
-    await tester.tap(find.byKey(const Key('apiProvider-addOpenRouterModel')));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const Key('apiProvider-modelSlugField')),
-      ' anthropic/claude-sonet-4.6 ',
-    );
-    await tester.tap(find.byKey(const Key('apiProvider-saveModelSlug')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('anthropic/claude-sonet-4.6'), findsOneWidget);
-
-    await tester.ensureVisible(
-      find.byKey(
-        const Key(
-          'apiProvider-editModel-openrouter::anthropic/claude-sonet-4.6',
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(
-        const Key(
-          'apiProvider-editModel-openrouter::anthropic/claude-sonet-4.6',
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const Key('apiProvider-modelSlugField')),
-      'anthropic/claude-sonnet-4.6',
-    );
-    await tester.tap(find.byKey(const Key('apiProvider-saveModelSlug')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('anthropic/claude-sonnet-4.6'), findsOneWidget);
-    expect(find.text('anthropic/claude-sonet-4.6'), findsNothing);
-
-    await tester.ensureVisible(
-      find.byKey(
-        const Key(
-          'apiProvider-deleteModel-openrouter::anthropic/claude-sonnet-4.6',
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(
-      find.byKey(
-        const Key(
-          'apiProvider-deleteModel-openrouter::anthropic/claude-sonnet-4.6',
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('apiProvider-confirmDeleteModel')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('anthropic/claude-sonnet-4.6'), findsNothing);
-  });
-
-  testWidgets('blocks duplicate custom OpenRouter model slug', (
-    tester,
-  ) async {
-    setupSettings();
-    await pumpSettings(tester);
-
-    await tester.tap(find.byKey(const Key('apiProvider-addOpenRouterModel')));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const Key('apiProvider-modelSlugField')),
-      'google/gemini-3-flash-preview',
-    );
-    await tester.tap(find.byKey(const Key('apiProvider-saveModelSlug')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('A model with this slug already exists.'), findsOneWidget);
-  });
-
-  testWidgets('adds custom provider without requiring model', (tester) async {
     setupSettings();
     await pumpSettings(tester);
 
@@ -552,14 +282,13 @@ void main() {
 
     final prefs = await SharedPreferences.getInstance();
     expect(find.text('TokenGuard'), findsWidgets);
-    expect(prefs.getStringList('llm_custom_providers'), isNotNull);
     expect(
       prefs.getStringList('llm_custom_providers')!.single,
       contains('"id":"tokenguard"'),
     );
   });
 
-  testWidgets('shows missing provider name error on provider name field', (
+  testWidgets('provider validation errors surface inline in the dialog', (
     tester,
   ) async {
     setupSettings();
@@ -573,131 +302,28 @@ void main() {
     await tester.tap(find.byKey(const Key('apiProvider-saveProvider')));
     await tester.pumpAndSettle();
 
-    expect(
-      textFieldError(
-        tester,
-        const Key('apiProvider-providerNameField'),
-      ),
-      'Provider name is required.',
-    );
-    expect(
-      textFieldError(
-        tester,
-        const Key('apiProvider-providerBaseUrlField'),
-      ),
-      isNull,
-    );
-  });
+    expect(find.text('Provider name is required.'), findsOneWidget);
 
-  testWidgets('shows missing provider URL error on base URL field', (
-    tester,
-  ) async {
-    setupSettings();
-    await pumpSettings(tester);
-
-    await openAddProviderDialog(tester);
-    await tester.enterText(
-      find.byKey(const Key('apiProvider-providerNameField')),
-      'TokenGuard',
-    );
-    await tester.tap(find.byKey(const Key('apiProvider-saveProvider')));
-    await tester.pumpAndSettle();
-
-    expect(
-      textFieldError(
-        tester,
-        const Key('apiProvider-providerNameField'),
-      ),
-      isNull,
-    );
-    expect(
-      textFieldError(
-        tester,
-        const Key('apiProvider-providerBaseUrlField'),
-      ),
-      'Base URL is required.',
-    );
-  });
-
-  testWidgets('shows invalid provider URL error on base URL field', (
-    tester,
-  ) async {
-    setupSettings();
-    await pumpSettings(tester);
-
-    await openAddProviderDialog(tester);
     await tester.enterText(
       find.byKey(const Key('apiProvider-providerNameField')),
       'TokenGuard',
     );
     await tester.enterText(
       find.byKey(const Key('apiProvider-providerBaseUrlField')),
-      'http://tokenguard.int.agrd.dev/api/v1',
+      'not-a-url',
     );
     await tester.tap(find.byKey(const Key('apiProvider-saveProvider')));
     await tester.pumpAndSettle();
 
-    expect(
-      textFieldError(
-        tester,
-        const Key('apiProvider-providerNameField'),
-      ),
-      isNull,
-    );
-    expect(
-      textFieldError(
-        tester,
-        const Key('apiProvider-providerBaseUrlField'),
-      ),
-      'Base URL must be a valid HTTPS URL.',
-    );
+    expect(find.text('Base URL must be a valid HTTPS URL.'), findsOneWidget);
   });
 
-  testWidgets('selecting custom provider with no models clears stale model', (
+  testWidgets('deleting a provider cascades to its models and the picker', (
     tester,
   ) async {
     setupSettings(
-      customProviders: [
-        jsonEncode({
-          'id': 'tokenguard',
-          'displayName': 'TokenGuard',
-          'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
-          'isBuiltIn': false,
-        }),
-      ],
-    );
-    await pumpSettings(tester);
-
-    await tester.tap(find.byKey(const Key('apiProvider-providerSelector')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('TokenGuard').last);
-    await tester.pumpAndSettle();
-
-    final prefs = await SharedPreferences.getInstance();
-    final modelField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-modelSelector')),
-    );
-    expect(prefs.getString('api_provider'), 'tokenguard');
-    expect(prefs.getString('openai_model'), '');
-    expect(modelField.initialValue, isNull);
-    expect(
-      find.text('Add a model before using this provider.'),
-      findsOneWidget,
-    );
-    expect(
-      methodCalls.any(
-        (call) =>
-            call.method == MethodChannelMethods.setModel &&
-            call.arguments == '',
-      ),
-      isTrue,
-    );
-  });
-
-  testWidgets('selecting custom provider refreshes provider model catalog', (
-    tester,
-  ) async {
-    setupSettings(
+      provider: 'tokenguard',
+      model: 'acme/custom-writer-1',
       customProviders: [
         jsonEncode({
           'id': 'tokenguard',
@@ -709,7 +335,7 @@ void main() {
       customModels: [
         jsonEncode({
           'provider': 'tokenguard',
-          'slug': 'kimi-k2.6',
+          'slug': 'acme/custom-writer-1',
           'isBuiltIn': false,
           'isHidden': false,
         }),
@@ -717,109 +343,138 @@ void main() {
     );
     await pumpSettings(tester);
 
-    await tester.tap(find.byKey(const Key('apiProvider-providerSelector')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('TokenGuard').last);
-    await tester.pumpAndSettle();
-
-    final modelField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-modelSelector')),
+    await tapRowAction(
+      tester,
+      const Key('apiProvider-deleteProvider-tokenguard'),
     );
-    expect(modelField.initialValue, 'kimi-k2.6');
-    expect(
-      find.byKey(const Key('apiProvider-hideModel-tokenguard::kimi-k2.6')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(
-        const Key(
-          'apiProvider-hideModel-openrouter::google/gemini-3-flash-preview',
-        ),
-      ),
-      findsNothing,
-    );
-  });
-
-  testWidgets('trims custom provider API key before saving and syncing', (
-    tester,
-  ) async {
-    setupSettings(
-      provider: 'tokenguard',
-      customProviderKey: 'old-key',
-      customProviders: [
-        jsonEncode({
-          'id': 'tokenguard',
-          'displayName': 'TokenGuard',
-          'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
-          'isBuiltIn': false,
-        }),
-      ],
-      customModels: [
-        jsonEncode({
-          'provider': 'tokenguard',
-          'slug': 'kimi-k2.6',
-          'isBuiltIn': false,
-          'isHidden': false,
-        }),
-      ],
-    );
-    await pumpSettings(tester);
-
-    await tester.enterText(
-      find.byKey(const Key('apiProvider-apiKeyField')),
-      '  new-key  ',
-    );
-    await tester.testTextInput.receiveAction(TextInputAction.done);
-    await tester.pumpAndSettle();
-
-    expect(secureValues['tokenguard'], 'new-key');
-    expect(
-      methodCalls.any((call) {
-        return call.method == MethodChannelMethods.setCustomProviderConfig &&
-            (call.arguments as Map<Object?, Object?>)['apiKey'] == 'new-key';
-      }),
-      isTrue,
-    );
-  });
-
-  testWidgets('adds model for selected custom provider', (tester) async {
-    setupSettings(
-      provider: 'tokenguard',
-      model: null,
-      customProviders: [
-        jsonEncode({
-          'id': 'tokenguard',
-          'displayName': 'TokenGuard',
-          'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
-          'isBuiltIn': false,
-        }),
-      ],
-    );
-    await pumpSettings(tester);
-
-    await tester.ensureVisible(
-      find.byKey(const Key('apiProvider-addOpenRouterModel')),
-    );
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('apiProvider-addOpenRouterModel')));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const Key('apiProvider-modelSlugField')),
-      'kimi-k2.6',
-    );
-    await tester.tap(find.byKey(const Key('apiProvider-saveModelSlug')));
+    await tester.tap(find.text('Delete'));
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
-    final modelField = tester.widget<DropdownButtonFormField<String>>(
-      find.byKey(const Key('apiProvider-modelSelector')),
+    expect(find.text('TokenGuard'), findsNothing);
+    expect(prefs.getStringList('llm_custom_models') ?? const [], isEmpty);
+    // The picker re-points at a model that still exists.
+    expect(prefs.getString('openai_model'), isNot('acme/custom-writer-1'));
+    expect(prefs.getString('openai_model'), isNotEmpty);
+  });
+
+  testWidgets('adds a model through the shared dialog', (tester) async {
+    setupSettings();
+    await pumpSettings(tester);
+
+    await openAddModelDialog(tester);
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-modelDialogSlug')),
+      'openai/gpt-test',
     );
-    expect(find.text('kimi-k2.6'), findsWidgets);
-    expect(modelField.initialValue, 'kimi-k2.6');
-    expect(prefs.getString('openai_model'), 'kimi-k2.6');
+    await tester.tap(find.byKey(const Key('apiProvider-saveModel')));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
     expect(
       prefs.getStringList('llm_custom_models')!.single,
-      contains('"provider":"tokenguard"'),
+      contains('"slug":"openai/gpt-test"'),
+    );
+  });
+
+  testWidgets('blocks a duplicate slug within the same provider', (
+    tester,
+  ) async {
+    setupSettings(
+      customModels: [
+        jsonEncode({
+          'provider': 'openrouter',
+          'slug': 'acme/writer',
+          'isBuiltIn': false,
+          'isHidden': false,
+        }),
+      ],
+    );
+    await pumpSettings(tester);
+
+    await openAddModelDialog(tester);
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-modelDialogSlug')),
+      'acme/writer',
+    );
+    await tester.tap(find.byKey(const Key('apiProvider-saveModel')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('apiProvider-modelDialogError')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('deletes a custom model after confirmation', (tester) async {
+    setupSettings(
+      customModels: [
+        jsonEncode({
+          'provider': 'openrouter',
+          'slug': 'acme/writer',
+          'isBuiltIn': false,
+          'isHidden': false,
+        }),
+      ],
+    );
+    await pumpSettings(tester);
+
+    await tapRowAction(
+      tester,
+      const Key('apiProvider-deleteModel-openrouter-acme/writer'),
+    );
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getStringList('llm_custom_models') ?? const [], isEmpty);
+  });
+
+  testWidgets('eye toggles picker visibility for a model', (tester) async {
+    setupSettings();
+    await pumpSettings(tester);
+
+    await tapRowAction(
+      tester,
+      const Key('apiProvider-visibility-openai-gpt-5.4-mini'),
+    );
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getStringList('llm_hidden_models'),
+      contains('openai::gpt-5.4-mini'),
+    );
+  });
+
+  testWidgets('keeps at least one model visible', (tester) async {
+    // Every model hidden except the single remaining OpenRouter built-in.
+    setupSettings(
+      hiddenModels: const [
+        'openai::gpt-5.4-nano',
+        'openai::gpt-5.4-mini',
+        'openai::gpt-5.4',
+        'openai::gpt-5.5',
+      ],
+    );
+    await pumpSettings(tester);
+
+    // The control refuses up front rather than accepting the press and then
+    // showing a toast: a disabled button is the discoverable form of "no".
+    const eye = Key(
+      'apiProvider-visibility-openrouter-google/gemini-3-flash-preview',
+    );
+    await tester.ensureVisible(find.byKey(eye));
+    await tester.pumpAndSettle();
+    expect(tester.widget<IconButton>(find.byKey(eye)).onPressed, isNull);
+    expect(
+      tester.widget<IconButton>(find.byKey(eye)).tooltip,
+      'At least one model must remain visible.',
+    );
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getStringList('llm_hidden_models') ?? const [],
+      isNot(contains('openrouter::google/gemini-3-flash-preview')),
     );
   });
 
@@ -829,15 +484,187 @@ void main() {
     setupSettings();
     await pumpSettings(tester);
 
-    await tester.tap(find.byKey(const Key('settingsNav-writing')));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Default Variant'), findsOneWidget);
     expect(find.text('Target Language'), findsNothing);
 
     await tester.tap(find.byKey(const Key('settingsNav-language')));
     await tester.pumpAndSettle();
 
     expect(find.text('Target Language'), findsOneWidget);
+  });
+
+  group('stale persisted selection', () {
+    // Regression: these three fallbacks ship in `_resolveSelection`, and the
+    // suite lost their coverage when this screen was restructured. A stale
+    // save must repair itself rather than leave the picker blank.
+    testWidgets('falls back when the stored model is gone', (tester) async {
+      setupSettings(model: 'removed/model');
+      await pumpSettings(tester);
+
+      final picker = tester.widget<AppPopupSelect<String>>(
+        find.byKey(const Key('apiProvider-modelPicker')),
+      );
+      expect(picker.value, 'openrouter::google/gemini-3-flash-preview');
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('openai_model'), 'google/gemini-3-flash-preview');
+    });
+
+    testWidgets('falls back when the stored model is hidden', (tester) async {
+      // OpenRouter ships exactly one built-in model, so hiding it leaves that
+      // provider with nothing visible and the fallback has to cross providers.
+      setupSettings(
+        hiddenModels: const ['openrouter::google/gemini-3-flash-preview'],
+      );
+      await pumpSettings(tester);
+
+      final picker = tester.widget<AppPopupSelect<String>>(
+        find.byKey(const Key('apiProvider-modelPicker')),
+      );
+      expect(picker.value, 'openai::gpt-5.4-nano');
+
+      // The provider must travel with the model it fell back to.
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('api_provider'), 'openai');
+      expect(prefs.getString('openai_model'), 'gpt-5.4-nano');
+    });
+
+    testWidgets('keeps the provider when the same provider still has one', (
+      tester,
+    ) async {
+      setupSettings(
+        provider: 'openai',
+        model: 'gpt-5.4-mini',
+        hiddenModels: const ['openai::gpt-5.4-mini'],
+      );
+      await pumpSettings(tester);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('api_provider'), 'openai');
+      expect(prefs.getString('openai_model'), 'gpt-5.4-nano');
+    });
+
+    testWidgets('falls back when the stored provider is gone', (tester) async {
+      setupSettings(provider: 'gone');
+      await pumpSettings(tester);
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('api_provider'), AppDefaults.apiProvider);
+    });
+
+    testWidgets('never persists a model from another provider', (
+      tester,
+    ) async {
+      // `_resolveSelection` may cross providers to find a visible model; when
+      // it does, the provider it writes must be that model's owner.
+      setupSettings(provider: 'openai', model: 'removed/model');
+      await pumpSettings(tester);
+
+      final prefs = await SharedPreferences.getInstance();
+      final provider = prefs.getString('api_provider')!;
+      final model = prefs.getString('openai_model')!;
+      final picker = tester.widget<AppPopupSelect<String>>(
+        find.byKey(const Key('apiProvider-modelPicker')),
+      );
+      expect(picker.value, '$provider::$model');
+    });
+  });
+
+  testWidgets('picking a model pushes the pair to the native side', (
+    tester,
+  ) async {
+    setupSettings();
+    await pumpSettings(tester);
+
+    await tester.tap(find.byKey(const Key('apiProvider-modelPicker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('gpt-5.4-mini').last);
+    await tester.pumpAndSettle();
+
+    // Dropping either call leaves the native LLM path on the old provider
+    // while prefs and the UI both look correct.
+    final setProvider = methodCalls.lastWhere(
+      (call) => call.method == MethodChannelMethods.setProvider,
+    );
+    final setModel = methodCalls.lastWhere(
+      (call) => call.method == MethodChannelMethods.setModel,
+    );
+    expect(setProvider.arguments, 'openai');
+    expect(setModel.arguments, 'gpt-5.4-mini');
+  });
+
+  group('edit paths', () {
+    const tokenGuard =
+        '{"id":"tokenguard","displayName":"TokenGuard",'
+        '"baseUrl":"https://tokenguard.int.agrd.dev/api/v1"}';
+
+    testWidgets('editing a provider pre-fills and saves the new name', (
+      tester,
+    ) async {
+      setupSettings(customProviders: const [tokenGuard]);
+      await pumpSettings(tester);
+
+      await tapRowAction(
+        tester,
+        const Key('apiProvider-editProvider-tokenguard'),
+      );
+
+      final nameField = tester.widget<TextField>(
+        find.descendant(
+          of: find.byKey(const Key('apiProvider-providerNameField')),
+          matching: find.byType(TextField),
+        ),
+      );
+      expect(nameField.controller?.text, 'TokenGuard');
+
+      await tester.enterText(
+        find.byKey(const Key('apiProvider-providerNameField')),
+        'TokenGuard EU',
+      );
+      await tester.tap(find.byKey(const Key('apiProvider-saveProvider')));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        prefs.getStringList('llm_custom_providers')!.single,
+        contains('TokenGuard EU'),
+      );
+    });
+
+    testWidgets('renaming the selected model keeps the picker valid', (
+      tester,
+    ) async {
+      setupSettings(
+        provider: 'tokenguard',
+        model: 'acme/writer',
+        customProviders: const [tokenGuard],
+        customModels: const [
+          '{"provider":"tokenguard","slug":"acme/writer"}',
+        ],
+      );
+      await pumpSettings(tester);
+
+      await tapRowAction(
+        tester,
+        const Key('apiProvider-editModel-tokenguard-acme/writer'),
+      );
+      await tester.enterText(
+        find.byKey(const Key('apiProvider-modelDialogSlug')),
+        'acme/writer-v2',
+      );
+      await tester.tap(find.byKey(const Key('apiProvider-saveModel')));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(
+        prefs.getStringList('llm_custom_models')!.single,
+        contains('"slug":"acme/writer-v2"'),
+      );
+      // The picker must still point at something that exists.
+      expect(prefs.getString('openai_model'), 'acme/writer-v2');
+      final picker = tester.widget<AppPopupSelect<String>>(
+        find.byKey(const Key('apiProvider-modelPicker')),
+      );
+      expect(picker.value, 'tokenguard::acme/writer-v2');
+    });
   });
 }

@@ -8,6 +8,7 @@ import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/screens/settings_screen.dart';
 import 'package:make_it_sound_natural/services/update_service.dart';
+import 'package:make_it_sound_natural/widgets/app_popup_select.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -139,13 +140,14 @@ void main() {
 
         expect(tester.takeException(), isNull);
 
-        final dropdowns = tester.widgetList<DropdownButtonFormField<String>>(
-          find.byType(DropdownButtonFormField<String>),
+        // The picker spans every provider, so its value carries the owning
+        // provider alongside the slug.
+        final modelPicker = tester.widget<AppPopupSelect<String>>(
+          find.byKey(const Key('apiProvider-modelPicker')),
         );
-        final modelDropdown = dropdowns.last;
         expect(
-          modelDropdown.initialValue,
-          equals('google/gemini-3-flash-preview'),
+          modelPicker.value,
+          equals('openrouter::google/gemini-3-flash-preview'),
         );
 
         final prefs = await SharedPreferences.getInstance();

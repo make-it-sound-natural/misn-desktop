@@ -1,712 +1,1121 @@
 {
   "@@locale": "en",
-
   "contextCleared": "Context cleared",
-  "@contextCleared": { "description": "SnackBar message when context is cleared" },
-
+  "@contextCleared": {
+    "description": "SnackBar message when context is cleared"
+  },
   "windowChanged": "Window changed - select variant manually",
-  "@windowChanged": { "description": "Warning when active window changes" },
-
-  "appliedLabel": "Applied {label}",
+  "@windowChanged": {
+    "description": "Warning when active window changes"
+  },
   "@appliedLabel": {
     "description": "SnackBar message when a variant is applied",
     "placeholders": {
-      "label": { "type": "String" }
+      "label": {
+        "type": "String"
+      }
     }
   },
-
   "copiedToClipboard": "Copied to clipboard",
-  "@copiedToClipboard": { "description": "SnackBar message when text is copied" },
-
-  "contextOptional": "Context (optional)",
-  "@contextOptional": { "description": "Label for context input" },
-
-  "clear": "Clear",
-  "@clear": { "description": "Button text to clear input" },
-
-  "addContextHint": "Add context to improve results...",
-  "@addContextHint": { "description": "Hint text for context input" },
-
-  "contextHelper": "⌘⇧J replace, ⌘⇧L append",
-  "@contextHelper": { "description": "Helper text showing shortcuts" },
-
-  "selectTextInstruction": "Select text in any app and press",
-  "@selectTextInstruction": { "description": "Empty state instruction" },
-
-  "applied": "Applied",
-  "@applied": { "description": "Badge text for selected variant" },
-
-  "balanced": "Balanced",
-  "@balanced": { "description": "Balanced rewrite variant label" },
-
-  "casual": "Casual",
-  "@casual": { "description": "Casual rewrite variant label" },
-
-  "formal": "Formal",
-  "@formal": { "description": "Formal rewrite variant label" },
-
-  "concise": "Concise",
-  "@concise": { "description": "Concise rewrite variant label" },
-
-  "autoApplyVariant": "Auto-apply: {label}",
-  "@autoApplyVariant": {
-    "description": "Label for the variant that is auto-applied",
-    "placeholders": {
-      "label": { "type": "String" }
-    }
+  "@copiedToClipboard": {
+    "description": "SnackBar message when text is copied"
   },
-
+  "contextOptional": "Context (optional)",
+  "@contextOptional": {
+    "description": "Label for context input"
+  },
+  "clear": "Clear",
+  "@clear": {
+    "description": "Button text to clear input"
+  },
+  "addContextHint": "Audience, tone, or background the model can't infer…",
+  "@addContextHint": {
+    "description": "Hint text for context input"
+  },
+  "applied": "Applied",
+  "@applied": {
+    "description": "Badge text for selected variant"
+  },
+  "balanced": "Balanced",
+  "@balanced": {
+    "description": "Balanced rewrite variant label"
+  },
+  "casual": "Casual",
+  "@casual": {
+    "description": "Casual rewrite variant label"
+  },
+  "formal": "Formal",
+  "@formal": {
+    "description": "Formal rewrite variant label"
+  },
+  "concise": "Concise",
+  "@concise": {
+    "description": "Concise rewrite variant label"
+  },
+  "autoApplyVariant": "Auto-apply",
+  "@autoApplyVariant": {
+    "description": "Label of the auto-apply tone control"
+  },
   "apply": "Apply",
-  "@apply": { "description": "Button to apply variant" },
-
+  "@apply": {
+    "description": "Button to apply variant"
+  },
   "copy": "Copy",
-  "@copy": { "description": "Tooltip for copy button" },
-
+  "@copy": {
+    "description": "Tooltip for copy button"
+  },
   "apiKeyRequired": "API key required for corrections",
-  "@apiKeyRequired": { "description": "Banner text when API key is missing" },
-
+  "@apiKeyRequired": {
+    "description": "Banner text when API key is missing"
+  },
   "providerSetupRequired": "Provider setup required for corrections",
-  "@providerSetupRequired": { "description": "Banner text when selected provider is missing a key or visible model" },
-
+  "@providerSetupRequired": {
+    "description": "Banner text when selected provider is missing a key or visible model"
+  },
   "configure": "Configure",
-  "@configure": { "description": "Button to open settings" },
-
+  "@configure": {
+    "description": "Button to open settings"
+  },
   "textCorrectedSuccess": "Text corrected successfully!",
-  "@textCorrectedSuccess": { "description": "Success message" },
-
+  "@textCorrectedSuccess": {
+    "description": "Success message"
+  },
   "errorLabel": "Error: {error}",
   "@errorLabel": {
     "description": "Error message format",
     "placeholders": {
-      "error": { "type": "String" }
+      "error": {
+        "type": "String"
+      }
     }
   },
-
   "apiKeySaved": "API Key saved",
-  "@apiKeySaved": { "description": "Confirmation message" },
-
+  "@apiKeySaved": {
+    "description": "Confirmation message"
+  },
   "openAccessibilitySettings": "Please open System Settings > Privacy & Security > Accessibility",
-  "@openAccessibilitySettings": { "description": "Instruction to grant permissions" },
-
+  "@openAccessibilitySettings": {
+    "description": "Instruction to grant permissions"
+  },
   "settings": "Settings",
-  "@settings": { "description": "Screen title" },
-
-  "globalShortcut": "Global Shortcut",
-  "@globalShortcut": { "description": "Section title" },
-
+  "@settings": {
+    "description": "Screen title"
+  },
   "shortcutCorrection": "Correction",
-  "@shortcutCorrection": { "description": "Row title for correction shortcut" },
-
+  "@shortcutCorrection": {
+    "description": "Row title for correction shortcut"
+  },
   "shortcutReplaceContext": "Replace Context",
-  "@shortcutReplaceContext": { "description": "Row title for replace context shortcut" },
-
+  "@shortcutReplaceContext": {
+    "description": "Row title for replace context shortcut"
+  },
   "shortcutAppendContext": "Append Context",
-  "@shortcutAppendContext": { "description": "Row title for append context shortcut" },
-
+  "@shortcutAppendContext": {
+    "description": "Row title for append context shortcut"
+  },
   "shortcutsReset": "Reset Shortcuts",
   "@shortcutsReset": {
     "description": "Button to reset all global shortcuts to defaults"
   },
-
   "shortcutsResetDone": "Shortcuts reset to default",
   "@shortcutsResetDone": {
     "description": "SnackBar after shortcuts reset"
   },
-
   "ready": "Ready",
-  "@ready": { "description": "Status subtitle" },
-
+  "@ready": {
+    "description": "Status subtitle"
+  },
   "active": "Active",
-  "@active": { "description": "Status badge" },
-
+  "@active": {
+    "description": "Status badge"
+  },
   "permissions": "Permissions",
-  "@permissions": { "description": "Section title" },
-
+  "@permissions": {
+    "description": "Section title"
+  },
   "accessibilityPermitted": "Accessibility Permitted",
-  "@accessibilityPermitted": { "description": "Permission status granted" },
-
+  "@accessibilityPermitted": {
+    "description": "Permission status granted"
+  },
   "accessibilityRequired": "Accessibility Required",
-  "@accessibilityRequired": { "description": "Permission status needed" },
-
+  "@accessibilityRequired": {
+    "description": "Permission status needed"
+  },
   "accessibilityNeededDescription": "Needed to read and replace text",
-  "@accessibilityNeededDescription": { "description": "Permission explanation" },
-
+  "@accessibilityNeededDescription": {
+    "description": "Permission explanation"
+  },
   "grant": "Grant",
-  "@grant": { "description": "Button to grant permission" },
-
+  "@grant": {
+    "description": "Button to grant permission"
+  },
   "checkAgain": "Check Again",
-  "@checkAgain": { "description": "Button to recheck permission" },
-
+  "@checkAgain": {
+    "description": "Button to recheck permission"
+  },
   "openAI": "OpenAI",
-  "@openAI": { "description": "Section title" },
-
+  "@openAI": {
+    "description": "Section title"
+  },
   "apiKey": "API Key",
-  "@apiKey": { "description": "Input label" },
-
+  "@apiKey": {
+    "description": "Input label"
+  },
   "apiKeyHelper": "Auto-saves when you click away",
-  "@apiKeyHelper": { "description": "Input helper text" },
-
+  "@apiKeyHelper": {
+    "description": "Input helper text"
+  },
   "model": "Model",
-  "@model": { "description": "Dropdown label" },
-
+  "@model": {
+    "description": "Dropdown label"
+  },
   "selectModelHelper": "Select AI model",
-  "@selectModelHelper": { "description": "Dropdown helper text" },
-
+  "@selectModelHelper": {
+    "description": "Dropdown helper text"
+  },
   "back": "Back",
-  "@back": { "description": "Tooltip for back button" },
-
+  "@back": {
+    "description": "Tooltip for back button"
+  },
   "statusContextReplaced": "Context replaced",
-  "@statusContextReplaced": { "description": "Status message from service" },
-
+  "@statusContextReplaced": {
+    "description": "Status message from service"
+  },
   "statusContextAppended": "Context appended",
-  "@statusContextAppended": { "description": "Status message from service" },
-
+  "@statusContextAppended": {
+    "description": "Status message from service"
+  },
   "changeShortcut": "Change",
-  "@changeShortcut": { "description": "Button text to change shortcut" },
-
+  "@changeShortcut": {
+    "description": "Button text to change shortcut"
+  },
   "changeShortcutTitle": "Change Keyboard Shortcut",
-  "@changeShortcutTitle": { "description": "Dialog title" },
-
+  "@changeShortcutTitle": {
+    "description": "Dialog title"
+  },
   "currentShortcut": "Current",
-  "@currentShortcut": { "description": "Label for current shortcut" },
-
+  "@currentShortcut": {
+    "description": "Label for current shortcut"
+  },
   "newShortcut": "New Shortcut",
-  "@newShortcut": { "description": "Label for new shortcut" },
-
+  "@newShortcut": {
+    "description": "Label for new shortcut"
+  },
   "pressKeyCombination": "Press a key combination...",
-  "@pressKeyCombination": { "description": "Placeholder for recording area" },
-
+  "@pressKeyCombination": {
+    "description": "Placeholder for recording area"
+  },
   "shortcutMustIncludeModifier": "Must include ⌘ Cmd or ⌃ Control",
-  "@shortcutMustIncludeModifier": { "description": "Validation error message" },
-
+  "@shortcutMustIncludeModifier": {
+    "description": "Validation error message"
+  },
   "shortcutConflictsWith": "Conflicts with {name}",
   "@shortcutConflictsWith": {
     "description": "Validation conflict message",
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
-
   "shortcutSaved": "Shortcut saved successfully",
-  "@shortcutSaved": { "description": "Success snackbar message" },
-
+  "@shortcutSaved": {
+    "description": "Success snackbar message"
+  },
   "shortcutInvalid": "Invalid shortcut",
-  "@shortcutInvalid": { "description": "Generic invalid shortcut message" },
-
+  "@shortcutInvalid": {
+    "description": "Generic invalid shortcut message"
+  },
   "validatingShortcut": "Validating...",
-  "@validatingShortcut": { "description": "Loading state message" },
-
+  "@validatingShortcut": {
+    "description": "Loading state message"
+  },
   "savingShortcut": "Saving...",
-  "@savingShortcut": { "description": "Loading state message" },
-
+  "@savingShortcut": {
+    "description": "Loading state message"
+  },
   "cancel": "Cancel",
-  "@cancel": { "description": "Cancel button text" },
-
+  "@cancel": {
+    "description": "Cancel button text"
+  },
   "save": "Save",
-  "@save": { "description": "Save button text" },
-
+  "@save": {
+    "description": "Save button text"
+  },
   "preferences": "Preferences",
-  "@preferences": { "description": "Section title for preferences" },
-
+  "@preferences": {
+    "description": "Section title for preferences"
+  },
   "defaultVariant": "Default Variant",
-  "@defaultVariant": { "description": "Dropdown label for default variant" },
-
+  "@defaultVariant": {
+    "description": "Dropdown label for default variant"
+  },
   "defaultVariantHelper": "Choose which variant is automatically applied",
-  "@defaultVariantHelper": { "description": "Helper text for default variant dropdown" },
-
+  "@defaultVariantHelper": {
+    "description": "Helper text for default variant dropdown"
+  },
   "showAdvanced": "Show Advanced Settings",
-  "@showAdvanced": { "description": "Link text to show advanced settings" },
-
+  "@showAdvanced": {
+    "description": "Link text to show advanced settings"
+  },
   "hideAdvanced": "Hide Advanced Settings",
-  "@hideAdvanced": { "description": "Link text to hide advanced settings" },
-
+  "@hideAdvanced": {
+    "description": "Link text to hide advanced settings"
+  },
   "advancedSettings": "Advanced",
-  "@advancedSettings": { "description": "Section title for advanced settings" },
-
+  "@advancedSettings": {
+    "description": "Section title for advanced settings"
+  },
   "customPrompt": "Custom Prompt",
-  "@customPrompt": { "description": "Row title for custom prompt setting" },
-
+  "@customPrompt": {
+    "description": "Row title for custom prompt setting"
+  },
   "customPromptActive": "Custom prompt is active",
-  "@customPromptActive": { "description": "Status when custom prompt is set" },
-
+  "@customPromptActive": {
+    "description": "Status when custom prompt is set"
+  },
   "usingDefault": "Using default",
-  "@usingDefault": { "description": "Status when using default prompt" },
-
+  "@usingDefault": {
+    "description": "Status when using default prompt"
+  },
   "editPrompt": "Edit",
-  "@editPrompt": { "description": "Button to edit prompt" },
-
+  "@editPrompt": {
+    "description": "Button to edit prompt"
+  },
   "promptEditorTitle": "Edit AI Prompt",
-  "@promptEditorTitle": { "description": "Dialog title for prompt editor" },
-
+  "@promptEditorTitle": {
+    "description": "Dialog title for prompt editor"
+  },
   "promptHelperText": "Customize the instructions sent to the AI. The output will always include 4 variants (Balanced, Casual, Formal, Concise).",
-  "@promptHelperText": { "description": "Helper text explaining prompt customization" },
-
+  "@promptHelperText": {
+    "description": "Helper text explaining prompt customization"
+  },
   "resetToDefault": "Reset to Default",
-  "@resetToDefault": { "description": "Button to reset prompt to default" },
-
+  "@resetToDefault": {
+    "description": "Button to reset prompt to default"
+  },
   "enterPromptHint": "Enter your custom prompt...",
-  "@enterPromptHint": { "description": "Placeholder for prompt text field" },
-
+  "@enterPromptHint": {
+    "description": "Placeholder for prompt text field"
+  },
   "promptSaved": "Prompt saved",
-  "@promptSaved": { "description": "Success message when prompt is saved" },
-
+  "@promptSaved": {
+    "description": "Success message when prompt is saved"
+  },
   "promptReset": "Prompt reset to default",
-  "@promptReset": { "description": "Success message when prompt is reset" },
-
+  "@promptReset": {
+    "description": "Success message when prompt is reset"
+  },
   "textToImprove": "Text to improve",
-  "@textToImprove": { "description": "Label for text input field" },
-
-  "textToImproveHint": "Type or paste text to improve...",
-  "@textToImproveHint": { "description": "Hint text for text input field" },
-
+  "@textToImprove": {
+    "description": "Label for text input field"
+  },
+  "textToImproveHint": "Paste or type the text you want to sound natural…",
+  "@textToImproveHint": {
+    "description": "Hint text for text input field"
+  },
   "process": "Process",
-  "@process": { "description": "Button to process text" },
-
-  "processing": "Processing...",
-  "@processing": { "description": "Button state while processing" },
-
-  "noTextToProcess": "Please enter text to process",
-  "@noTextToProcess": { "description": "Error message when text field is empty" },
-
+  "@process": {
+    "description": "Button to process text"
+  },
+  "processing": "Processing…",
+  "@processing": {
+    "description": "Button state while processing"
+  },
   "updates": "Updates",
-  "@updates": { "description": "Section title for updates" },
-
+  "@updates": {
+    "description": "Section title for updates"
+  },
   "checkForUpdates": "Check for Updates",
-  "@checkForUpdates": { "description": "Button text to check for updates" },
-
+  "@checkForUpdates": {
+    "description": "Button text to check for updates"
+  },
   "checkingUpdates": "Checking...",
-  "@checkingUpdates": { "description": "Status while checking for updates" },
-
+  "@checkingUpdates": {
+    "description": "Status while checking for updates"
+  },
   "upToDate": "Up to date",
-  "@upToDate": { "description": "Status when app is up to date" },
-
+  "@upToDate": {
+    "description": "Status when app is up to date"
+  },
   "checkFailed": "Check failed",
-  "@checkFailed": { "description": "Status when update check failed" },
-
+  "@checkFailed": {
+    "description": "Status when update check failed"
+  },
   "lastCheckedNever": "Last checked: Never",
-  "@lastCheckedNever": { "description": "Status when never checked for updates" },
-
+  "@lastCheckedNever": {
+    "description": "Status when never checked for updates"
+  },
   "lastCheckedJustNow": "Last checked: Just now",
-  "@lastCheckedJustNow": { "description": "Status when just checked for updates" },
-
+  "@lastCheckedJustNow": {
+    "description": "Status when just checked for updates"
+  },
   "lastCheckedMinutesAgo": "Last checked: {minutes} minutes ago",
   "@lastCheckedMinutesAgo": {
     "description": "Status showing minutes since last check",
     "placeholders": {
-      "minutes": { "type": "int" }
+      "minutes": {
+        "type": "int"
+      }
     }
   },
-
   "lastCheckedHoursAgo": "Last checked: {hours} hours ago",
   "@lastCheckedHoursAgo": {
     "description": "Status showing hours since last check",
     "placeholders": {
-      "hours": { "type": "int" }
+      "hours": {
+        "type": "int"
+      }
     }
   },
-
   "lastCheckedDaysAgo": "Last checked: {days} days ago",
   "@lastCheckedDaysAgo": {
     "description": "Status showing days since last check",
     "placeholders": {
-      "days": { "type": "int" }
+      "days": {
+        "type": "int"
+      }
     }
   },
-
   "checkButton": "Check",
-  "@checkButton": { "description": "Button to trigger update check" },
-
+  "@checkButton": {
+    "description": "Button to trigger update check"
+  },
   "versionLabel": "Version {version}",
   "@versionLabel": {
     "description": "Label showing app version",
     "placeholders": {
-      "version": { "type": "String" }
+      "version": {
+        "type": "String"
+      }
     }
   },
-
   "appInformation": "App information",
-  "@appInformation": { "description": "Section title for app version and build information" },
-
+  "@appInformation": {
+    "description": "Section title for app version and build information"
+  },
   "buildAndChannelLabel": "Build {build} • {channel}",
   "@buildAndChannelLabel": {
     "description": "Subtitle showing app build number and release channel",
     "placeholders": {
-      "build": { "type": "String" },
-      "channel": { "type": "String" }
+      "build": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
     }
   },
-
   "copyAppDiagnostics": "Copy diagnostics",
-  "@copyAppDiagnostics": { "description": "Tooltip for copying app version diagnostics" },
-
-  "releaseChannelStable": "Stable",
-  "@releaseChannelStable": { "description": "Stable release channel label" },
-
-  "releaseChannelBeta": "Beta",
-  "@releaseChannelBeta": { "description": "Beta release channel label" },
-
-  "releaseChannelNightly": "Nightly",
-  "@releaseChannelNightly": { "description": "Nightly release channel label" },
-
-  "releaseChannelUnknown": "Unknown",
-  "@releaseChannelUnknown": { "description": "Unknown release channel label" },
-
-  "automaticChecks": "Automatic checks",
-  "@automaticChecks": { "description": "Toggle title for automatic update checks" },
-
-  "automaticChecksSubtitle": "Check for updates on launch",
-  "@automaticChecksSubtitle": { "description": "Subtitle explaining automatic checks" },
-
-  "apiProvider": "AI Provider",
-  "@apiProvider": { "description": "Section title for API provider settings" },
-
-  "provider": "Provider",
-  "@provider": { "description": "Label for provider dropdown" },
-
-  "chooseProvider": "Choose your AI provider",
-  "@chooseProvider": { "description": "Helper text for provider dropdown" },
-
-  "openaiApiKey": "OpenAI API Key",
-  "@openaiApiKey": { "description": "Label for OpenAI API key input" },
-
-  "openaiApiKeyHelper": "Your OpenAI API key",
-  "@openaiApiKeyHelper": { "description": "Helper text for OpenAI API key" },
-
-  "openrouterApiKey": "OpenRouter API Key",
-  "@openrouterApiKey": { "description": "Label for OpenRouter API key input" },
-
-  "openrouterApiKeyHelper": "Your OpenRouter API key",
-  "@openrouterApiKeyHelper": { "description": "Helper text for OpenRouter API key" },
-
-  "settingsNavShortcuts": "Shortcuts",
-  "@settingsNavShortcuts": { "description": "Settings sidebar shortcuts item" },
-
-  "settingsNavWriting": "Writing",
-  "@settingsNavWriting": { "description": "Settings sidebar writing item" },
-
-  "settingsNavLanguage": "Language",
-  "@settingsNavLanguage": { "description": "Settings sidebar language item" },
-
-  "aiProviderDescription": "Choose your AI provider, manage API key, and select the model used for rewrite generation.",
-  "@aiProviderDescription": { "description": "Description for AI provider settings page" },
-
-  "apiKeyStoredLocally": "Stored locally in Keychain",
-  "@apiKeyStoredLocally": { "description": "Subtitle for API key settings row" },
-
-  "apiKeyNeedsAttention": "API key needs attention",
-  "@apiKeyNeedsAttention": { "description": "Status title when provider rejected the saved API key" },
-
-  "apiKeyAuthFailureFallback": "The provider rejected this API key.",
-  "@apiKeyAuthFailureFallback": { "description": "Fallback API key auth failure details" },
-
-  "modelUsedForRewrite": "Used for rewrite generation",
-  "@modelUsedForRewrite": { "description": "Subtitle for model settings row" },
-  "apiKeySecurityNote": "Your API key is stored securely in macOS Keychain and is never sent by the app.",
-  "@apiKeySecurityNote": { "description": "Security note under AI provider settings" },
-
-  "showApiKey": "Show API key",
-  "@showApiKey": { "description": "Tooltip and semantic label for reveal API key button" },
-
-  "hideApiKey": "Hide API key",
-  "@hideApiKey": { "description": "Tooltip and semantic label for hide API key button" },
-
-  "openRouterModels": "OpenRouter Models",
-  "@openRouterModels": { "description": "Title for OpenRouter model management panel" },
-
-  "openRouterModelsDescription": "Choose which OpenRouter models appear in the model selector.",
-  "@openRouterModelsDescription": { "description": "Description for OpenRouter model management panel" },
-
-  "customProviders": "Custom Providers",
-  "@customProviders": { "description": "Title for custom provider management panel" },
-
-  "customProvidersDescription": "Add OpenAI-compatible providers with local API keys and model ids.",
-  "@customProvidersDescription": { "description": "Description for custom provider management panel" },
-
-  "customProviderCompatibilityNote": "Custom providers must support non-stream Chat Completions. Screenshot context also requires image input support.",
-  "@customProviderCompatibilityNote": { "description": "Compatibility note for custom provider setup" },
-
-  "addProvider": "Add Provider",
-  "@addProvider": { "description": "Button to add a custom provider" },
-
-  "editProvider": "Edit Provider",
-  "@editProvider": { "description": "Tooltip or title for editing a custom provider" },
-
-  "deleteProvider": "Delete Provider",
-  "@deleteProvider": { "description": "Tooltip or button for deleting a custom provider" },
-
-  "deleteProviderTitle": "Delete provider?",
-  "@deleteProviderTitle": { "description": "Confirmation dialog title for deleting a custom provider" },
-
-  "noCustomProviders": "No custom providers yet.",
-  "@noCustomProviders": { "description": "Empty state text for custom provider management" },
-
-  "providerName": "Provider name",
-  "@providerName": { "description": "Text field label for custom provider name" },
-
-  "providerNameRequired": "Provider name is required.",
-  "@providerNameRequired": { "description": "Validation message when custom provider name is empty" },
-
-  "providerNameInvalid": "Provider name must contain letters or numbers.",
-  "@providerNameInvalid": { "description": "Validation message when custom provider name cannot generate a provider id" },
-
-  "providerBaseUrl": "Base URL",
-  "@providerBaseUrl": { "description": "Text field label for custom provider base URL" },
-
-  "providerUrlRequired": "Base URL is required.",
-  "@providerUrlRequired": { "description": "Validation message when custom provider URL is empty" },
-
-  "providerUrlInvalid": "Base URL must be a valid HTTPS URL.",
-  "@providerUrlInvalid": { "description": "Validation message when custom provider URL is invalid" },
-
-  "customProviderModels": "{provider} Models",
-  "@customProviderModels": {
-    "description": "Title for a custom provider model management panel",
-    "placeholders": {
-      "provider": { "type": "String", "example": "TokenGuard" }
-    }
+  "@copyAppDiagnostics": {
+    "description": "Tooltip for copying app version diagnostics"
   },
-
-  "customProviderModelsDescription": "Choose which custom provider models appear in the model selector.",
-  "@customProviderModelsDescription": { "description": "Description for custom provider model management panel" },
-
-  "customProviderNoModels": "Add a model before using this provider.",
-  "@customProviderNoModels": { "description": "Model row helper when selected custom provider has no visible models" },
-
+  "releaseChannelStable": "Stable",
+  "@releaseChannelStable": {
+    "description": "Stable release channel label"
+  },
+  "releaseChannelBeta": "Beta",
+  "@releaseChannelBeta": {
+    "description": "Beta release channel label"
+  },
+  "releaseChannelNightly": "Nightly",
+  "@releaseChannelNightly": {
+    "description": "Nightly release channel label"
+  },
+  "releaseChannelUnknown": "Unknown",
+  "@releaseChannelUnknown": {
+    "description": "Unknown release channel label"
+  },
+  "automaticChecks": "Automatic checks",
+  "@automaticChecks": {
+    "description": "Toggle title for automatic update checks"
+  },
+  "automaticChecksSubtitle": "Check for updates on launch",
+  "@automaticChecksSubtitle": {
+    "description": "Subtitle explaining automatic checks"
+  },
+  "apiProvider": "AI Provider",
+  "@apiProvider": {
+    "description": "Section title for API provider settings"
+  },
+  "provider": "Provider",
+  "@provider": {
+    "description": "Label for provider dropdown"
+  },
+  "openaiApiKey": "OpenAI API Key",
+  "@openaiApiKey": {
+    "description": "Label for OpenAI API key input"
+  },
+  "openaiApiKeyHelper": "Your OpenAI API key",
+  "@openaiApiKeyHelper": {
+    "description": "Helper text for OpenAI API key"
+  },
+  "openrouterApiKey": "OpenRouter API Key",
+  "@openrouterApiKey": {
+    "description": "Label for OpenRouter API key input"
+  },
+  "openrouterApiKeyHelper": "Your OpenRouter API key",
+  "@openrouterApiKeyHelper": {
+    "description": "Helper text for OpenRouter API key"
+  },
+  "settingsNavShortcuts": "Shortcuts",
+  "@settingsNavShortcuts": {
+    "description": "Settings sidebar shortcuts item"
+  },
+  "settingsNavWriting": "Writing",
+  "@settingsNavWriting": {
+    "description": "Settings sidebar writing item"
+  },
+  "settingsNavLanguage": "Language",
+  "@settingsNavLanguage": {
+    "description": "Settings sidebar language item"
+  },
+  "apiKeySecurityNote": "Your API key is stored securely in macOS Keychain and is never sent by the app.",
+  "@apiKeySecurityNote": {
+    "description": "Security note under AI provider settings"
+  },
+  "openRouterModels": "OpenRouter Models",
+  "@openRouterModels": {
+    "description": "Title for OpenRouter model management panel"
+  },
+  "customProviders": "Custom Providers",
+  "@customProviders": {
+    "description": "Title for custom provider management panel"
+  },
+  "customProviderCompatibilityNote": "Custom providers must support non-stream Chat Completions. Screenshot context also requires image input support.",
+  "@customProviderCompatibilityNote": {
+    "description": "Compatibility note for custom provider setup"
+  },
+  "addProvider": "Add Provider",
+  "@addProvider": {
+    "description": "Button to add a custom provider"
+  },
+  "editProvider": "Edit Provider",
+  "@editProvider": {
+    "description": "Tooltip or title for editing a custom provider"
+  },
+  "deleteProvider": "Delete Provider",
+  "@deleteProvider": {
+    "description": "Tooltip or button for deleting a custom provider"
+  },
+  "deleteProviderTitle": "Delete provider?",
+  "@deleteProviderTitle": {
+    "description": "Confirmation dialog title for deleting a custom provider"
+  },
+  "noCustomProviders": "No custom providers yet.",
+  "@noCustomProviders": {
+    "description": "Empty state text for custom provider management"
+  },
+  "providerName": "Provider name",
+  "@providerName": {
+    "description": "Text field label for custom provider name"
+  },
+  "providerNameRequired": "Provider name is required.",
+  "@providerNameRequired": {
+    "description": "Validation message when custom provider name is empty"
+  },
+  "providerNameInvalid": "Provider name must contain letters or numbers.",
+  "@providerNameInvalid": {
+    "description": "Validation message when custom provider name cannot generate a provider id"
+  },
+  "providerBaseUrl": "Base URL",
+  "@providerBaseUrl": {
+    "description": "Text field label for custom provider base URL"
+  },
+  "providerUrlRequired": "Base URL is required.",
+  "@providerUrlRequired": {
+    "description": "Validation message when custom provider URL is empty"
+  },
+  "providerUrlInvalid": "Base URL must be a valid HTTPS URL.",
+  "@providerUrlInvalid": {
+    "description": "Validation message when custom provider URL is invalid"
+  },
   "addModel": "Add Model",
-  "@addModel": { "description": "Button to add a provider model" },
-
+  "@addModel": {
+    "description": "Button to add a provider model"
+  },
   "editModel": "Edit Model",
-  "@editModel": { "description": "Tooltip or title for editing a provider model" },
-
+  "@editModel": {
+    "description": "Tooltip or title for editing a provider model"
+  },
   "deleteModel": "Delete Model",
-  "@deleteModel": { "description": "Tooltip or button for deleting a provider model" },
-
+  "@deleteModel": {
+    "description": "Tooltip or button for deleting a provider model"
+  },
   "showModel": "Show model",
-  "@showModel": { "description": "Tooltip for making a model visible" },
-
+  "@showModel": {
+    "description": "Tooltip for making a model visible"
+  },
   "hideModel": "Hide model",
-  "@hideModel": { "description": "Tooltip for hiding a model" },
-
+  "@hideModel": {
+    "description": "Tooltip for hiding a model"
+  },
   "modelSlug": "Model slug",
-  "@modelSlug": { "description": "Text field label for a provider model slug" },
-
+  "@modelSlug": {
+    "description": "Text field label for a provider model slug"
+  },
   "builtInModel": "Built-in",
-  "@builtInModel": { "description": "Label for app-shipped model entries" },
-
+  "@builtInModel": {
+    "description": "Label for app-shipped model entries"
+  },
   "customModel": "Custom",
-  "@customModel": { "description": "Label for user-added model entries" },
-
+  "@customModel": {
+    "description": "Label for user-added model entries"
+  },
   "deleteModelTitle": "Delete model?",
-  "@deleteModelTitle": { "description": "Confirmation dialog title for deleting a model" },
-
+  "@deleteModelTitle": {
+    "description": "Confirmation dialog title for deleting a model"
+  },
   "modelSlugRequired": "Model slug is required.",
-  "@modelSlugRequired": { "description": "Validation error for empty model slug" },
-
+  "@modelSlugRequired": {
+    "description": "Validation error for empty model slug"
+  },
   "modelSlugDuplicate": "A model with this slug already exists.",
-  "@modelSlugDuplicate": { "description": "Validation error for duplicate model slug" },
-
+  "@modelSlugDuplicate": {
+    "description": "Validation error for duplicate model slug"
+  },
   "modelVisibilityRequired": "At least one model must remain visible.",
-  "@modelVisibilityRequired": { "description": "Validation error when hiding the final visible model" },
-
+  "@modelVisibilityRequired": {
+    "description": "Validation error when hiding the final visible model"
+  },
   "targetLanguage": "Target Language",
-  "@targetLanguage": { "description": "Target language or dialect setting label" },
-
+  "@targetLanguage": {
+    "description": "Target language or dialect setting label"
+  },
   "targetLanguageHelper": "Choose language or dialect for rewritten text",
-  "@targetLanguageHelper": { "description": "Helper text for target language setting" },
-
+  "@targetLanguageHelper": {
+    "description": "Helper text for target language setting"
+  },
   "chooseTarget": "Choose",
-  "@chooseTarget": { "description": "Button to choose a target profile" },
-
+  "@chooseTarget": {
+    "description": "Button to choose a target profile"
+  },
   "chooseTargetLanguage": "Choose Target Language",
-  "@chooseTargetLanguage": { "description": "Dialog title for target language picker" },
-
+  "@chooseTargetLanguage": {
+    "description": "Dialog title for target language picker"
+  },
   "searchTargetProfiles": "Search languages and dialects...",
-  "@searchTargetProfiles": { "description": "Search field hint in target profile picker" },
-
+  "@searchTargetProfiles": {
+    "description": "Search field hint in target profile picker"
+  },
   "addCustom": "Add Custom",
-  "@addCustom": { "description": "Button to add a custom target profile" },
-
+  "@addCustom": {
+    "description": "Button to add a custom target profile"
+  },
   "targetProfileName": "Name",
-  "@targetProfileName": { "description": "Custom target profile name field label" },
-
+  "@targetProfileName": {
+    "description": "Custom target profile name field label"
+  },
   "targetProfileInstruction": "Instruction",
-  "@targetProfileInstruction": { "description": "Custom target profile instruction field label" },
-
+  "@targetProfileInstruction": {
+    "description": "Custom target profile instruction field label"
+  },
   "targetProfileSaved": "Target profile saved",
-  "@targetProfileSaved": { "description": "Snackbar after target profile save" },
-
+  "@targetProfileSaved": {
+    "description": "Snackbar after target profile save"
+  },
   "targetProfileResetToDefault": "Target profile reset to default",
-  "@targetProfileResetToDefault": { "description": "Snackbar after selected custom profile deletion" },
-
+  "@targetProfileResetToDefault": {
+    "description": "Snackbar after selected custom profile deletion"
+  },
   "deleteTargetProfile": "Delete",
-  "@deleteTargetProfile": { "description": "Tooltip for deleting a custom target profile" },
-
+  "@deleteTargetProfile": {
+    "description": "Tooltip for deleting a custom target profile"
+  },
   "noMatchingTargetProfiles": "No matching target profiles",
-  "@noMatchingTargetProfiles": { "description": "Empty state when target profile search has no results" },
-
+  "@noMatchingTargetProfiles": {
+    "description": "Empty state when target profile search has no results"
+  },
   "fieldRequired": "Required",
-  "@fieldRequired": { "description": "Helper text for required fields" },
-
+  "@fieldRequired": {
+    "description": "Helper text for required fields"
+  },
   "screenshotContext": "Screenshot context",
-  "@screenshotContext": { "description": "Setting title for screenshot context" },
-
+  "@screenshotContext": {
+    "description": "Setting title for screenshot context"
+  },
   "screenshotContextHelper": "Send a screenshot with shortcut rewrites. Screenshots may include sensitive visible content.",
-  "@screenshotContextHelper": { "description": "Privacy helper for screenshot context setting" },
-
+  "@screenshotContextHelper": {
+    "description": "Privacy helper for screenshot context setting"
+  },
   "screenshotContextPendingPermission": "{mode} will turn on after Screen Recording is granted. Restart the app if macOS asks.",
   "@screenshotContextPendingPermission": {
     "description": "Settings helper shown when screenshot context mode is pending Screen Recording permission or restart",
     "placeholders": {
-      "mode": { "type": "String", "example": "Full Screen" }
+      "mode": {
+        "type": "String",
+        "example": "Full Screen"
+      }
     }
   },
-
   "screenshotContextOff": "Off",
-  "@screenshotContextOff": { "description": "Screenshot context off option" },
-
+  "@screenshotContextOff": {
+    "description": "Screenshot context off option"
+  },
   "screenshotContextApplication": "Application",
-  "@screenshotContextApplication": { "description": "Screenshot context active application option" },
-
+  "@screenshotContextApplication": {
+    "description": "Screenshot context active application option"
+  },
   "screenshotContextFullScreen": "Full Screen",
-  "@screenshotContextFullScreen": { "description": "Screenshot context active display option" },
-
+  "@screenshotContextFullScreen": {
+    "description": "Screenshot context active display option"
+  },
   "screenshotContextEnableTitle": "Send screenshot context?",
-  "@screenshotContextEnableTitle": { "description": "Confirmation dialog title for enabling screenshot context" },
-
+  "@screenshotContextEnableTitle": {
+    "description": "Confirmation dialog title for enabling screenshot context"
+  },
   "screenshotContextEnableMessage": "Screenshots are sent to your selected AI provider and may include sensitive visible content.",
-  "@screenshotContextEnableMessage": { "description": "Confirmation dialog message for enabling screenshot context" },
-
+  "@screenshotContextEnableMessage": {
+    "description": "Confirmation dialog message for enabling screenshot context"
+  },
   "screenshotContextEnableConfirm": "Enable",
-  "@screenshotContextEnableConfirm": { "description": "Confirmation action for enabling screenshot context" },
-
+  "@screenshotContextEnableConfirm": {
+    "description": "Confirmation action for enabling screenshot context"
+  },
   "screenRecordingPermissionUnsupported": "Screenshot context requires macOS 14 or later.",
-  "@screenRecordingPermissionUnsupported": { "description": "Message shown when screenshot context is unsupported" },
-
+  "@screenRecordingPermissionUnsupported": {
+    "description": "Message shown when screenshot context is unsupported"
+  },
   "screenRecordingPermissionGuideTitle": "Screen Recording permission required",
-  "@screenRecordingPermissionGuideTitle": { "description": "Native helper title for screen recording permission" },
-
+  "@screenRecordingPermissionGuideTitle": {
+    "description": "Native helper title for screen recording permission"
+  },
   "screenRecordingPermissionGuideMessage": "Enable Make It Sound Natural in Screen Recording, then check again.",
-  "@screenRecordingPermissionGuideMessage": { "description": "Native helper explanation for screen recording permission" },
-
+  "@screenRecordingPermissionGuideMessage": {
+    "description": "Native helper explanation for screen recording permission"
+  },
   "screenRecordingPermissionDragInstruction": "Drag this app into the Screen Recording list, then enable it.",
-  "@screenRecordingPermissionDragInstruction": { "description": "Native helper drag instruction" },
-
+  "@screenRecordingPermissionDragInstruction": {
+    "description": "Native helper drag instruction"
+  },
   "screenRecordingPermissionStillMissing": "Screen Recording is still not granted.",
-  "@screenRecordingPermissionStillMissing": { "description": "Native helper message after check again fails" },
-
+  "@screenRecordingPermissionStillMissing": {
+    "description": "Native helper message after check again fails"
+  },
   "screenRecordingPermissionDebugHint": "Debug: if macOS asked for Terminal or iTerm, grant that launcher or open the built .app directly.",
-  "@screenRecordingPermissionDebugHint": { "description": "Native helper debug-only note" },
-
+  "@screenRecordingPermissionDebugHint": {
+    "description": "Native helper debug-only note"
+  },
   "openSystemSettings": "Open System Settings",
-  "@openSystemSettings": { "description": "Button to open System Settings" },
-
+  "@openSystemSettings": {
+    "description": "Button to open System Settings"
+  },
   "revealInFinder": "Reveal in Finder",
-  "@revealInFinder": { "description": "Button to reveal the app in Finder" },
-
+  "@revealInFinder": {
+    "description": "Button to reveal the app in Finder"
+  },
   "appearance": "Appearance",
-  "@appearance": { "description": "Settings sidebar appearance item and page title" },
-
+  "@appearance": {
+    "description": "Settings sidebar appearance item and page title"
+  },
   "appearanceTheme": "Theme",
-  "@appearanceTheme": { "description": "Appearance setting title for theme mode" },
-
+  "@appearanceTheme": {
+    "description": "Appearance setting title for theme mode"
+  },
   "appearanceThemeHelper": "Use light, dark, or match macOS",
-  "@appearanceThemeHelper": { "description": "Helper text for theme mode setting" },
-
+  "@appearanceThemeHelper": {
+    "description": "Helper text for theme mode setting"
+  },
   "appearanceThemeSystem": "System",
-  "@appearanceThemeSystem": { "description": "Theme option that follows macOS" },
-
+  "@appearanceThemeSystem": {
+    "description": "Theme option that follows macOS"
+  },
   "appearanceThemeLight": "Light",
-  "@appearanceThemeLight": { "description": "Light theme option" },
-
+  "@appearanceThemeLight": {
+    "description": "Light theme option"
+  },
   "appearanceThemeDark": "Dark",
-  "@appearanceThemeDark": { "description": "Dark theme option" },
-
+  "@appearanceThemeDark": {
+    "description": "Dark theme option"
+  },
   "appearanceMenuFontSize": "Menu font size",
-  "@appearanceMenuFontSize": { "description": "Appearance setting title for menu and UI font size" },
-
+  "@appearanceMenuFontSize": {
+    "description": "Appearance setting title for menu and UI font size"
+  },
   "appearanceMenuFontSizeHelper": "Used for navigation, labels, buttons, and dialogs",
-  "@appearanceMenuFontSizeHelper": { "description": "Helper text for menu and UI font size" },
-
+  "@appearanceMenuFontSizeHelper": {
+    "description": "Helper text for menu and UI font size"
+  },
   "appearanceEditorFontSize": "Editor font size",
-  "@appearanceEditorFontSize": { "description": "Appearance setting title for editor and context text font size" },
-
+  "@appearanceEditorFontSize": {
+    "description": "Appearance setting title for editor and context text font size"
+  },
   "appearanceEditorFontSizeHelper": "Used for rewrite text and context input",
-  "@appearanceEditorFontSizeHelper": { "description": "Helper text for editor and context text font size" },
-
+  "@appearanceEditorFontSizeHelper": {
+    "description": "Helper text for editor and context text font size"
+  },
   "appearanceReset": "Reset Appearance",
-  "@appearanceReset": { "description": "Button to reset appearance settings" },
-
+  "@appearanceReset": {
+    "description": "Button to reset appearance settings"
+  },
   "appearanceResetDone": "Appearance reset",
-  "@appearanceResetDone": { "description": "SnackBar message after appearance settings reset" },
-
+  "@appearanceResetDone": {
+    "description": "SnackBar message after appearance settings reset"
+  },
   "pixelsUnit": "px",
-  "@pixelsUnit": { "description": "Pixel unit label for font size inputs" }
-,
-
+  "@pixelsUnit": {
+    "description": "Pixel unit label for font size inputs"
+  },
   "onboardingTitle": "Set up Make It Sound Natural",
-  "@onboardingTitle": { "description": "First-run onboarding screen title" },
-
+  "@onboardingTitle": {
+    "description": "First-run onboarding screen title"
+  },
   "onboardingProviderTitle": "AI Provider",
-  "@onboardingProviderTitle": { "description": "Onboarding provider setup step title" },
-
+  "@onboardingProviderTitle": {
+    "description": "Onboarding provider setup step title"
+  },
   "onboardingProviderDescription": "OpenRouter and google/gemini-3-flash-preview are selected by default. Add your API key in settings when you are ready.",
-  "@onboardingProviderDescription": { "description": "Onboarding provider setup step description" },
-
+  "@onboardingProviderDescription": {
+    "description": "Onboarding provider setup step description"
+  },
   "onboardingAccessibilityTitle": "Accessibility",
-  "@onboardingAccessibilityTitle": { "description": "Onboarding Accessibility permission step title" },
-
+  "@onboardingAccessibilityTitle": {
+    "description": "Onboarding Accessibility permission step title"
+  },
   "onboardingAccessibilityDescription": "Accessibility lets the shortcut read and replace selected text in other apps.",
-  "@onboardingAccessibilityDescription": { "description": "Onboarding Accessibility permission explanation" },
-
+  "@onboardingAccessibilityDescription": {
+    "description": "Onboarding Accessibility permission explanation"
+  },
   "onboardingAccessibilityGrant": "Open Accessibility settings",
-  "@onboardingAccessibilityGrant": { "description": "Button to request or open Accessibility permission settings" },
-
+  "@onboardingAccessibilityGrant": {
+    "description": "Button to request or open Accessibility permission settings"
+  },
   "onboardingAccessibilityGranted": "Accessibility is granted.",
-  "@onboardingAccessibilityGranted": { "description": "Onboarding status when Accessibility is granted" },
-
+  "@onboardingAccessibilityGranted": {
+    "description": "Onboarding status when Accessibility is granted"
+  },
   "onboardingAccessibilityMissing": "Accessibility is required for shortcut rewrites.",
-  "@onboardingAccessibilityMissing": { "description": "Onboarding status when Accessibility is missing" },
-
+  "@onboardingAccessibilityMissing": {
+    "description": "Onboarding status when Accessibility is missing"
+  },
   "onboardingAccessibilitySkipped": "Shortcut rewrites will not work until Accessibility is granted.",
-  "@onboardingAccessibilitySkipped": { "description": "Onboarding warning when Accessibility was skipped" },
-
+  "@onboardingAccessibilitySkipped": {
+    "description": "Onboarding warning when Accessibility was skipped"
+  },
   "onboardingAccessibilityStillMissing": "Accessibility is still missing. Shortcut rewrites will not work until permission is granted. Enable Make It Sound Natural in System Settings, then check again.",
-  "@onboardingAccessibilityStillMissing": { "description": "Onboarding warning after Accessibility request still finds no permission" },
-
+  "@onboardingAccessibilityStillMissing": {
+    "description": "Onboarding warning after Accessibility request still finds no permission"
+  },
   "onboardingAccessibilitySkip": "Skip for now",
-  "@onboardingAccessibilitySkip": { "description": "Button to skip Accessibility permission during onboarding" },
-
+  "@onboardingAccessibilitySkip": {
+    "description": "Button to skip Accessibility permission during onboarding"
+  },
   "onboardingAccessibilityCheckAgain": "Check again",
-  "@onboardingAccessibilityCheckAgain": { "description": "Button to recheck Accessibility permission status" },
-
+  "@onboardingAccessibilityCheckAgain": {
+    "description": "Button to recheck Accessibility permission status"
+  },
   "onboardingScreenshotTitle": "Screenshot context",
-  "@onboardingScreenshotTitle": { "description": "Onboarding Screenshot context step title" },
-
+  "@onboardingScreenshotTitle": {
+    "description": "Onboarding Screenshot context step title"
+  },
   "onboardingScreenshotDescription": "Optional screenshot context can improve rewrites, but screenshots may include sensitive visible content.",
-  "@onboardingScreenshotDescription": { "description": "Onboarding Screenshot context privacy explanation" },
-
+  "@onboardingScreenshotDescription": {
+    "description": "Onboarding Screenshot context privacy explanation"
+  },
   "onboardingScreenshotModeLabel": "Screenshot context mode",
-  "@onboardingScreenshotModeLabel": { "description": "Accessible label for Screenshot context mode choices in onboarding" },
-
+  "@onboardingScreenshotModeLabel": {
+    "description": "Accessible label for Screenshot context mode choices in onboarding"
+  },
   "onboardingScreenshotOffStatus": "Screenshot context is off. Screen Recording will not be requested.",
-  "@onboardingScreenshotOffStatus": { "description": "Onboarding status when Screenshot context remains off" },
-
+  "@onboardingScreenshotOffStatus": {
+    "description": "Onboarding status when Screenshot context remains off"
+  },
   "onboardingScreenshotPermissionGranted": "Screenshot context is enabled.",
-  "@onboardingScreenshotPermissionGranted": { "description": "Onboarding status after Screen Recording is granted" },
-
+  "@onboardingScreenshotPermissionGranted": {
+    "description": "Onboarding status after Screen Recording is granted"
+  },
   "onboardingScreenshotPermissionNeeded": "Screen Recording permission is still needed before Screenshot context can be used.",
-  "@onboardingScreenshotPermissionNeeded": { "description": "Onboarding status after non-Off Screenshot context could not be enabled" },
-
+  "@onboardingScreenshotPermissionNeeded": {
+    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+  },
   "onboardingScreenshotUnsupported": "Screenshot context requires macOS 14 or later.",
-  "@onboardingScreenshotUnsupported": { "description": "Onboarding status when Screenshot context is unsupported" },
-
+  "@onboardingScreenshotUnsupported": {
+    "description": "Onboarding status when Screenshot context is unsupported"
+  },
   "onboardingContinue": "Continue",
-  "@onboardingContinue": { "description": "Continue button in first-run onboarding" },
-
+  "@onboardingContinue": {
+    "description": "Continue button in first-run onboarding"
+  },
   "onboardingSkipOptional": "Skip optional",
-  "@onboardingSkipOptional": { "description": "Skip optional onboarding content button" },
-
+  "@onboardingSkipOptional": {
+    "description": "Skip optional onboarding content button"
+  },
   "onboardingComplete": "Finish setup",
-  "@onboardingComplete": { "description": "Finish onboarding button" }
-
+  "@onboardingComplete": {
+    "description": "Finish onboarding button"
+  },
+  "processingCancelled": "Processing cancelled",
+  "@processingCancelled": {
+    "description": "Toast shown when an in-flight rewrite is cancelled"
+  },
+  "appliedCopiedToClipboard": "{label} applied — copied to clipboard",
+  "@appliedCopiedToClipboard": {
+    "description": "Toast shown when a variant is applied and copied",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "notEditableGeneric": "Cursor is not in an editable field",
+  "@notEditableGeneric": {
+    "description": "Toast when the target field cannot be edited"
+  },
+  "variantsEmptyStateError": "Fix the key, then run Process to see four tonal rewrites.",
+  "@variantsEmptyStateError": {
+    "description": "Variants column empty state after an auth failure"
+  },
+  "authFailureBannerTitle": "The provider rejected your API key.",
+  "@authFailureBannerTitle": {
+    "description": "Title line of the Rewrite auth-failure banner"
+  },
+  "authFailureBannerBody": "Check the key for {provider}, then try again.",
+  "@authFailureBannerBody": {
+    "description": "Body line of the Rewrite auth-failure banner",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "checkApiKey": "Check API key",
+  "@checkApiKey": {
+    "description": "Auth-failure banner action opening AI Provider settings"
+  },
+  "retry": "Retry",
+  "@retry": {
+    "description": "Auth-failure banner action re-running the last request"
+  },
+  "escCancelHint": "cancel",
+  "@escCancelHint": {
+    "description": "Label after the Esc chip while processing"
+  },
+  "hintProcess": "process",
+  "@hintProcess": {
+    "description": "Label after the process shortcut chip"
+  },
+  "generatingVariants": "Generating four rewrite variants…",
+  "@generatingVariants": {
+    "description": "Screen-reader status while variants are generated"
+  },
+  "sourceEyebrow": "Source",
+  "@sourceEyebrow": {
+    "description": "Eyebrow above the Rewrite source panel"
+  },
+  "variantsEyebrow": "Variants",
+  "@variantsEyebrow": {
+    "description": "Eyebrow above the Rewrite variants panel"
+  },
+  "aiProviderSectionDescription": "Add providers, give each its API key and models, then pick the rewrite model from one list.",
+  "@aiProviderSectionDescription": {
+    "description": "Description under the settings section header"
+  },
+  "appearanceSectionDescription": "Theme and text size.",
+  "@appearanceSectionDescription": {
+    "description": "Description under the settings section header"
+  },
+  "writingSectionDescription": "Default variant and screenshot context.",
+  "@writingSectionDescription": {
+    "description": "Description under the settings section header"
+  },
+  "languageSectionDescription": "The target profile steers wording and language across all variants.",
+  "@languageSectionDescription": {
+    "description": "Description under the settings section header"
+  },
+  "shortcutsSectionDescription": "Global shortcuts work while the app runs in the background.",
+  "@shortcutsSectionDescription": {
+    "description": "Description under the settings section header"
+  },
+  "permissionsSectionDescription": "macOS manages these permissions in System Settings.",
+  "@permissionsSectionDescription": {
+    "description": "Description under the settings section header"
+  },
+  "updatesSectionDescription": "App information and update checks.",
+  "@updatesSectionDescription": {
+    "description": "Description under the settings section header"
+  },
+  "advancedSectionDescription": "Custom prompt override.",
+  "@advancedSectionDescription": {
+    "description": "Description under the settings section header"
+  },
+  "modelRowDescription": "Used for rewrites. Picking a model also selects its provider.",
+  "@modelRowDescription": {
+    "description": "AI Provider settings string"
+  },
+  "providersGroupTitle": "Providers",
+  "@providersGroupTitle": {
+    "description": "AI Provider settings string"
+  },
+  "modelsGroupTitle": "Models",
+  "@modelsGroupTitle": {
+    "description": "AI Provider settings string"
+  },
+  "builtInProvider": "Built-in provider",
+  "@builtInProvider": {
+    "description": "AI Provider settings string"
+  },
+  "apiKeySet": "API key set",
+  "@apiKeySet": {
+    "description": "AI Provider settings string"
+  },
+  "noApiKeyStatus": "No API key",
+  "@noApiKeyStatus": {
+    "description": "AI Provider settings string"
+  },
+  "setApiKeyAction": "Set API key",
+  "@setApiKeyAction": {
+    "description": "AI Provider settings string"
+  },
+  "changeApiKeyAction": "Change API key",
+  "@changeApiKeyAction": {
+    "description": "AI Provider settings string"
+  },
+  "providerKeyDialogSubtitle": "{provider} · stored locally in the macOS Keychain",
+  "@providerKeyDialogSubtitle": {
+    "description": "AI Provider settings string",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "apiKeyRemoved": "API Key removed",
+  "@apiKeyRemoved": {
+    "description": "AI Provider settings string"
+  },
+  "providerAdded": "Provider added — now add its models",
+  "@providerAdded": {
+    "description": "AI Provider settings string"
+  },
+  "providerUpdated": "Provider updated",
+  "@providerUpdated": {
+    "description": "AI Provider settings string"
+  },
+  "providerDeleted": "Provider deleted",
+  "@providerDeleted": {
+    "description": "AI Provider settings string"
+  },
+  "deleteProviderMessage": "“{name}”, its API key and its models will be removed from this Mac.",
+  "@deleteProviderMessage": {
+    "description": "AI Provider settings string",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "addProviderDialogSubtitle": "OpenAI-compatible endpoint. Non-stream Chat Completions required.",
+  "@addProviderDialogSubtitle": {
+    "description": "AI Provider settings string"
+  },
+  "modelAddedTo": "Model added to {provider}",
+  "@modelAddedTo": {
+    "description": "AI Provider settings string",
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "modelUpdated": "Model updated",
+  "@modelUpdated": {
+    "description": "AI Provider settings string"
+  },
+  "modelDeleted": "Model deleted",
+  "@modelDeleted": {
+    "description": "AI Provider settings string"
+  },
+  "modelShownInPicker": "Model shown in picker",
+  "@modelShownInPicker": {
+    "description": "AI Provider settings string"
+  },
+  "modelHiddenFromPicker": "Model hidden from picker",
+  "@modelHiddenFromPicker": {
+    "description": "AI Provider settings string"
+  },
+  "authFailureNote": "Authentication failed ({message}) for {provider}. Update its key below and try again.",
+  "@authFailureNote": {
+    "description": "AI Provider settings string",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      },
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
+  "latencyAvg": "{seconds}s avg",
+  "@latencyAvg": {
+    "description": "AI Provider settings string",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
+  "noModelsYet": "No models yet",
+  "@noModelsYet": {
+    "description": "AI Provider settings string"
+  },
+  "noModelsYetDescription": "Add a model to run rewrites.",
+  "@noModelsYetDescription": {
+    "description": "AI Provider settings string"
+  },
+  "deleteAction": "Delete",
+  "@deleteAction": {
+    "description": "AI Provider settings string"
+  },
+  "chooseTargetForcedSubtitle": "Select the profile used for rewrites. Required to continue.",
+  "@chooseTargetForcedSubtitle": {
+    "description": "Subtitle of the forced target profile picker"
+  },
+  "variantDefaultTag": "Default",
+  "@variantDefaultTag": {
+    "description": "Neutral tag on the pre-selected but not yet applied variant"
+  },
+  "rewriteTab": "Rewrite",
+  "@rewriteTab": {
+    "description": "Header tab for the rewrite workspace"
+  },
+  "emptyPrimerSubtitle": "The tone you picked lands at your cursor. The alternatives wait here.",
+  "@emptyPrimerSubtitle": {
+    "description": "Second line of the Rewrite empty state"
+  },
+  "onboardingDoneDescription": "Setup is finished. Select text anywhere and use your shortcut.",
+  "@onboardingDoneDescription": {
+    "description": "Description of the final onboarding step"
+  },
+  "onboardingDoneTitle": "You are all set",
+  "@onboardingDoneTitle": {
+    "description": "Title of the final onboarding step"
+  },
+  "shortcutsResetConfirm": "The three global shortcuts go back to their defaults.",
+  "@shortcutsResetConfirm": {
+    "description": "Body of the confirm dialog for resetting shortcuts"
+  },
+  "shortcutsFixedNote": "⌘↵ starts a rewrite from the Rewrite screen and Esc cancels one in progress. These two are fixed.",
+  "@shortcutsFixedNote": {
+    "description": "Note listing the two shortcuts that cannot be rebound"
+  },
+  "emptyPrimerLead": "Select text in any app and press",
+  "@emptyPrimerLead": {
+    "description": "Fragment before the correction-shortcut chip in the empty Variants column"
+  },
+  "emptyPrimerRewriteTail": "to rewrite it.",
+  "@emptyPrimerRewriteTail": {
+    "description": "Fragment after the correction-shortcut chip in the empty Variants column"
+  },
+  "contextShortcutHintLead": "Select text and press",
+  "@contextShortcutHintLead": {
+    "description": "Fragment before the replace-context chip under the Context field"
+  },
+  "contextShortcutHintReplace": "to replace this context, or",
+  "@contextShortcutHintReplace": {
+    "description": "Fragment between the replace and append chips under the Context field"
+  },
+  "contextShortcutHintAppend": "to append to it.",
+  "@contextShortcutHintAppend": {
+    "description": "Fragment after the append-context chip under the Context field"
+  }
 }

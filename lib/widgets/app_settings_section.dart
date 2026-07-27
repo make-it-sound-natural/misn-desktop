@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
-import 'package:make_it_sound_natural/theme/app_theme.dart';
 import 'package:make_it_sound_natural/widgets/app_panel.dart';
 
 /// Shared compact settings section container.
@@ -29,17 +28,17 @@ class AppSettingsSection extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(
-            left: AppSpacing.xs,
+            left: AppSpacing.xxs,
             bottom: AppSpacing.xs,
           ),
-          child: Text(title, style: AppTextStyles.sectionTitleOf(context)),
+          child: Text(title, style: AppTextStyles.settingsHeaderOf(context)),
         ),
         if (subtitle != null)
           Padding(
             padding: const EdgeInsets.only(
-              left: AppSpacing.xs,
+              left: AppSpacing.xxs,
               right: AppSpacing.xs,
-              bottom: AppSpacing.sm,
+              bottom: AppSpacing.md,
             ),
             child: Text(
               subtitle!,
@@ -47,7 +46,9 @@ class AppSettingsSection extends StatelessWidget {
             ),
           ),
         AppPanel(
-          padding: EdgeInsets.zero,
+          // Matches the group panels on the AI Provider tab: three
+          // stacked panels used to sit at three different insets.
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxsPlus),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: children,
@@ -66,12 +67,14 @@ class AppSettingsRow extends StatelessWidget {
     required this.title,
     super.key,
     this.subtitle,
+    this.titleWidget,
+    this.subtitleWidget,
     this.trailing,
     this.onTap,
     this.minHeight = AppSizes.settingsRowHeight,
   });
 
-  /// Leading icon or tile.
+  /// Leading row glyph.
   final Widget leading;
 
   /// Row title.
@@ -79,6 +82,14 @@ class AppSettingsRow extends StatelessWidget {
 
   /// Optional row subtitle.
   final String? subtitle;
+
+  /// Rich title, used when the row mixes fonts (for example a model slug).
+  /// Wins over [title], which stays required for semantics.
+  final Widget? titleWidget;
+
+  /// Rich subtitle, used when parts of the line carry their own style.
+  /// Wins over [subtitle].
+  final Widget? subtitleWidget;
 
   /// Optional trailing control.
   final Widget? trailing;
@@ -107,12 +118,16 @@ class AppSettingsRow extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.rowTitleOf(context),
-                  ),
-                  if (subtitle != null) ...[
+                  titleWidget ??
+                      Text(
+                        title,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.rowTitleOf(context),
+                      ),
+                  if (subtitleWidget != null) ...[
+                    const SizedBox(height: AppSpacing.xxs),
+                    subtitleWidget!,
+                  ] else if (subtitle != null) ...[
                     const SizedBox(height: AppSpacing.xxs),
                     Text(
                       subtitle!,
@@ -151,51 +166,35 @@ class AppSettingsDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Divider(
       height: 1,
-      indent: AppSpacing.lg + AppSizes.iconTileSmall + AppSpacing.sm,
+      indent: AppSpacing.lg,
       endIndent: AppSpacing.lg,
       color: Theme.of(context).dividerColor,
     );
   }
 }
 
-/// Shared icon tile for settings rows.
-class AppSettingsIconTile extends StatelessWidget {
-  /// Creates an icon tile.
-  const AppSettingsIconTile({
-    required this.icon,
-    super.key,
-    this.backgroundColor = const Color(0xFFF0EAFE),
-    this.iconColor = AppColors.primary,
-  });
+/// Single-tone glyph for a settings row.
+///
+/// Replaces the former pastel icon tile: the redesign reserves filled
+/// containers for the primary action and the active state.
+class AppSettingsRowIcon extends StatelessWidget {
+  /// Creates a settings row icon.
+  const AppSettingsRowIcon({required this.icon, super.key, this.color});
 
-  /// Icon.
+  /// Glyph.
   final IconData icon;
 
-  /// Tile background color.
-  final Color backgroundColor;
-
-  /// Icon color.
-  final Color iconColor;
+  /// Overrides the muted default, used for truthful status glyphs.
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final defaultBackground = Theme.of(context).brightness == Brightness.light
-        ? const Color(0xFFF0EAFE)
-        : colorScheme.primaryContainer;
-    return Container(
-      width: AppSizes.iconTileSmall,
-      height: AppSizes.iconTileSmall,
-      decoration: BoxDecoration(
-        color: backgroundColor == const Color(0xFFF0EAFE)
-            ? defaultBackground
-            : backgroundColor,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
+    return SizedBox(
+      width: AppSizes.rowIconSize,
       child: Icon(
         icon,
-        color: iconColor == AppColors.primary ? colorScheme.primary : iconColor,
-        size: 22,
+        size: AppSizes.rowIconSize,
+        color: color ?? Theme.of(context).colorScheme.onSurfaceVariant,
       ),
     );
   }

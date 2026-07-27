@@ -5,6 +5,14 @@ class MainFlutterWindow: NSWindow {
   private var methodChannelHandler: MethodChannelHandler?
   private var shortcutHandler: ShortcutHandler?
 
+  /// Asks the Flutter side to show Settings.
+  ///
+  /// Used by the Preferences menu item, which owns the standard Cmd+, key
+  /// equivalent every Mac user reaches for first.
+  func requestSettings() {
+    methodChannelHandler?.sendOpenSettings()
+  }
+
   override func awakeFromNib() {
     isReleasedWhenClosed = false
     (NSApp.delegate as? AppDelegate)?.configureWindowLifecycle(window: self)
@@ -29,8 +37,14 @@ class MainFlutterWindow: NSWindow {
       shortcut?.registerShortcut()
     }
 
-    methodHandler.onReplaceText = { [weak shortcut] text in
-      shortcut?.replaceTextInOriginalApp(text)
+    methodHandler.onReplaceText = { [weak shortcut] text, completion in
+      // The completion is wired to a FlutterResult, so every path must reply
+      // or the awaiting Dart future never settles.
+      guard let shortcut = shortcut else {
+        completion(false)
+        return
+      }
+      shortcut.replaceTextInOriginalApp(text, completion: completion)
     }
 
     RegisterGeneratedPlugins(registry: flutterViewController)

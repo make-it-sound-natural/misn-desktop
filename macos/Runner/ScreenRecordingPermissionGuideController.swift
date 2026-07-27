@@ -109,7 +109,8 @@ final class ScreenRecordingPermissionGuideController: NSObject, NSWindowDelegate
     private func makeContentView() -> NSView {
         let root = NSView()
         root.wantsLayer = true
-        root.layer?.backgroundColor = NSColor.white.cgColor
+        // Follows the system appearance so the guide is readable in dark mode.
+        root.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
 
         let stack = NSStackView()
         stack.orientation = .vertical

@@ -38,7 +38,7 @@ void main() async {
     await WindowManipulator.enableFullSizeContentView();
     await WindowManipulator.addVisualEffectSubview(
       VisualEffectSubviewProperties(
-        material: NSVisualEffectViewMaterial.sidebar,
+        material: NSVisualEffectViewMaterial.underWindowBackground,
         state: NSVisualEffectViewState.followsWindowActiveState,
       ),
     );

@@ -89,7 +89,7 @@ enum MenuBarStrings {
 enum MainWindowGeometry {
     static let autosaveName: NSWindow.FrameAutosaveName = "MainWindowFrame"
     static let defaultFrameSize = NSSize(width: 1_180, height: 700)
-    static let minimumFrameSize = NSSize(width: 760, height: 560)
+    static let minimumFrameSize = NSSize(width: 980, height: 600)
     static let screenInset: CGFloat = 20
 
     static func visibleFrames() -> [NSRect] {

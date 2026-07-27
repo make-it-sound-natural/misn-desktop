@@ -2,11 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
-import 'package:make_it_sound_natural/constants/model_catalog_defaults.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
+import 'package:make_it_sound_natural/models/catalog_validation_reason.dart';
 import 'package:make_it_sound_natural/models/llm_model_entry.dart';
 import 'package:make_it_sound_natural/models/llm_provider_entry.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
+import 'package:make_it_sound_natural/screens/settings/api_provider_dialogs.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
 import 'package:make_it_sound_natural/services/provider_catalog_service.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
@@ -14,15 +15,28 @@ import 'package:make_it_sound_natural/services/shortcut_service.dart';
 import 'package:make_it_sound_natural/services/speed_tracking_service.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/theme/app_theme.dart';
-import 'package:make_it_sound_natural/widgets/app_dialog_escape_dismiss.dart';
+import 'package:make_it_sound_natural/widgets/app_dialog_shell.dart';
+import 'package:make_it_sound_natural/widgets/app_inline_banner.dart';
+import 'package:make_it_sound_natural/widgets/app_panel.dart';
+import 'package:make_it_sound_natural/widgets/app_popup_select.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
+import 'package:make_it_sound_natural/widgets/app_toast.dart';
 
-const double _wideProviderRowHeight = 76;
-const double _mediumProviderRowHeight = 68;
+const double _groupTitleTopSpacing = 24;
 
-/// Settings section for API provider configuration.
+/// Width of the two-action slot.
+///
+/// Two `IconButton`s at `VisualDensity.compact`: the 48pt default minus 8 in
+/// each axis, so 40 apiece.
+const double _optionalActionsWidth = 80;
+const String _modelValueSeparator = '::';
+
+/// Settings section for providers, their API keys, and their models.
+///
+/// One picker chooses the rewrite model across every provider; picking a
+/// model implicitly selects its provider.
 class ApiProviderSection extends StatefulWidget {
-  /// Creates the API provider settings section widget.
+  /// Creates the AI provider settings section.
   const ApiProviderSection({super.key});
 
   @override
@@ -30,1366 +44,802 @@ class ApiProviderSection extends StatefulWidget {
 }
 
 class _ApiProviderSectionState extends State<ApiProviderSection> {
-  final _apiKeyController = TextEditingController();
-  final _apiKeyFocusNode = FocusNode();
-  final _openRouterApiKeyController = TextEditingController();
-  final _openRouterApiKeyFocusNode = FocusNode();
-  final _customProviderApiKeyController = TextEditingController();
-  final _customProviderApiKeyFocusNode = FocusNode();
   final _settingsService = SettingsService();
   final _shortcutService = ShortcutService();
   final _speedTrackingService = SpeedTrackingService();
   final _modelCatalogService = ModelCatalogService();
   final _providerCatalogService = ProviderCatalogService();
 
+  List<LlmProviderEntry> _providers = [];
+  Map<String, List<LlmModelEntry>> _modelsByProvider = {};
+  Map<String, bool> _hasKeyByProvider = {};
+  Map<String, ({double? avg, int count})> _speedStats = {};
   String _selectedProvider = AppDefaults.apiProvider;
   String _selectedModel = AppDefaults.model;
-  Map<String, List<String>> _visibleModelsByProvider = {};
-  List<LlmModelEntry> _openRouterCatalog = [];
-  List<LlmProviderEntry> _providers = [];
-  Map<String, ({double? avg, int count})> _speedStats = {};
   ProviderAuthFailure? _activeAuthFailure;
-  String _lastSavedApiKey = '';
-  String _lastSavedOpenRouterApiKey = '';
-  String _lastSavedCustomProviderApiKey = '';
-  bool _isApiKeyVisible = false;
-
-  List<String> get _availableModels =>
-      _visibleModelsByProvider[_selectedProvider] ??
-      ModelCatalogDefaults.modelsForProvider(_selectedProvider);
-
-  LlmProviderEntry? get _selectedProviderEntry {
-    for (final provider in _providers) {
-      if (provider.id == _selectedProvider) return provider;
-    }
-    return null;
-  }
-
-  bool get _isCustomProvider => _selectedProviderEntry?.isBuiltIn == false;
-
-  List<LlmProviderEntry> get _providerOptions {
-    if (_providers.isNotEmpty) return _providers;
-    return const [
-      LlmProviderEntry(
-        id: AppDefaults.openRouterProvider,
-        displayName: 'OpenRouter',
-        baseUrl: 'https://openrouter.ai/api/v1',
-        isBuiltIn: true,
-      ),
-      LlmProviderEntry(
-        id: AppDefaults.openAiProvider,
-        displayName: 'OpenAI',
-        baseUrl: 'https://api.openai.com/v1',
-        isBuiltIn: true,
-      ),
-    ];
-  }
-
-  TextEditingController get _activeApiKeyController {
-    if (_selectedProvider == AppDefaults.openRouterProvider) {
-      return _openRouterApiKeyController;
-    }
-    if (_selectedProvider == AppDefaults.openAiProvider) {
-      return _apiKeyController;
-    }
-    return _customProviderApiKeyController;
-  }
-
-  FocusNode get _activeApiKeyFocusNode {
-    if (_selectedProvider == AppDefaults.openRouterProvider) {
-      return _openRouterApiKeyFocusNode;
-    }
-    if (_selectedProvider == AppDefaults.openAiProvider) {
-      return _apiKeyFocusNode;
-    }
-    return _customProviderApiKeyFocusNode;
-  }
-
-  String get _apiKeyHint {
-    if (_selectedProvider == AppDefaults.openRouterProvider) return 'sk-or-...';
-    if (_selectedProvider == AppDefaults.openAiProvider) return 'sk-...';
-    return 'Bearer token';
-  }
-
-  String _normalizeProvider(String provider) {
-    if (_providers.any((entry) => entry.id == provider)) {
-      return provider;
-    }
-    return AppDefaults.apiProvider;
-  }
-
-  String? _resolveModelForProvider(
-    String provider,
-    String model,
-    Map<String, List<String>> visibleModelsByProvider,
-  ) {
-    final providerModels = visibleModelsByProvider[provider] ?? const [];
-    if (providerModels.isEmpty) {
-      return null;
-    }
-    if (providerModels.contains(model)) {
-      return model;
-    }
-    return providerModels.first;
-  }
 
   @override
   void initState() {
     super.initState();
     unawaited(_loadSettings());
-    _apiKeyFocusNode.addListener(_onApiKeyFocusChange);
-    _openRouterApiKeyFocusNode.addListener(_onOpenRouterApiKeyFocusChange);
-    _customProviderApiKeyFocusNode.addListener(
-      _onCustomProviderApiKeyFocusChange,
-    );
   }
 
-  @override
-  void dispose() {
-    _apiKeyFocusNode
-      ..removeListener(_onApiKeyFocusChange)
-      ..dispose();
-    _openRouterApiKeyFocusNode
-      ..removeListener(_onOpenRouterApiKeyFocusChange)
-      ..dispose();
-    _customProviderApiKeyFocusNode
-      ..removeListener(_onCustomProviderApiKeyFocusChange)
-      ..dispose();
-    _apiKeyController.dispose();
-    _openRouterApiKeyController.dispose();
-    _customProviderApiKeyController.dispose();
-    super.dispose();
-  }
+  List<LlmModelEntry> get _allModels => [
+    for (final provider in _providers) ...?_modelsByProvider[provider.id],
+  ];
+
+  int get _visibleModelCount =>
+      _allModels.where((model) => !model.isHidden).length;
 
   Future<void> _loadSettings() async {
-    final provider = await _settingsService.getProvider();
     final providers = await _providerCatalogService.allProviders();
-    final apiKey = await _settingsService.getApiKey();
-    final openRouterApiKey = await _settingsService.getOpenRouterApiKey();
-    final customProviderApiKey = await _settingsService.getCustomProviderApiKey(
-      provider,
+    // Each provider's lookups are independent, and `_hasKey` is a method
+    // channel round trip into the Keychain — awaiting them one at a time
+    // serialised the whole reload behind P of them.
+    final models = await Future.wait(
+      providers.map((provider) => _modelCatalogService.allModels(provider.id)),
     );
-    final model = await _settingsService.getModel();
+    final keys = await Future.wait(providers.map(_hasKey));
+    final modelsByProvider = <String, List<LlmModelEntry>>{
+      for (var i = 0; i < providers.length; i++) providers[i].id: models[i],
+    };
+    final hasKeyByProvider = <String, bool>{
+      for (var i = 0; i < providers.length; i++) providers[i].id: keys[i],
+    };
+
+    final storedProvider = await _settingsService.getProvider();
+    final storedModel = await _settingsService.getModel();
+    final resolved = _resolveSelection(
+      providers.any((p) => p.id == storedProvider)
+          ? storedProvider
+          : AppDefaults.apiProvider,
+      storedModel,
+      modelsByProvider,
+    );
+    final resolvedProvider = resolved.provider;
+    final resolvedModel = resolved.model;
+    final authFailure = await _settingsService.getProviderAuthFailure(
+      resolvedProvider,
+    );
     final speedStats = await _speedTrackingService.getAllStats();
-    final visibleModelsByProvider = await _loadVisibleModelsByProvider(
-      providers,
-    );
-    _providers = providers;
-    final resolvedProvider = _normalizeProvider(provider);
-    final openRouterCatalog = await _modelCatalogService.allModels(
-      resolvedProvider,
-    );
-    final resolvedModel = _resolveModelForProvider(
-      resolvedProvider,
-      model,
-      visibleModelsByProvider,
-    );
-    final activeAuthFailure = await _settingsService.getProviderAuthFailure(
-      resolvedProvider,
-    );
+    if (!mounted) return;
 
-    if (mounted) {
-      setState(() {
-        _selectedProvider = resolvedProvider;
-        _activeAuthFailure = activeAuthFailure;
-        _visibleModelsByProvider = visibleModelsByProvider;
-        _openRouterCatalog = openRouterCatalog;
-        _apiKeyController.text = apiKey;
-        _lastSavedApiKey = apiKey;
-        _openRouterApiKeyController.text = openRouterApiKey;
-        _lastSavedOpenRouterApiKey = openRouterApiKey;
-        _customProviderApiKeyController.text = customProviderApiKey;
-        _lastSavedCustomProviderApiKey = customProviderApiKey;
-        _providers = providers;
-        _selectedModel = resolvedModel ?? '';
-        _speedStats = speedStats;
-      });
-    }
+    setState(() {
+      _providers = providers;
+      _modelsByProvider = modelsByProvider;
+      _hasKeyByProvider = hasKeyByProvider;
+      _speedStats = speedStats;
+      _selectedProvider = resolvedProvider;
+      _selectedModel = resolvedModel;
+      _activeAuthFailure = authFailure;
+    });
 
-    if (resolvedProvider != provider) {
-      await _settingsService.setProvider(resolvedProvider);
-      await _shortcutService.setProvider(resolvedProvider);
-    }
-
-    final modelToSync = resolvedModel ?? '';
-    if (modelToSync != model) {
-      await _settingsService.setModel(modelToSync);
-      await _shortcutService.setModel(modelToSync);
+    if (resolvedProvider != storedProvider || resolvedModel != storedModel) {
+      await _persistSelection(resolvedProvider, resolvedModel);
     }
     await _syncSelectedCustomProviderConfig();
   }
 
-  Future<Map<String, List<String>>> _loadVisibleModelsByProvider(
-    List<LlmProviderEntry> providers,
-  ) async {
-    final result = <String, List<String>>{};
-    for (final provider in providers) {
-      result[provider.id] = await _modelCatalogService.visibleModelSlugs(
-        provider.id,
-      );
+  Future<bool> _hasKey(LlmProviderEntry provider) async {
+    final key = switch (provider.id) {
+      AppDefaults.openRouterProvider =>
+        await _settingsService.getOpenRouterApiKey(),
+      AppDefaults.openAiProvider => await _settingsService.getApiKey(),
+      _ => await _settingsService.getCustomProviderApiKey(provider.id),
+    };
+    return key.trim().isNotEmpty;
+  }
+
+  /// Keeps the picker pointed at a model that still exists and is visible.
+  ///
+  /// Returns the owning provider alongside the model. Falling back to another
+  /// provider's model while leaving the caller's provider untouched wrote a
+  /// mismatched pair to settings and to the native side, so every rewrite went
+  /// to one provider carrying a model that only exists on another.
+  ({String provider, String model}) _resolveSelection(
+    String provider,
+    String model,
+    Map<String, List<LlmModelEntry>> modelsByProvider,
+  ) {
+    final visible = (modelsByProvider[provider] ?? const <LlmModelEntry>[])
+        .where((entry) => !entry.isHidden)
+        .toList();
+    if (visible.any((entry) => entry.slug == model)) {
+      return (provider: provider, model: model);
     }
-    return result;
-  }
-
-  Future<void> _reloadModelCatalogAndResolveSelection() async {
-    final providers = await _providerCatalogService.allProviders();
-    final visibleModelsByProvider = await _loadVisibleModelsByProvider(
-      providers,
-    );
-    final openRouterCatalog = await _modelCatalogService.allModels(
-      _selectedProvider,
-    );
-    final resolvedModel = _resolveModelForProvider(
-      _selectedProvider,
-      _selectedModel,
-      visibleModelsByProvider,
-    );
-
-    if (!mounted) return;
-    setState(() {
-      _visibleModelsByProvider = visibleModelsByProvider;
-      _openRouterCatalog = openRouterCatalog;
-      _providers = providers;
-      _selectedModel = resolvedModel ?? '';
-    });
-
-    await _settingsService.setModel(resolvedModel ?? '');
-    await _shortcutService.setModel(resolvedModel ?? '');
-  }
-
-  Future<void> _setOpenRouterModelHidden(
-    LlmModelEntry entry,
-    bool hidden,
-  ) async {
-    final l10n = AppLocalizations.of(context)!;
-    try {
-      await _modelCatalogService.setModelHidden(
-        provider: entry.provider,
-        slug: entry.slug,
-        hidden: hidden,
-      );
-      await _reloadModelCatalogAndResolveSelection();
-    } on ModelCatalogValidationException catch (error) {
-      _showModelCatalogError(
-        _localizedModelCatalogError(l10n, error.message),
-      );
+    if (visible.isNotEmpty) {
+      return (provider: provider, model: visible.first.slug);
     }
-  }
 
-  void _showModelCatalogError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _onApiKeyFocusChange() {
-    if (!_apiKeyFocusNode.hasFocus) {
-      unawaited(_saveApiKeyIfChanged());
-    }
-  }
-
-  void _onOpenRouterApiKeyFocusChange() {
-    if (!_openRouterApiKeyFocusNode.hasFocus) {
-      unawaited(_saveOpenRouterApiKeyIfChanged());
-    }
-  }
-
-  void _onCustomProviderApiKeyFocusChange() {
-    if (!_customProviderApiKeyFocusNode.hasFocus) {
-      unawaited(_saveCustomProviderApiKeyIfChanged());
-    }
-  }
-
-  Future<void> _saveApiKeyIfChanged() async {
-    final currentKey = _apiKeyController.text.trim();
-    if (_apiKeyController.text != currentKey) {
-      _apiKeyController.text = currentKey;
-    }
-    if (currentKey != _lastSavedApiKey) {
-      _lastSavedApiKey = currentKey;
-      await _settingsService.setApiKey(currentKey);
-      await _shortcutService.setApiKey(currentKey);
-      if (mounted && _selectedProvider == AppDefaults.openAiProvider) {
-        setState(() => _activeAuthFailure = null);
-      }
-      if (mounted && currentKey.isNotEmpty) {
-        _showSavedSnackBar();
+    for (final entry in modelsByProvider.entries) {
+      final firstVisible = entry.value.where((m) => !m.isHidden).toList();
+      if (firstVisible.isNotEmpty) {
+        return (provider: entry.key, model: firstVisible.first.slug);
       }
     }
+    return (provider: provider, model: '');
   }
 
-  Future<void> _saveOpenRouterApiKeyIfChanged() async {
-    final currentKey = _openRouterApiKeyController.text.trim();
-    if (_openRouterApiKeyController.text != currentKey) {
-      _openRouterApiKeyController.text = currentKey;
-    }
-    if (currentKey != _lastSavedOpenRouterApiKey) {
-      _lastSavedOpenRouterApiKey = currentKey;
-      await _settingsService.setOpenRouterApiKey(currentKey);
-      await _shortcutService.setOpenRouterApiKey(currentKey);
-      if (mounted && _selectedProvider == AppDefaults.openRouterProvider) {
-        setState(() => _activeAuthFailure = null);
-      }
-      if (mounted && currentKey.isNotEmpty) {
-        _showSavedSnackBar();
-      }
-    }
-  }
-
-  Future<void> _saveCustomProviderApiKeyIfChanged() async {
-    final currentKey = _customProviderApiKeyController.text.trim();
-    if (_customProviderApiKeyController.text != currentKey) {
-      _customProviderApiKeyController.text = currentKey;
-    }
-    if (currentKey != _lastSavedCustomProviderApiKey) {
-      _lastSavedCustomProviderApiKey = currentKey;
-      await _settingsService.setCustomProviderApiKey(
-        _selectedProvider,
-        currentKey,
-      );
-      await _syncSelectedCustomProviderConfig();
-      if (mounted && _isCustomProvider) {
-        setState(() => _activeAuthFailure = null);
-      }
-      if (mounted && currentKey.isNotEmpty) {
-        _showSavedSnackBar();
-      }
-    }
-  }
-
-  Future<void> _saveActiveApiKeyIfChanged() async {
-    if (_selectedProvider == AppDefaults.openRouterProvider) {
-      await _saveOpenRouterApiKeyIfChanged();
-      return;
-    }
-    if (_isCustomProvider) {
-      await _saveCustomProviderApiKeyIfChanged();
-      return;
-    }
-    await _saveApiKeyIfChanged();
+  Future<void> _persistSelection(String provider, String model) async {
+    await _settingsService.setProvider(provider);
+    await _shortcutService.setProvider(provider);
+    await _settingsService.setModel(model);
+    await _shortcutService.setModel(model);
   }
 
   Future<void> _syncSelectedCustomProviderConfig() async {
-    final provider = _selectedProviderEntry;
+    final provider = _providers
+        .where((entry) => entry.id == _selectedProvider)
+        .firstOrNull;
     if (provider == null || provider.isBuiltIn) return;
+    final apiKey = await _settingsService.getCustomProviderApiKey(provider.id);
     await _shortcutService.setCustomProviderConfig(
       provider: provider.id,
       baseUrl: provider.baseUrl,
-      apiKey: _customProviderApiKeyController.text.trim(),
+      apiKey: apiKey.trim(),
     );
   }
 
-  void _showSavedSnackBar() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.apiKeySaved),
-        duration: const Duration(seconds: 1),
-      ),
+  Future<void> _selectProviderAndModel(String providerId, String slug) async {
+    final authFailure = await _settingsService.getProviderAuthFailure(
+      providerId,
     );
+    if (!mounted) return;
+    setState(() {
+      _selectedProvider = providerId;
+      _selectedModel = slug;
+      _activeAuthFailure = authFailure;
+    });
+    await _persistSelection(providerId, slug);
+    await _syncSelectedCustomProviderConfig();
   }
 
-  String _formatModelDisplay(String model) {
-    final stats = _speedStats[model];
-    if (stats == null || stats.count == 0) {
-      return model;
+  /// Reloads catalogs after an edit and re-points the picker when the current
+  /// selection disappeared.
+  Future<void> _reloadAfterCatalogChange() async {
+    await _loadSettings();
+  }
+
+  /// Maps a catalog rejection onto localized copy.
+  ///
+  /// The services throw English sentences so failures read well in logs;
+  /// showing those verbatim left the other eight locales reading raw English.
+  String _localizedCatalogError(
+    AppLocalizations l10n,
+    CatalogValidationReason reason,
+    String fallback,
+  ) {
+    return switch (reason) {
+      CatalogValidationReason.modelSlugRequired => l10n.modelSlugRequired,
+      CatalogValidationReason.modelSlugDuplicate => l10n.modelSlugDuplicate,
+      CatalogValidationReason.modelVisibilityRequired =>
+        l10n.modelVisibilityRequired,
+      CatalogValidationReason.providerNameRequired => l10n.providerNameRequired,
+      CatalogValidationReason.providerNameInvalid => l10n.providerNameInvalid,
+      CatalogValidationReason.providerUrlRequired => l10n.providerUrlRequired,
+      CatalogValidationReason.providerUrlInvalid => l10n.providerUrlInvalid,
+      // Not reachable from the UI; keep the English sentence rather than
+      // inventing user-facing copy for a programmer error.
+      CatalogValidationReason.notMutable => fallback,
+    };
+  }
+
+  Future<void> _openProviderDialog({LlmProviderEntry? entry}) async {
+    var errorText = <String?>[null].first;
+    ProviderDialogResult? rejected;
+    while (true) {
+      final result = await showProviderDialog(
+        context,
+        entry: entry,
+        errorText: errorText,
+        initial: rejected,
+      );
+      if (result == null || !mounted) return;
+
+      final l10n = AppLocalizations.of(context)!;
+      try {
+        final saved = entry == null
+            ? await _providerCatalogService.addCustomProvider(
+                displayName: result.name,
+                baseUrl: result.baseUrl,
+              )
+            : await _providerCatalogService.editCustomProvider(
+                id: entry.id,
+                displayName: result.name,
+                baseUrl: result.baseUrl,
+              );
+        if (result.apiKey.isNotEmpty) {
+          await _settingsService.setCustomProviderApiKey(
+            saved.id,
+            result.apiKey,
+          );
+        }
+        await _reloadAfterCatalogChange();
+        if (!mounted) return;
+        showAppToast(
+          context,
+          entry == null ? l10n.providerAdded : l10n.providerUpdated,
+        );
+        return;
+      } on ProviderCatalogValidationException catch (e) {
+        errorText = _localizedCatalogError(l10n, e.reason, e.message);
+        rejected = result;
+      }
     }
-    final avgStr = stats.avg!.toStringAsFixed(1);
-    return '$model (${avgStr}s avg)';
+  }
+
+  Future<void> _openProviderKeyDialog(LlmProviderEntry provider) async {
+    final key = await showProviderKeyDialog(context, provider: provider);
+    if (key == null || !mounted) return;
+
+    final l10n = AppLocalizations.of(context)!;
+    switch (provider.id) {
+      case AppDefaults.openRouterProvider:
+        await _settingsService.setOpenRouterApiKey(key);
+      case AppDefaults.openAiProvider:
+        await _settingsService.setApiKey(key);
+      default:
+        if (key.isEmpty) {
+          await _settingsService.deleteCustomProviderApiKey(provider.id);
+        } else {
+          await _settingsService.setCustomProviderApiKey(provider.id, key);
+        }
+    }
+    await _settingsService.clearProviderAuthFailure(provider.id);
+    await _reloadAfterCatalogChange();
+    if (!mounted) return;
+    showAppToast(context, key.isEmpty ? l10n.apiKeyRemoved : l10n.apiKeySaved);
+  }
+
+  Future<void> _confirmDeleteProvider(LlmProviderEntry provider) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: l10n.deleteProviderTitle,
+      message: Text(l10n.deleteProviderMessage(provider.displayName)),
+      confirmLabel: l10n.deleteAction,
+      cancelLabel: l10n.cancel,
+    );
+    if (!confirmed || !mounted) return;
+
+    await _modelCatalogService.deleteProviderModels(provider.id);
+    await _providerCatalogService.deleteCustomProvider(provider.id);
+    await _settingsService.deleteCustomProviderApiKey(provider.id);
+    await _reloadAfterCatalogChange();
+    if (!mounted) return;
+    showAppToast(context, l10n.providerDeleted);
+  }
+
+  Future<void> _openModelDialog({LlmModelEntry? entry}) async {
+    var errorText = <String?>[null].first;
+    ModelDialogResult? rejected;
+    while (true) {
+      final result = await showModelDialog(
+        context,
+        providers: _providers,
+        initialProviderId:
+            rejected?.providerId ?? entry?.provider ?? _selectedProvider,
+        initialSlug: rejected?.slug ?? entry?.slug,
+        errorText: errorText,
+      );
+      if (result == null || !mounted) return;
+
+      final l10n = AppLocalizations.of(context)!;
+      if (result.slug.isEmpty) {
+        errorText = l10n.modelSlugRequired;
+        rejected = result;
+        continue;
+      }
+
+      try {
+        if (entry == null) {
+          await _modelCatalogService.addCustomModel(
+            provider: result.providerId,
+            slug: result.slug,
+          );
+        } else {
+          await _modelCatalogService.editCustomModel(
+            provider: entry.provider,
+            oldSlug: entry.slug,
+            newSlug: result.slug,
+          );
+        }
+        await _reloadAfterCatalogChange();
+        if (!mounted) return;
+        final providerName = _providerName(result.providerId);
+        showAppToast(
+          context,
+          entry == null ? l10n.modelAddedTo(providerName) : l10n.modelUpdated,
+        );
+        return;
+      } on ModelCatalogValidationException catch (e) {
+        errorText = _localizedCatalogError(l10n, e.reason, e.message);
+        rejected = result;
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteModel(LlmModelEntry model) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: l10n.deleteModelTitle,
+      message: Text(
+        model.slug,
+        style: AppTextStyles.monoOf(context),
+      ),
+      confirmLabel: l10n.deleteAction,
+      cancelLabel: l10n.cancel,
+    );
+    if (!confirmed || !mounted) return;
+
+    try {
+      await _modelCatalogService.deleteCustomModel(
+        provider: model.provider,
+        slug: model.slug,
+      );
+    } on ModelCatalogValidationException catch (e) {
+      if (!mounted) return;
+      showAppToast(context, _localizedCatalogError(l10n, e.reason, e.message));
+      return;
+    }
+    await _reloadAfterCatalogChange();
+    if (!mounted) return;
+    showAppToast(context, l10n.modelDeleted);
+  }
+
+  Future<void> _toggleModelVisibility(LlmModelEntry model) async {
+    final l10n = AppLocalizations.of(context)!;
+    if (!model.isHidden && _visibleModelCount <= 1) {
+      showAppToast(context, l10n.modelVisibilityRequired);
+      return;
+    }
+
+    try {
+      await _modelCatalogService.setModelHidden(
+        provider: model.provider,
+        slug: model.slug,
+        hidden: !model.isHidden,
+      );
+    } on ModelCatalogValidationException catch (e) {
+      if (!mounted) return;
+      showAppToast(context, _localizedCatalogError(l10n, e.reason, e.message));
+      return;
+    }
+    await _reloadAfterCatalogChange();
+    if (!mounted) return;
+    showAppToast(
+      context,
+      model.isHidden ? l10n.modelShownInPicker : l10n.modelHiddenFromPicker,
+    );
+  }
+
+  String _providerName(String providerId) {
+    return _providers
+            .where((entry) => entry.id == providerId)
+            .firstOrNull
+            ?.displayName ??
+        providerId;
+  }
+
+  String? _latencyLabel(AppLocalizations l10n, String slug) {
+    final stats = _speedStats[slug];
+    if (stats == null || stats.count == 0 || stats.avg == null) return null;
+    return l10n.latencyAvg(stats.avg!.toStringAsFixed(1));
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final initialModelValue = _availableModels.contains(_selectedModel)
-        ? _selectedModel
-        : (_availableModels.isNotEmpty ? _availableModels.first : null);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         AppSettingsSection(
           title: l10n.apiProvider,
-          subtitle: l10n.aiProviderDescription,
+          subtitle: l10n.aiProviderSectionDescription,
+          children: [_buildModelPickerRow(l10n)],
+        ),
+        if (_activeAuthFailure != null) _buildAuthFailureNote(l10n),
+        _buildProvidersGroup(l10n),
+        _buildModelsGroup(l10n),
+        const SizedBox(height: AppSpacing.md),
+        _SectionNote(
+          icon: Icons.info_outline_rounded,
+          text: l10n.customProviderCompatibilityNote,
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        _SectionNote(
+          icon: Icons.lock_outline_rounded,
+          text: l10n.apiKeySecurityNote,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModelPickerRow(AppLocalizations l10n) {
+    final options = <AppPopupEntry<String>>[];
+    for (final provider in _providers) {
+      final visible = (_modelsByProvider[provider.id] ?? const [])
+          .where((model) => !model.isHidden)
+          .toList();
+      if (visible.isEmpty) continue;
+
+      options.add(AppPopupHeader<String>(provider.displayName));
+      for (final model in visible) {
+        options.add(
+          AppPopupOption<String>(
+            value: '${provider.id}$_modelValueSeparator${model.slug}',
+            label: model.slug,
+            detail: _latencyLabel(l10n, model.slug),
+          ),
+        );
+      }
+    }
+
+    return AppSettingsRow(
+      leading: const AppSettingsRowIcon(icon: Icons.memory_rounded),
+      title: l10n.model,
+      subtitle: l10n.modelRowDescription,
+      trailing: ConstrainedBox(
+        constraints: const BoxConstraints(
+          minWidth: AppSizes.settingsWideControlWidth,
+          maxWidth: AppSizes.settingsWideControlWidth,
+        ),
+        child: AppPopupSelect<String>(
+          key: const Key('apiProvider-modelPicker'),
+          value: '$_selectedProvider$_modelValueSeparator$_selectedModel',
+          options: options,
+          monospaceLabels: true,
+          onChanged: (value) {
+            final parts = value.split(_modelValueSeparator);
+            unawaited(_selectProviderAndModel(parts.first, parts.last));
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAuthFailureNote(AppLocalizations l10n) {
+    // The same fact renders as a full banner on the Rewrite screen; a bare
+    // muted row here made one surface shout and the other whisper. The glyph
+    // was also a warning icon tinted with the error token.
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: AppInlineBanner(
+        icon: Icons.error_outline_rounded,
+        kind: AppInlineBannerKind.error,
+        message: l10n.authFailureNote(
+          _activeAuthFailure!.message,
+          _providerName(_selectedProvider),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProvidersGroup(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _GroupHeader(
+          title: l10n.providersGroupTitle,
+          actionLabel: l10n.addProvider,
+          actionKey: const Key('apiProvider-addProvider'),
+          onAction: () => unawaited(_openProviderDialog()),
+        ),
+        AppPanel(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxsPlus),
+          child: Column(
+            children: [
+              for (var i = 0; i < _providers.length; i++) ...[
+                if (i > 0) const AppSettingsDivider(),
+                _buildProviderRow(l10n, _providers[i]),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProviderRow(AppLocalizations l10n, LlmProviderEntry provider) {
+    final theme = Theme.of(context);
+    final statusColors = AppStatusColors.of(context);
+    final hasKey = _hasKeyByProvider[provider.id] ?? false;
+    final subtitleStyle = AppTextStyles.rowSubtitleOf(context);
+
+    return AppSettingsRow(
+      leading: const AppSettingsRowIcon(icon: Icons.cloud_outlined),
+      title: provider.displayName,
+      subtitleWidget: Text.rich(
+        TextSpan(
           children: [
-            _ProviderSettingsPanel(
-              providerSelector: _buildProviderSelector(),
-              apiKeyField: _buildApiKeyField(l10n),
-              apiKeySubtitle: _activeAuthFailure == null
-                  ? l10n.apiKeyStoredLocally
-                  : l10n.apiKeyNeedsAttention,
-              modelSelector: _buildModelSelector(initialModelValue),
-              modelSubtitle: _isCustomProvider && _availableModels.isEmpty
-                  ? l10n.customProviderNoModels
-                  : l10n.modelUsedForRewrite,
-            ),
+            if (provider.isBuiltIn)
+              TextSpan(text: l10n.builtInProvider)
+            else
+              TextSpan(
+                text: provider.baseUrl,
+                style: AppTextStyles.monoDetailOf(context),
+              ),
+            const TextSpan(text: ' · '),
+            if (hasKey)
+              TextSpan(text: l10n.apiKeySet)
+            else
+              TextSpan(
+                text: l10n.noApiKeyStatus,
+                style: subtitleStyle.copyWith(color: statusColors.warning),
+              ),
           ],
         ),
-        const SizedBox(height: AppSpacing.lg),
-        _buildCustomProviderManagementPanel(),
-        const SizedBox(height: AppSpacing.sm),
-        _ApiKeySecurityNote(text: l10n.customProviderCompatibilityNote),
-        if (_selectedProvider == AppDefaults.openRouterProvider ||
-            _isCustomProvider) ...[
-          const SizedBox(height: AppSpacing.lg),
-          _buildOpenRouterModelManagementPanel(l10n),
-        ],
-        const SizedBox(height: AppSpacing.lg),
-        _ApiKeySecurityNote(text: l10n.apiKeySecurityNote),
-      ],
-    );
-  }
-
-  Widget _buildProviderSelector() {
-    final colorScheme = Theme.of(context).colorScheme;
-    return DropdownButtonFormField<String>(
-      key: const Key('apiProvider-providerSelector'),
-      initialValue:
-          _providerOptions.any((entry) => entry.id == _selectedProvider)
-          ? _selectedProvider
-          : null,
-      isExpanded: true,
-      dropdownColor: _fieldFillColor(),
-      iconEnabledColor: colorScheme.onSurfaceVariant,
-      iconDisabledColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-      style: AppTextStyles.controlOf(context),
-      decoration: _fieldDecoration(
-        prefixIcon: Icon(
-          Icons.swap_horiz_rounded,
-          color: colorScheme.onSurfaceVariant,
-        ),
+        style: subtitleStyle,
+        overflow: TextOverflow.ellipsis,
       ),
-      icon: const Icon(Icons.keyboard_arrow_down_rounded),
-      items: _providerOptions.map((provider) {
-        return DropdownMenuItem(
-          value: provider.id,
-          child: Text(provider.displayName, overflow: TextOverflow.ellipsis),
-        );
-      }).toList(),
-      onChanged: (newValue) async {
-        if (newValue == null || newValue == _selectedProvider) return;
-        final providers = await _providerCatalogService.allProviders();
-        final visibleModelsByProvider = await _loadVisibleModelsByProvider(
-          providers,
-        );
-        final catalog = await _modelCatalogService.allModels(newValue);
-        final model =
-            _resolveModelForProvider(
-              newValue,
-              _selectedModel,
-              visibleModelsByProvider,
-            ) ??
-            '';
-        final authFailure = await _settingsService.getProviderAuthFailure(
-          newValue,
-        );
-        final providerEntry = providers
-            .where((entry) => entry.id == newValue)
-            .firstOrNull;
-        final customApiKey = providerEntry != null && !providerEntry.isBuiltIn
-            ? await _settingsService.getCustomProviderApiKey(newValue)
-            : '';
-        if (!mounted) return;
-        setState(() {
-          _selectedProvider = newValue;
-          _selectedModel = model;
-          _activeAuthFailure = authFailure;
-          _visibleModelsByProvider = visibleModelsByProvider;
-          _openRouterCatalog = catalog;
-          _providers = providers;
-          _isApiKeyVisible = false;
-          if (providerEntry != null && !providerEntry.isBuiltIn) {
-            _customProviderApiKeyController.text = customApiKey;
-            _lastSavedCustomProviderApiKey = customApiKey;
-          }
-        });
-        await _settingsService.setProvider(newValue);
-        await _shortcutService.setProvider(newValue);
-        await _settingsService.setModel(model);
-        await _shortcutService.setModel(model);
-        await _syncSelectedCustomProviderConfig();
-      },
-    );
-  }
-
-  Future<void> _showModelSlugDialog({LlmModelEntry? entry}) async {
-    final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController(text: entry?.slug ?? '');
-    String? errorText;
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AppDialogEscapeDismiss<bool>(
-              result: false,
-              child: AlertDialog(
-                title: Text(entry == null ? l10n.addModel : l10n.editModel),
-                content: TextField(
-                  key: const Key('apiProvider-modelSlugField'),
-                  controller: controller,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    labelText: l10n.modelSlug,
-                    errorText: errorText,
-                  ),
-                  onSubmitted: (_) {
-                    unawaited(
-                      _saveModelSlugDialog(
-                        context: context,
-                        controller: controller,
-                        entry: entry,
-                        setError: (message) {
-                          setDialogState(() => errorText = message);
-                        },
+      // Edit and delete sit in a fixed slot that is simply empty on built-in
+      // rows, and the key — the one action every row has — is always last.
+      // Otherwise it shifted ~64pt between rows and the single shared control
+      // was the one that never lined up down the panel.
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _OptionalRowActions(
+            children: provider.isBuiltIn
+                ? const []
+                : [
+                    IconButton(
+                      key: Key('apiProvider-editProvider-${provider.id}'),
+                      onPressed: () =>
+                          unawaited(_openProviderDialog(entry: provider)),
+                      tooltip: l10n.editProvider,
+                      visualDensity: VisualDensity.compact,
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        size: AppSizes.iconLg,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                    );
-                  },
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(l10n.cancel),
-                  ),
-                  FilledButton(
-                    key: const Key('apiProvider-saveModelSlug'),
-                    onPressed: () {
-                      unawaited(
-                        _saveModelSlugDialog(
-                          context: context,
-                          controller: controller,
-                          entry: entry,
-                          setError: (message) {
-                            setDialogState(() => errorText = message);
-                          },
-                        ),
-                      );
-                    },
-                    child: Text(l10n.save),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-    if (saved ?? false) {
-      await _reloadModelCatalogAndResolveSelection();
-    }
-  }
-
-  Future<void> _saveModelSlugDialog({
-    required BuildContext context,
-    required TextEditingController controller,
-    required LlmModelEntry? entry,
-    required ValueChanged<String> setError,
-  }) async {
-    final l10n = AppLocalizations.of(context)!;
-    try {
-      if (entry == null) {
-        await _modelCatalogService.addCustomModel(
-          provider: _selectedProvider,
-          slug: controller.text,
-        );
-      } else {
-        final newSlug = controller.text.trim();
-        await _modelCatalogService.editCustomModel(
-          provider: entry.provider,
-          oldSlug: entry.slug,
-          newSlug: newSlug,
-        );
-        if (_selectedModel == entry.slug) {
-          _selectedModel = newSlug;
-          await _settingsService.setModel(newSlug);
-          await _shortcutService.setModel(newSlug);
-        }
-      }
-      if (context.mounted) {
-        Navigator.of(context).pop(true);
-      }
-    } on ModelCatalogValidationException catch (error) {
-      setError(_localizedModelCatalogError(l10n, error.message));
-    }
-  }
-
-  String _localizedModelCatalogError(AppLocalizations l10n, String message) {
-    return switch (message) {
-      'Model slug is required.' => l10n.modelSlugRequired,
-      'A model with this slug already exists.' => l10n.modelSlugDuplicate,
-      'At least one model must remain visible.' => l10n.modelVisibilityRequired,
-      _ => message,
-    };
-  }
-
-  Future<void> _confirmDeleteCustomModel(LlmModelEntry entry) async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AppDialogEscapeDismiss<bool>(
-          result: false,
-          child: AlertDialog(
-            title: Text(l10n.deleteModelTitle),
-            content: Text(entry.slug),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.cancel),
-              ),
-              FilledButton(
-                key: const Key('apiProvider-confirmDeleteModel'),
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.deleteModel),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-    if (!(confirmed ?? false)) return;
-    try {
-      await _modelCatalogService.deleteCustomModel(
-        provider: entry.provider,
-        slug: entry.slug,
-      );
-      await _reloadModelCatalogAndResolveSelection();
-    } on ModelCatalogValidationException catch (error) {
-      _showModelCatalogError(
-        _localizedModelCatalogError(l10n, error.message),
-      );
-    }
-  }
-
-  Future<void> _showProviderDialog({LlmProviderEntry? entry}) async {
-    final l10n = AppLocalizations.of(context)!;
-    final nameController = TextEditingController(
-      text: entry?.displayName ?? '',
-    );
-    final urlController = TextEditingController(text: entry?.baseUrl ?? '');
-    String? nameErrorText;
-    String? urlErrorText;
-    final saved = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            return AppDialogEscapeDismiss<bool>(
-              result: false,
-              child: AlertDialog(
-                title: Text(
-                  entry == null ? l10n.addProvider : l10n.editProvider,
-                ),
-                content: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      key: const Key('apiProvider-providerNameField'),
-                      controller: nameController,
-                      autofocus: true,
-                      decoration: InputDecoration(
-                        labelText: l10n.providerName,
-                        errorText: nameErrorText,
-                      ),
-                      onChanged: (_) {
-                        if (nameErrorText == null) return;
-                        setDialogState(() => nameErrorText = null);
-                      },
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    TextField(
-                      key: const Key('apiProvider-providerBaseUrlField'),
-                      controller: urlController,
-                      decoration: InputDecoration(
-                        labelText: l10n.providerBaseUrl,
-                        errorText: urlErrorText,
+                    IconButton(
+                      key: Key('apiProvider-deleteProvider-${provider.id}'),
+                      onPressed: () =>
+                          unawaited(_confirmDeleteProvider(provider)),
+                      tooltip: l10n.deleteProvider,
+                      visualDensity: VisualDensity.compact,
+                      icon: Icon(
+                        Icons.delete_outline_rounded,
+                        size: AppSizes.iconLg,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
-                      onChanged: (_) {
-                        if (urlErrorText == null) return;
-                        setDialogState(() => urlErrorText = null);
-                      },
                     ),
                   ],
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text(l10n.cancel),
-                  ),
-                  FilledButton(
-                    key: const Key('apiProvider-saveProvider'),
-                    onPressed: () {
-                      unawaited(
-                        _saveProviderDialog(
-                          context: context,
-                          entry: entry,
-                          nameController: nameController,
-                          urlController: urlController,
-                          setErrors: (errors) {
-                            setDialogState(() {
-                              nameErrorText = errors.name;
-                              urlErrorText = errors.url;
-                            });
-                          },
-                        ),
-                      );
-                    },
-                    child: Text(l10n.save),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
+          ),
+          IconButton(
+            key: Key('apiProvider-keyButton-${provider.id}'),
+            onPressed: () => unawaited(_openProviderKeyDialog(provider)),
+            tooltip: hasKey ? l10n.changeApiKeyAction : l10n.setApiKeyAction,
+            visualDensity: VisualDensity.compact,
+            icon: Icon(
+              Icons.key_rounded,
+              size: AppSizes.iconLg,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
     );
-    if (saved ?? false) {
-      await _loadSettings();
-    }
   }
 
-  Future<void> _saveProviderDialog({
-    required BuildContext context,
-    required LlmProviderEntry? entry,
-    required TextEditingController nameController,
-    required TextEditingController urlController,
-    required ValueChanged<({String? name, String? url})> setErrors,
-  }) async {
-    final l10n = AppLocalizations.of(context)!;
-    setErrors((name: null, url: null));
-    try {
-      if (entry == null) {
-        await _providerCatalogService.addCustomProvider(
-          displayName: nameController.text,
-          baseUrl: urlController.text,
-        );
-      } else {
-        await _providerCatalogService.editCustomProvider(
-          id: entry.id,
-          displayName: nameController.text,
-          baseUrl: urlController.text,
-        );
-      }
-      if (context.mounted) {
-        Navigator.of(context).pop(true);
-      }
-    } on ProviderCatalogValidationException catch (error) {
-      final message = _localizedProviderCatalogError(l10n, error.message);
-      switch (error.message) {
-        case 'Provider name is required.':
-        case 'Provider name must contain letters or numbers.':
-          setErrors((name: message, url: null));
-          return;
-        case 'Base URL is required.':
-        case 'Base URL must be a valid HTTPS URL.':
-          setErrors((name: null, url: message));
-          return;
-        default:
-          _showModelCatalogError(message);
-      }
-    }
-  }
-
-  String _localizedProviderCatalogError(
-    AppLocalizations l10n,
-    String message,
-  ) {
-    return switch (message) {
-      'Provider name is required.' => l10n.providerNameRequired,
-      'Base URL is required.' => l10n.providerUrlRequired,
-      'Base URL must be a valid HTTPS URL.' => l10n.providerUrlInvalid,
-      'Provider name must contain letters or numbers.' =>
-        l10n.providerNameInvalid,
-      _ => message,
-    };
-  }
-
-  Future<void> _confirmDeleteProvider(LlmProviderEntry entry) async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AppDialogEscapeDismiss<bool>(
-          result: false,
-          child: AlertDialog(
-            title: Text(l10n.deleteProviderTitle),
-            content: Text(entry.displayName),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.cancel),
-              ),
-              FilledButton(
-                key: const Key('apiProvider-confirmDeleteProvider'),
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.deleteProvider),
-              ),
+  Widget _buildModelsGroup(AppLocalizations l10n) {
+    final models = _allModels;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _GroupHeader(
+          title: l10n.modelsGroupTitle,
+          actionLabel: l10n.addModel,
+          actionKey: const Key('apiProvider-addModel'),
+          onAction: _providers.isEmpty
+              ? null
+              : () => unawaited(_openModelDialog()),
+        ),
+        AppPanel(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxsPlus),
+          child: Column(
+            children: [
+              if (models.isEmpty)
+                AppSettingsRow(
+                  leading: const AppSettingsRowIcon(
+                    icon: Icons.memory_rounded,
+                  ),
+                  title: l10n.noModelsYet,
+                  subtitle: l10n.noModelsYetDescription,
+                )
+              else
+                for (var i = 0; i < models.length; i++) ...[
+                  if (i > 0) const AppSettingsDivider(),
+                  _buildModelRow(l10n, models[i]),
+                ],
             ],
           ),
-        );
-      },
-    );
-    if (!(confirmed ?? false)) return;
-    await _providerCatalogService.deleteCustomProvider(entry.id);
-    await _modelCatalogService.deleteProviderModels(entry.id);
-    await _settingsService.deleteCustomProviderApiKey(entry.id);
-    if (_selectedProvider == entry.id) {
-      final fallbackModel = await _modelCatalogService.resolveVisibleModel(
-        provider: AppDefaults.apiProvider,
-        selectedModel: AppDefaults.model,
-      );
-      _selectedProvider = AppDefaults.apiProvider;
-      _selectedModel = fallbackModel ?? AppDefaults.model;
-      await _settingsService.setProvider(_selectedProvider);
-      await _settingsService.setModel(_selectedModel);
-      await _shortcutService.setProvider(_selectedProvider);
-      await _shortcutService.setModel(_selectedModel);
-    }
-    await _loadSettings();
-  }
-
-  Widget _buildCustomProviderManagementPanel() {
-    final l10n = AppLocalizations.of(context)!;
-    final customProviders = _providerOptions
-        .where((entry) => !entry.isBuiltIn)
-        .toList(growable: false);
-    return AppSettingsSection(
-      key: const Key('apiProvider-providerManagementPanel'),
-      title: l10n.customProviders,
-      subtitle: l10n.customProvidersDescription,
-      children: [
-        AppSettingsRow(
-          leading: const AppSettingsIconTile(icon: Icons.hub_rounded),
-          title: l10n.addProvider,
-          minHeight: AppSizes.compactRowHeight,
-          trailing: OutlinedButton.icon(
-            key: const Key('apiProvider-addProvider'),
-            onPressed: () => unawaited(_showProviderDialog()),
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(l10n.addProvider),
-          ),
         ),
-        if (customProviders.isNotEmpty) const AppSettingsDivider(),
-        for (final (index, provider) in customProviders.indexed) ...[
-          _CustomProviderRow(
-            provider: provider,
-            editTooltip: l10n.editProvider,
-            deleteTooltip: l10n.deleteProvider,
-            onEdit: () => unawaited(_showProviderDialog(entry: provider)),
-            onDelete: () => unawaited(_confirmDeleteProvider(provider)),
-          ),
-          if (index < customProviders.length - 1) const AppSettingsDivider(),
-        ],
       ],
     );
   }
 
-  Widget _buildApiKeyField(AppLocalizations l10n) {
-    final label = _isApiKeyVisible ? l10n.hideApiKey : l10n.showApiKey;
+  Widget _buildModelRow(AppLocalizations l10n, LlmModelEntry model) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final authFailureMessage = _activeAuthFailure?.message.trim();
-    final authFailureText = _activeAuthFailure == null
-        ? null
-        : authFailureMessage == null || authFailureMessage.isEmpty
-        ? l10n.apiKeyAuthFailureFallback
-        : authFailureMessage;
-    final field = TextField(
-      key: const Key('apiProvider-apiKeyField'),
-      controller: _activeApiKeyController,
-      focusNode: _activeApiKeyFocusNode,
-      obscureText: !_isApiKeyVisible,
-      style: AppTextStyles.controlOf(context),
-      decoration: _fieldDecoration(
-        hintText: _apiKeyHint,
-        errorText: authFailureText,
-        suffixIcon: IconButton(
-          key: const Key('apiProvider-toggleApiKey'),
-          tooltip: label,
-          icon: Icon(
-            _isApiKeyVisible
-                ? Icons.visibility_off_rounded
-                : Icons.visibility_rounded,
-            color: colorScheme.onSurfaceVariant,
-          ),
-          onPressed: () {
-            setState(() => _isApiKeyVisible = !_isApiKeyVisible);
-          },
-        ),
-      ),
-      onSubmitted: (_) => unawaited(_saveActiveApiKeyIfChanged()),
-    );
-    if (authFailureText == null) return field;
-    return KeyedSubtree(
-      key: const Key('apiProvider-apiKeyAuthFailure'),
-      child: field,
-    );
-  }
+    final latency = _latencyLabel(l10n, model.slug);
+    final origin = model.isBuiltIn ? l10n.builtInModel : l10n.customModel;
+    final isLastVisible = !model.isHidden && _visibleModelCount <= 1;
 
-  Widget _buildModelSelector(String? initialModelValue) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return DropdownButtonFormField<String>(
-      key: const Key('apiProvider-modelSelector'),
-      initialValue: initialModelValue,
-      isExpanded: true,
-      dropdownColor: _fieldFillColor(),
-      iconEnabledColor: colorScheme.onSurfaceVariant,
-      iconDisabledColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
-      style: AppTextStyles.controlOf(context),
-      decoration: _fieldDecoration(),
-      icon: const Icon(Icons.keyboard_arrow_down_rounded),
-      items: _availableModels.map((model) {
-        return DropdownMenuItem<String>(
-          value: model,
-          child: Text(
-            _formatModelDisplay(model),
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.controlOf(context),
-          ),
-        );
-      }).toList(),
-      onChanged: _availableModels.isEmpty
-          ? null
-          : (newValue) async {
-              if (newValue == null) return;
-              setState(() {
-                _selectedModel = newValue;
-              });
-              await _settingsService.setModel(newValue);
-              await _shortcutService.setModel(newValue);
-            },
-    );
-  }
-
-  Widget _buildOpenRouterModelManagementPanel(AppLocalizations l10n) {
-    final title = _selectedProvider == AppDefaults.openRouterProvider
-        ? l10n.openRouterModels
-        : l10n.customProviderModels(
-            _selectedProviderEntry?.displayName ?? l10n.customModel,
-          );
-    final subtitle = _selectedProvider == AppDefaults.openRouterProvider
-        ? l10n.openRouterModelsDescription
-        : l10n.customProviderModelsDescription;
-    return AppSettingsSection(
-      key: const Key('apiProvider-modelManagementPanel'),
-      title: title,
-      subtitle: subtitle,
-      children: [
-        AppSettingsRow(
-          leading: const AppSettingsIconTile(
-            icon: Icons.view_list_rounded,
-          ),
-          title: l10n.addModel,
-          minHeight: AppSizes.compactRowHeight,
-          trailing: OutlinedButton.icon(
-            key: const Key('apiProvider-addOpenRouterModel'),
-            onPressed: () => unawaited(_showModelSlugDialog()),
-            icon: const Icon(Icons.add_rounded, size: 18),
-            label: Text(l10n.addModel),
-          ),
-        ),
-        if (_openRouterCatalog.isNotEmpty) const AppSettingsDivider(),
-        for (final (index, entry) in _openRouterCatalog.indexed) ...[
-          _OpenRouterModelRow(
-            entry: entry,
-            modelTypeLabel: entry.isBuiltIn
-                ? l10n.builtInModel
-                : l10n.customModel,
-            hideTooltip: l10n.hideModel,
-            showTooltip: l10n.showModel,
-            editTooltip: l10n.editModel,
-            deleteTooltip: l10n.deleteModel,
-            onToggleVisibility: () => unawaited(
-              _setOpenRouterModelHidden(entry, !entry.isHidden),
-            ),
-            onEdit: entry.isBuiltIn
-                ? null
-                : () => unawaited(_showModelSlugDialog(entry: entry)),
-            onDelete: entry.isBuiltIn
-                ? null
-                : () => unawaited(_confirmDeleteCustomModel(entry)),
-          ),
-          if (index < _openRouterCatalog.length - 1) const AppSettingsDivider(),
-        ],
-      ],
-    );
-  }
-
-  InputDecoration _fieldDecoration({
-    String? hintText,
-    String? errorText,
-    Widget? prefixIcon,
-    Widget? suffixIcon,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return InputDecoration(
-      hintText: hintText,
-      errorText: errorText,
-      errorMaxLines: 2,
-      prefixIcon: prefixIcon,
-      suffixIcon: suffixIcon,
-      filled: true,
-      fillColor: _fieldFillColor(),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: BorderSide(color: theme.dividerColor),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: BorderSide(color: theme.dividerColor),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: BorderSide(color: colorScheme.primary, width: 2),
-      ),
-    );
-  }
-
-  Color _fieldFillColor() {
-    final theme = Theme.of(context);
-    if (theme.brightness == Brightness.dark) {
-      return AppColors.darkControlSurface;
-    }
-    return theme.colorScheme.surfaceContainerHighest;
-  }
-}
-
-class _CustomProviderRow extends StatelessWidget {
-  const _CustomProviderRow({
-    required this.provider,
-    required this.editTooltip,
-    required this.deleteTooltip,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final LlmProviderEntry provider;
-  final String editTooltip;
-  final String deleteTooltip;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
     return AppSettingsRow(
-      leading: AppSettingsIconTile(
-        icon: Icons.hub_rounded,
-        backgroundColor: colorScheme.surfaceContainerHighest,
-        iconColor: colorScheme.onSurfaceVariant,
+      leading: const AppSettingsRowIcon(icon: Icons.memory_rounded),
+      titleWidget: Row(
+        children: [
+          Flexible(
+            child: Text(
+              model.slug,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.monoOf(
+                context,
+              ).copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
+          if (latency != null) ...[
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              latency,
+              style: AppTextStyles.monoDetailOf(context),
+            ),
+          ],
+        ],
       ),
-      title: provider.displayName,
-      subtitle: provider.baseUrl,
-      minHeight: AppSizes.compactRowHeight,
+      title: model.slug,
+      subtitle: '${_providerName(model.provider)} · $origin',
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          IconButton(
-            key: Key('apiProvider-editProvider-${provider.id}'),
-            tooltip: editTooltip,
-            icon: const Icon(Icons.edit_rounded),
-            onPressed: onEdit,
+          _OptionalRowActions(
+            children: model.isBuiltIn
+                ? const []
+                : [
+                    IconButton(
+                      key: Key(
+                        'apiProvider-editModel-'
+                        '${model.provider}-${model.slug}',
+                      ),
+                      onPressed: () =>
+                          unawaited(_openModelDialog(entry: model)),
+                      tooltip: l10n.editModel,
+                      visualDensity: VisualDensity.compact,
+                      icon: Icon(
+                        Icons.edit_outlined,
+                        size: AppSizes.iconLg,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                    IconButton(
+                      key: Key(
+                        'apiProvider-deleteModel-'
+                        '${model.provider}-${model.slug}',
+                      ),
+                      onPressed: () => unawaited(_confirmDeleteModel(model)),
+                      tooltip: l10n.deleteModel,
+                      visualDensity: VisualDensity.compact,
+                      icon: Icon(
+                        Icons.delete_outline_rounded,
+                        size: AppSizes.iconLg,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
           ),
           IconButton(
-            key: Key('apiProvider-deleteProvider-${provider.id}'),
-            tooltip: deleteTooltip,
-            icon: const Icon(Icons.delete_outline_rounded),
-            onPressed: onDelete,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OpenRouterModelRow extends StatelessWidget {
-  const _OpenRouterModelRow({
-    required this.entry,
-    required this.modelTypeLabel,
-    required this.hideTooltip,
-    required this.showTooltip,
-    required this.editTooltip,
-    required this.deleteTooltip,
-    required this.onToggleVisibility,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  final LlmModelEntry entry;
-  final String modelTypeLabel;
-  final String hideTooltip;
-  final String showTooltip;
-  final String editTooltip;
-  final String deleteTooltip;
-  final VoidCallback onToggleVisibility;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return AppSettingsRow(
-      leading: AppSettingsIconTile(
-        icon: entry.isHidden
-            ? Icons.visibility_off_rounded
-            : Icons.visibility_rounded,
-        backgroundColor: colorScheme.surfaceContainerHighest,
-        iconColor: colorScheme.onSurfaceVariant,
-      ),
-      title: entry.slug,
-      subtitle: modelTypeLabel,
-      minHeight: AppSizes.compactRowHeight,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            key: Key(
-              entry.isHidden
-                  ? 'apiProvider-showModel-${entry.provider}::${entry.slug}'
-                  : 'apiProvider-hideModel-${entry.provider}::${entry.slug}',
-            ),
-            tooltip: entry.isHidden ? showTooltip : hideTooltip,
+            key: Key('apiProvider-visibility-${model.provider}-${model.slug}'),
+            // Disabled rather than live-then-refusing: hiding the last visible
+            // model is impossible, and swallowing the click after the fact
+            // reads as the app ignoring the user. The tooltip carries the
+            // reason, so it is discoverable on hover instead of after a
+            // wasted press.
+            onPressed: isLastVisible
+                ? null
+                : () => unawaited(_toggleModelVisibility(model)),
+            tooltip: isLastVisible
+                ? l10n.modelVisibilityRequired
+                : (model.isHidden ? l10n.showModel : l10n.hideModel),
+            visualDensity: VisualDensity.compact,
             icon: Icon(
-              entry.isHidden
-                  ? Icons.visibility_rounded
-                  : Icons.visibility_off_rounded,
+              model.isHidden
+                  ? Icons.visibility_off_outlined
+                  : Icons.visibility_outlined,
+              size: AppSizes.iconLg,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            onPressed: onToggleVisibility,
           ),
-          if (onEdit != null)
-            IconButton(
-              key: Key(
-                'apiProvider-editModel-${entry.provider}::${entry.slug}',
-              ),
-              tooltip: editTooltip,
-              icon: const Icon(Icons.edit_rounded),
-              onPressed: onEdit,
-            ),
-          if (onDelete != null)
-            IconButton(
-              key: Key(
-                'apiProvider-deleteModel-${entry.provider}::${entry.slug}',
-              ),
-              tooltip: deleteTooltip,
-              icon: const Icon(Icons.delete_outline_rounded),
-              onPressed: onDelete,
-            ),
         ],
       ),
     );
   }
 }
 
-class _ProviderSettingsPanel extends StatelessWidget {
-  const _ProviderSettingsPanel({
-    required this.providerSelector,
-    required this.apiKeyField,
-    required this.apiKeySubtitle,
-    required this.modelSelector,
-    required this.modelSubtitle,
+class _GroupHeader extends StatelessWidget {
+  const _GroupHeader({
+    required this.title,
+    required this.actionLabel,
+    required this.actionKey,
+    required this.onAction,
   });
 
-  final Widget providerSelector;
-  final Widget apiKeyField;
-  final String apiKeySubtitle;
-  final Widget modelSelector;
-  final String modelSubtitle;
+  final String title;
+  final String actionLabel;
+  final Key actionKey;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final statusColors = AppStatusColors.of(context);
-    return Column(
-      children: [
-        _ProviderConfigRow(
-          icon: Icons.cloud_rounded,
-          iconBackground: colorScheme.primaryContainer,
-          title: l10n.provider,
-          subtitle: l10n.chooseProvider,
-          trailing: providerSelector,
-        ),
-        Divider(height: 1, color: Theme.of(context).dividerColor),
-        _ProviderConfigRow(
-          icon: Icons.vpn_key_rounded,
-          iconBackground: statusColors.successContainer,
-          title: l10n.apiKey,
-          subtitle: apiKeySubtitle,
-          trailing: apiKeyField,
-        ),
-        Divider(height: 1, color: Theme.of(context).dividerColor),
-        _ProviderConfigRow(
-          icon: Icons.view_in_ar_outlined,
-          iconBackground: colorScheme.secondaryContainer,
-          title: l10n.model,
-          subtitle: modelSubtitle,
-          trailing: modelSelector,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.xxs,
+        _groupTitleTopSpacing,
+        0,
+        AppSpacing.xs,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(title, style: AppTextStyles.groupTitleOf(context)),
+          ),
+          OutlinedButton.icon(
+            key: actionKey,
+            onPressed: onAction,
+            icon: const Icon(Icons.add_rounded, size: AppSizes.iconMd),
+            label: Text(actionLabel),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _ApiKeySecurityNote extends StatelessWidget {
-  const _ApiKeySecurityNote({required this.text});
+/// Fixed-width slot for the per-row actions only some rows have.
+///
+/// Keeps the action every row shares on one column: without it, edit and
+/// delete pushed the shared control sideways on custom rows only.
+class _OptionalRowActions extends StatelessWidget {
+  const _OptionalRowActions({required this.children});
 
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: _optionalActionsWidth,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: children,
+      ),
+    );
+  }
+}
+
+class _SectionNote extends StatelessWidget {
+  const _SectionNote({required this.icon, required this.text});
+
+  final IconData icon;
   final String text;
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).textTheme.bodySmall?.color;
+    final theme = Theme.of(context);
+    final tint = theme.colorScheme.onSurfaceVariant;
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          Icons.lock_rounded,
-          color: color,
-          size: 18,
-        ),
-        const SizedBox(width: AppSpacing.sm),
+        Icon(icon, size: AppSizes.iconMd, color: tint),
+        const SizedBox(width: AppSpacing.xs),
         Expanded(
           child: Text(
             text,
-            style: AppTextStyles.rowSubtitleOf(context),
+            style: AppTextStyles.rowSubtitleOf(context).copyWith(color: tint),
           ),
-        ),
-      ],
-    );
-  }
-}
-
-class _ProviderConfigRow extends StatelessWidget {
-  const _ProviderConfigRow({
-    required this.icon,
-    required this.iconBackground,
-    required this.title,
-    required this.subtitle,
-    required this.trailing,
-  });
-
-  final IconData icon;
-  final Color iconBackground;
-  final String title;
-  final String subtitle;
-  final Widget trailing;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 700) {
-          return Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    _ProviderIconTile(
-                      icon: icon,
-                      backgroundColor: iconBackground,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(child: _ProviderRowText(title, subtitle)),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                trailing,
-              ],
-            ),
-          );
-        }
-
-        final compact = constraints.maxWidth < 980;
-        final trailingWidth = constraints.maxWidth >= AppSizes.contentMaxWidth
-            ? AppSizes.controlMaxWidth
-            : constraints.maxWidth * (compact ? 0.43 : 0.46);
-        return ConstrainedBox(
-          constraints: BoxConstraints(
-            minHeight: compact
-                ? _mediumProviderRowHeight
-                : _wideProviderRowHeight,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            child: Row(
-              children: [
-                _ProviderIconTile(
-                  icon: icon,
-                  backgroundColor: iconBackground,
-                  compact: compact,
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(child: _ProviderRowText(title, subtitle)),
-                const SizedBox(width: AppSpacing.md),
-                SizedBox(width: trailingWidth, child: trailing),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _ProviderIconTile extends StatelessWidget {
-  const _ProviderIconTile({
-    required this.icon,
-    required this.backgroundColor,
-    this.compact = false,
-  });
-
-  final IconData icon;
-  final Color backgroundColor;
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: compact ? AppSizes.iconTileSmall : AppSizes.iconTile,
-      height: compact ? AppSizes.iconTileSmall : AppSizes.iconTile,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Icon(
-        icon,
-        color: Theme.of(context).colorScheme.onSurface,
-        size: compact ? 21 : 23,
-      ),
-    );
-  }
-}
-
-class _ProviderRowText extends StatelessWidget {
-  const _ProviderRowText(this.title, this.subtitle);
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.rowTitleOf(context),
-        ),
-        const SizedBox(height: AppSpacing.xxs),
-        Text(
-          subtitle,
-          overflow: TextOverflow.ellipsis,
-          style: AppTextStyles.rowSubtitleOf(context),
         ),
       ],
     );

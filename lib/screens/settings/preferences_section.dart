@@ -10,9 +10,10 @@ import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
-import 'package:make_it_sound_natural/theme/app_theme.dart';
-import 'package:make_it_sound_natural/widgets/app_dialog_escape_dismiss.dart';
+import 'package:make_it_sound_natural/widgets/app_dialog_shell.dart';
+import 'package:make_it_sound_natural/widgets/app_popup_select.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
+import 'package:make_it_sound_natural/widgets/app_toast.dart';
 
 /// Settings section for user preferences like default variant.
 class PreferencesSettingsSection extends StatefulWidget {
@@ -33,7 +34,6 @@ class _PreferencesSettingsSectionState
   ScreenshotContextMode _screenshotContextMode =
       AppDefaults.screenshotContextMode;
   ScreenshotContextMode? _pendingScreenshotContextMode;
-  var _screenshotContextFieldVersion = 0;
   var _isChangingScreenshotContextMode = false;
 
   final List<CorrectionVariantKind> _availableVariants =
@@ -125,22 +125,22 @@ class _PreferencesSettingsSectionState
     final l10n = AppLocalizations.of(context)!;
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AppDialogEscapeDismiss<bool>(
-        result: false,
-        child: AlertDialog(
-          title: Text(l10n.screenshotContextEnableTitle),
-          content: Text(l10n.screenshotContextEnableMessage),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(l10n.cancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(l10n.screenshotContextEnableConfirm),
-            ),
-          ],
+      builder: (context) => AppDialogShell(
+        title: l10n.screenshotContextEnableTitle,
+        content: Text(
+          l10n.screenshotContextEnableMessage,
+          style: AppTextStyles.rowSubtitleOf(context),
         ),
+        actions: [
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.screenshotContextEnableConfirm),
+          ),
+        ],
       ),
     );
     return result ?? false;
@@ -159,9 +159,7 @@ class _PreferencesSettingsSectionState
 
     if (status == ScreenRecordingPermissionStatus.unsupported) {
       if (!mounted) return ScreenRecordingPermissionStatus.unsupported;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.screenRecordingPermissionUnsupported)),
-      );
+      showAppToast(context, l10n.screenRecordingPermissionUnsupported);
       return ScreenRecordingPermissionStatus.unsupported;
     }
 
@@ -196,12 +194,7 @@ class _PreferencesSettingsSectionState
     final previousMode = _screenshotContextMode;
     if (requestedMode == previousMode) return;
 
-    // DropdownButtonFormField updates its own visible value before async
-    // permission checks finish, so remount it with the last saved value first.
-    setState(() {
-      _isChangingScreenshotContextMode = true;
-      _screenshotContextFieldVersion++;
-    });
+    setState(() => _isChangingScreenshotContextMode = true);
 
     if (requestedMode == ScreenshotContextMode.off) {
       await _settingsService.setScreenshotContextMode(
@@ -216,7 +209,6 @@ class _PreferencesSettingsSectionState
         _screenshotContextMode = ScreenshotContextMode.off;
         _pendingScreenshotContextMode = null;
         _isChangingScreenshotContextMode = false;
-        _screenshotContextFieldVersion++;
       });
       return;
     }
@@ -233,7 +225,6 @@ class _PreferencesSettingsSectionState
       setState(() {
         _screenshotContextMode = previousMode;
         _isChangingScreenshotContextMode = false;
-        _screenshotContextFieldVersion++;
       });
       return;
     }
@@ -273,64 +264,48 @@ class _PreferencesSettingsSectionState
       _screenshotContextMode = selectedMode;
       _pendingScreenshotContextMode = pendingMode;
       _isChangingScreenshotContextMode = false;
-      _screenshotContextFieldVersion++;
     });
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
     final screenshotContextSubtitle = _pendingScreenshotContextMode == null
         ? l10n.screenshotContextHelper
         : l10n.screenshotContextPendingPermission(
             _screenshotContextModeLabel(l10n, _pendingScreenshotContextMode!),
           );
     return AppSettingsSection(
-      title: l10n.preferences,
+      title: l10n.settingsNavWriting,
+      subtitle: l10n.writingSectionDescription,
       children: [
         AppSettingsRow(
-          leading: const AppSettingsIconTile(
-            icon: Icons.auto_awesome_rounded,
-          ),
+          leading: const AppSettingsRowIcon(icon: Icons.auto_awesome_rounded),
           title: l10n.defaultVariant,
           subtitle: l10n.defaultVariantHelper,
           trailing: SizedBox(
             width: AppSizes.settingsControlWidth,
-            child: DropdownButtonFormField<String>(
-              key: ValueKey(_defaultVariant),
-              decoration: _fieldDecoration(context),
-              dropdownColor: _fieldFillColor(context),
-              iconEnabledColor: colorScheme.onSurfaceVariant,
-              iconDisabledColor: colorScheme.onSurfaceVariant.withValues(
-                alpha: 0.38,
-              ),
-              initialValue: _defaultVariant,
-              isExpanded: true,
-              style: AppTextStyles.controlOf(context),
-              items: _availableVariants.map((variant) {
-                return DropdownMenuItem<String>(
-                  value: variant.wireValue,
-                  child: Text(
-                    '${variant.emojiIcon} '
-                    '${l10n.correctionVariantLabel(variant)}',
-                    style: AppTextStyles.controlOf(context),
+            child: AppPopupSelect<String>(
+              key: const Key('preferences-defaultVariant'),
+              value: _defaultVariant,
+              options: [
+                for (final variant in _availableVariants)
+                  AppPopupOption<String>(
+                    value: variant.wireValue,
+                    label: l10n.correctionVariantLabel(variant),
                   ),
-                );
-              }).toList(),
+              ],
               onChanged: (newValue) async {
-                if (newValue != null) {
-                  setState(() => _defaultVariant = newValue);
-                  await _settingsService.setDefaultVariant(newValue);
-                  await _shortcutService.setDefaultVariant(newValue);
-                }
+                setState(() => _defaultVariant = newValue);
+                await _settingsService.setDefaultVariant(newValue);
+                await _shortcutService.setDefaultVariant(newValue);
               },
             ),
           ),
         ),
         const AppSettingsDivider(),
         AppSettingsRow(
-          leading: const AppSettingsIconTile(
+          leading: const AppSettingsRowIcon(
             icon: Icons.screenshot_monitor_rounded,
           ),
           title: l10n.screenshotContext,
@@ -338,76 +313,31 @@ class _PreferencesSettingsSectionState
           trailing: SizedBox(
             key: const Key('screenshotContextModeField'),
             width: AppSizes.settingsControlWidth,
-            child: DropdownButtonFormField<ScreenshotContextMode>(
-              key: ValueKey(
-                'screenshotContextMode-'
-                '${_screenshotContextMode.value}-'
-                '$_screenshotContextFieldVersion',
-              ),
-              decoration: _fieldDecoration(context),
-              dropdownColor: _fieldFillColor(context),
-              iconEnabledColor: colorScheme.onSurfaceVariant,
-              iconDisabledColor: colorScheme.onSurfaceVariant.withValues(
-                alpha: 0.38,
-              ),
-              initialValue: _screenshotContextMode,
-              isExpanded: true,
-              style: AppTextStyles.controlOf(context),
-              items: ScreenshotContextMode.values.map((mode) {
-                final label = switch (mode) {
-                  ScreenshotContextMode.off => l10n.screenshotContextOff,
-                  ScreenshotContextMode.activeApplication =>
-                    l10n.screenshotContextApplication,
-                  ScreenshotContextMode.fullScreen =>
-                    l10n.screenshotContextFullScreen,
-                };
-                return DropdownMenuItem<ScreenshotContextMode>(
-                  value: mode,
-                  child: Text(label, style: AppTextStyles.controlOf(context)),
-                );
-              }).toList(),
-              onChanged: _isChangingScreenshotContextMode
-                  ? null
-                  : _handleScreenshotContextModeChanged,
+            child: AppPopupSelect<ScreenshotContextMode>(
+              value: _screenshotContextMode,
+              options: [
+                for (final mode in ScreenshotContextMode.values)
+                  AppPopupOption<ScreenshotContextMode>(
+                    value: mode,
+                    label: switch (mode) {
+                      ScreenshotContextMode.off => l10n.screenshotContextOff,
+                      ScreenshotContextMode.activeApplication =>
+                        l10n.screenshotContextApplication,
+                      ScreenshotContextMode.fullScreen =>
+                        l10n.screenshotContextFullScreen,
+                    },
+                  ),
+              ],
+              // Disabled while the permission flow runs, so the menu cannot
+              // be opened into a choice that would be discarded.
+              enabled: !_isChangingScreenshotContextMode,
+              onChanged: (mode) =>
+                  unawaited(_handleScreenshotContextModeChanged(mode)),
             ),
           ),
         ),
       ],
     );
-  }
-
-  InputDecoration _fieldDecoration(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return InputDecoration(
-      isDense: true,
-      filled: true,
-      fillColor: _fieldFillColor(context),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.sm,
-      ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: BorderSide(color: theme.dividerColor),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: BorderSide(color: theme.dividerColor),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        borderSide: BorderSide(color: colorScheme.primary, width: 2),
-      ),
-    );
-  }
-
-  Color _fieldFillColor(BuildContext context) {
-    final theme = Theme.of(context);
-    if (theme.brightness == Brightness.dark) {
-      return AppColors.darkControlSurface;
-    }
-    return theme.colorScheme.surfaceContainerHighest;
   }
 
   String _screenshotContextModeLabel(

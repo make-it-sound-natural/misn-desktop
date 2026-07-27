@@ -5,9 +5,11 @@ import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/models/target_profile.dart';
 import 'package:make_it_sound_natural/services/target_profile_service.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
-import 'package:make_it_sound_natural/theme/app_theme.dart';
-import 'package:make_it_sound_natural/widgets/app_dialog_escape_dismiss.dart';
+import 'package:make_it_sound_natural/widgets/app_dialog_shell.dart';
+import 'package:make_it_sound_natural/widgets/app_toast.dart';
 import 'package:make_it_sound_natural/widgets/target_profile_editor_dialog.dart';
+
+const double _pickerListMaxHeight = 300;
 
 /// Dialog for searching, selecting, creating, and removing target profiles.
 class TargetProfilePickerDialog extends StatefulWidget {
@@ -79,9 +81,7 @@ class _TargetProfilePickerDialogState extends State<TargetProfilePickerDialog> {
       Navigator.of(context).pop(profile);
     } on TargetProfileValidationException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      );
+      showAppToast(context, error.message);
     }
   }
 
@@ -110,9 +110,7 @@ class _TargetProfilePickerDialogState extends State<TargetProfilePickerDialog> {
       await _loadProfiles();
     } on TargetProfileValidationException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      );
+      showAppToast(context, error.message);
     }
   }
 
@@ -122,12 +120,9 @@ class _TargetProfilePickerDialogState extends State<TargetProfilePickerDialog> {
 
     if (result.fallbackApplied && result.fallbackProfile != null) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)!.targetProfileResetToDefault,
-          ),
-        ),
+      showAppToast(
+        context,
+        AppLocalizations.of(context)!.targetProfileResetToDefault,
       );
       Navigator.of(context).pop(result.fallbackProfile);
       return;
@@ -140,132 +135,187 @@ class _TargetProfilePickerDialogState extends State<TargetProfilePickerDialog> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return AppDialogEscapeDismiss<TargetProfile>(
-      enabled: !widget.forceSelection,
-      child: PopScope(
-        canPop: !widget.forceSelection,
-        child: Dialog(
-          insetPadding: const EdgeInsets.all(AppSpacing.xl),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.xl),
+    return PopScope(
+      canPop: !widget.forceSelection,
+      child: AppDialogShell(
+        title: l10n.chooseTargetLanguage,
+        // forceSelection is the app-start gate: picking a row is the only
+        // way out, so the caller also passes barrierDismissible: false.
+        dismissible: !widget.forceSelection,
+        subtitle: widget.forceSelection
+            ? l10n.chooseTargetForcedSubtitle
+            : null,
+        compact: false,
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(maxHeight: _pickerListMaxHeight),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                key: const Key('targetProfileSearchField'),
+                controller: _searchController,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search_rounded),
+                  hintText: l10n.searchTargetProfiles,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Flexible(
+                child: _profiles.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.xl,
+                        ),
+                        child: Center(
+                          child: Text(
+                            l10n.noMatchingTargetProfiles,
+                            style: AppTextStyles.rowSubtitleOf(context),
+                          ),
+                        ),
+                      )
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: _profiles.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: AppSpacing.xs),
+                        itemBuilder: (context, index) {
+                          final profile = _profiles[index];
+                          return _ProfilePickRow(
+                            name: profile.name,
+                            description: profile.description,
+                            selected: profile.id == _selectedProfile?.id,
+                            onTap: () => Navigator.of(context).pop(profile),
+                            onEdit: profile.isCustom
+                                ? () => unawaited(_editCustomProfile(profile))
+                                : null,
+                            onDelete: profile.isCustom
+                                ? () => unawaited(_removeCustomProfile(profile))
+                                : null,
+                            editTooltip: l10n.editPrompt,
+                            deleteTooltip: l10n.deleteTargetProfile,
+                          );
+                        },
+                      ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              OutlinedButton.icon(
+                key: const Key('addTargetProfileButton'),
+                onPressed: _addCustomProfile,
+                icon: const Icon(Icons.add_rounded, size: AppSizes.iconMd),
+                label: Text(l10n.addCustom),
+              ),
+            ],
           ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: AppSizes.dialogMaxWidth,
-              maxHeight: 620,
+        ),
+        actions: [
+          if (!widget.forceSelection)
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.cancel),
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
+        ],
+      ),
+    );
+  }
+}
+
+/// One selectable profile row.
+class _ProfilePickRow extends StatelessWidget {
+  const _ProfilePickRow({
+    required this.name,
+    required this.description,
+    required this.selected,
+    required this.onTap,
+    required this.onEdit,
+    required this.onDelete,
+    required this.editTooltip,
+    required this.deleteTooltip,
+  });
+
+  final String name;
+  final String? description;
+  final bool selected;
+  final VoidCallback onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final String editTooltip;
+  final String deleteTooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? colorScheme.primaryContainer : null,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(
+            color: selected ? colorScheme.primary : theme.dividerColor,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.language_rounded,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          l10n.chooseTargetLanguage,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.pageTitleOf(context),
-                        ),
-                      ),
-                      if (!widget.forceSelection)
-                        IconButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          icon: const Icon(Icons.close_rounded),
-                          tooltip: l10n.cancel,
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  TextField(
-                    key: const Key('targetProfileSearchField'),
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search_rounded),
-                      hintText: l10n.searchTargetProfiles,
+                  Text(
+                    name,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Expanded(
-                    child: _profiles.isEmpty
-                        ? Center(
-                            child: Text(
-                              l10n.noMatchingTargetProfiles,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                          )
-                        : ListView.separated(
-                            itemCount: _profiles.length,
-                            separatorBuilder: (context, index) =>
-                                const Divider(height: 1),
-                            itemBuilder: (context, index) {
-                              final profile = _profiles[index];
-                              final selected =
-                                  profile.id == _selectedProfile?.id;
-                              return ListTile(
-                                title: Text(profile.name),
-                                subtitle: profile.description == null
-                                    ? null
-                                    : Text(profile.description!),
-                                leading: Icon(
-                                  selected
-                                      ? Icons.check_circle_rounded
-                                      : Icons.circle_outlined,
-                                  color: selected
-                                      ? AppColors.primary
-                                      : AppColors.textSecondary,
-                                ),
-                                trailing: profile.isCustom
-                                    ? Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          IconButton(
-                                            onPressed: () => unawaited(
-                                              _editCustomProfile(profile),
-                                            ),
-                                            icon: const Icon(
-                                              Icons.edit_outlined,
-                                            ),
-                                            tooltip: l10n.editPrompt,
-                                          ),
-                                          IconButton(
-                                            onPressed: () => unawaited(
-                                              _removeCustomProfile(profile),
-                                            ),
-                                            icon: const Icon(
-                                              Icons.delete_outline_rounded,
-                                            ),
-                                            tooltip: l10n.deleteTargetProfile,
-                                          ),
-                                        ],
-                                      )
-                                    : null,
-                                onTap: () => Navigator.of(context).pop(profile),
-                              );
-                            },
-                          ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: OutlinedButton.icon(
-                      key: const Key('addTargetProfileButton'),
-                      onPressed: _addCustomProfile,
-                      icon: const Icon(Icons.add_rounded),
-                      label: Text(l10n.addCustom),
+                  if (description != null)
+                    Text(
+                      description!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.rowSubtitleOf(context),
                     ),
-                  ),
                 ],
               ),
             ),
-          ),
+            if (onEdit != null)
+              IconButton(
+                onPressed: onEdit,
+                tooltip: editTooltip,
+                visualDensity: VisualDensity.compact,
+                icon: Icon(
+                  Icons.edit_outlined,
+                  size: AppSizes.iconLg,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            if (onDelete != null)
+              IconButton(
+                onPressed: onDelete,
+                tooltip: deleteTooltip,
+                visualDensity: VisualDensity.compact,
+                icon: Icon(
+                  Icons.delete_outline_rounded,
+                  size: AppSizes.iconLg,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            if (selected)
+              Padding(
+                padding: const EdgeInsets.only(left: AppSpacing.xxs),
+                child: Icon(
+                  Icons.check_rounded,
+                  size: AppSizes.iconMd,
+                  color: colorScheme.primary,
+                ),
+              ),
+          ],
         ),
       ),
     );

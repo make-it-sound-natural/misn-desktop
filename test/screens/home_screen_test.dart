@@ -8,12 +8,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/screens/home_screen.dart';
+import 'package:make_it_sound_natural/widgets/app_inline_banner.dart';
+import 'package:make_it_sound_natural/widgets/variant_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   Future<void> pumpHomeScreen(WidgetTester tester) async {
+    // The native minimum window is 980x600; the 800x600 test default is a
+    // size the app never actually renders at.
+    await tester.binding.setSurfaceSize(const Size(1000, 700));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
     await tester.pumpWidget(
       const MaterialApp(
         localizationsDelegates: [
@@ -472,7 +478,10 @@ Formal output.
 
         expect(find.text('Balanced output.'), findsOneWidget);
         expect(find.text('Formal output.'), findsOneWidget);
-        expect(find.text('Applied'), findsOneWidget);
+        // The preferred tone is pre-selected, not applied: nothing has been
+        // pasted back or copied yet, so it must not claim otherwise.
+        expect(find.text('Default'), findsOneWidget);
+        expect(find.text('Applied'), findsNothing);
       },
     );
 
@@ -598,12 +607,12 @@ Formal output.
       await tester.tap(find.text('Process'));
       await tester.pump();
 
-      expect(find.text('Processing...'), findsOneWidget);
+      expect(find.text('Processing…'), findsOneWidget);
 
       completer.complete(markedVariants);
       await tester.pumpAndSettle();
 
-      expect(find.text('Processing...'), findsNothing);
+      expect(find.text('Processing…'), findsNothing);
       expect(find.text('Formal output.'), findsOneWidget);
     });
 
@@ -768,5 +777,544 @@ Formal output.
         );
       },
     );
+  });
+
+  group('HomeScreen cancel and apply feedback', () {
+    const markedVariants = '''
+---BALANCED---
+Balanced output.
+---FORMAL---
+Formal output.
+''';
+
+    setUp(() {
+      SharedPreferences.setMockInitialValues({
+        'target_profile_selection_confirmed': true,
+        'target_profile_selected_id': 'americanEnglish',
+        'api_provider': 'openrouter',
+        'openrouter_api_key': 'openrouter-key',
+        'default_variant': 'Balanced',
+      });
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            null,
+          );
+    });
+
+    testWidgets('Escape during processing cancels the run and toasts', (
+      tester,
+    ) async {
+      final completer = Completer<String>();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async {
+              switch (call.method) {
+                case MethodChannelMethods.checkAccessibilityPermissions:
+                  return false;
+                case MethodChannelMethods.getDefaultPrompt:
+                  return 'Default prompt text';
+                case MethodChannelMethods.generateVariants:
+                  return completer.future;
+                default:
+                  return null;
+              }
+            },
+          );
+
+      await pumpHomeScreen(tester);
+      await tester.enterText(find.byType(TextField).first, 'Original text');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('rewrite-process')));
+      await tester.pump();
+
+      expect(find.text('Processing…'), findsOneWidget);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+
+      expect(find.text('Processing cancelled'), findsOneWidget);
+      expect(find.text('Processing…'), findsNothing);
+
+      // A late reply from the cancelled run must be discarded. The payload is
+      // deliberately distinct: ShortcutService is a singleton and may hold
+      // variants cached by an earlier test in this file.
+      completer.complete('''
+---BALANCED---
+Late output from a cancelled run.
+''');
+      await tester.pumpAndSettle();
+      expect(find.text('Late output from a cancelled run.'), findsNothing);
+    });
+
+    testWidgets('applying a variant shows one merged toast', (tester) async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async {
+              switch (call.method) {
+                case MethodChannelMethods.checkAccessibilityPermissions:
+                  return false;
+                case MethodChannelMethods.getDefaultPrompt:
+                  return 'Default prompt text';
+                case MethodChannelMethods.replaceTextInOriginalApp:
+                  // The native side reports it replaced the text in place.
+                  return true;
+                default:
+                  return null;
+              }
+            },
+          );
+
+      await pumpHomeScreen(tester);
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+            MethodChannelMethods.channelName,
+            const StandardMethodCodec().encodeMethodCall(
+              const MethodCall(
+                MethodChannelMethods.onVariantsGenerated,
+                markedVariants,
+              ),
+            ),
+            (_) {},
+          );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Apply').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply').first);
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('applied — copied to clipboard'),
+        findsOneWidget,
+      );
+      expect(find.text('Copied to clipboard'), findsNothing);
+      expect(find.text('Applied'), findsOneWidget);
+    });
+
+    testWidgets('claims only a copy when the replacement was declined', (
+      tester,
+    ) async {
+      // The native side declines when our earlier paste is no longer at the
+      // caret; saying "applied" then would be a lie.
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async => switch (call.method) {
+              MethodChannelMethods.checkAccessibilityPermissions => false,
+              MethodChannelMethods.getDefaultPrompt => 'Default prompt text',
+              MethodChannelMethods.replaceTextInOriginalApp => false,
+              _ => null,
+            },
+          );
+
+      await pumpHomeScreen(tester);
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+            MethodChannelMethods.channelName,
+            const StandardMethodCodec().encodeMethodCall(
+              const MethodCall(
+                MethodChannelMethods.onVariantsGenerated,
+                markedVariants,
+              ),
+            ),
+            (_) {},
+          );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Apply').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Copied to clipboard'), findsOneWidget);
+      expect(
+        find.textContaining('applied — copied to clipboard'),
+        findsNothing,
+      );
+      // The card must not claim an apply the native side declined — the toast
+      // and the badge have to tell the same story.
+      expect(find.text('Applied'), findsNothing);
+    });
+
+    testWidgets('the pre-selected variant can still be applied', (
+      tester,
+    ) async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async => switch (call.method) {
+              MethodChannelMethods.checkAccessibilityPermissions => false,
+              MethodChannelMethods.getDefaultPrompt => 'Default prompt text',
+              // The card only claims "Applied" for a replacement the native
+              // side confirms, so this run has to report one.
+              MethodChannelMethods.replaceTextInOriginalApp => true,
+              _ => null,
+            },
+          );
+
+      await pumpHomeScreen(tester);
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+            MethodChannelMethods.channelName,
+            const StandardMethodCodec().encodeMethodCall(
+              const MethodCall(
+                MethodChannelMethods.onVariantsGenerated,
+                markedVariants,
+              ),
+            ),
+            (_) {},
+          );
+      await tester.pumpAndSettle();
+
+      // Regression guard: the default tone used to be the one card the user
+      // could not click, which made the likeliest choice unreachable.
+      final defaultCard = find.ancestor(
+        of: find.text('Default'),
+        matching: find.byType(VariantCard),
+      );
+      expect(defaultCard, findsOneWidget);
+      await tester.ensureVisible(defaultCard);
+      await tester.pumpAndSettle();
+      await tester.tap(defaultCard);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Applied'), findsOneWidget);
+      expect(find.text('Default'), findsNothing);
+    });
+  });
+
+  group('HomeScreen auth failure', () {
+    /// Seeds the record the native side writes when a provider rejects a key.
+    void seedAuthFailure({required bool inThePast}) {
+      final at = inThePast
+          ? DateTime.now().toUtc().subtract(const Duration(hours: 1))
+          : DateTime.now().toUtc().add(const Duration(seconds: 5));
+      SharedPreferences.setMockInitialValues({
+        'target_profile_selection_confirmed': true,
+        'target_profile_selected_id': 'americanEnglish',
+        'api_provider': 'openrouter',
+        'provider_auth_failure_openrouter': jsonEncode({
+          'provider': 'openrouter',
+          'message': 'Invalid API key',
+          'occurredAt': at.toIso8601String(),
+        }),
+      });
+    }
+
+    void mockFailingRun() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async {
+              switch (call.method) {
+                case MethodChannelMethods.checkAccessibilityPermissions:
+                  return false;
+                case MethodChannelMethods.getDefaultPrompt:
+                  return 'Default prompt text';
+                case MethodChannelMethods.generateVariants:
+                  // What the native bridge now reports for a rejected key.
+                  throw PlatformException(
+                    code: 'API_ERROR',
+                    message: 'Invalid API key',
+                  );
+                default:
+                  return null;
+              }
+            },
+          );
+    }
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            null,
+          );
+    });
+
+    testWidgets('a rejected key shows the banner instead of variants', (
+      tester,
+    ) async {
+      seedAuthFailure(inThePast: false);
+      mockFailingRun();
+
+      await pumpHomeScreen(tester);
+      await tester.enterText(find.byType(TextField).first, 'Original text');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('rewrite-process')));
+      await tester.pumpAndSettle();
+
+      // Scoped by title: the "no API key yet" banner is also on screen, and
+      // both are AppInlineBanner now.
+      final authBanner = find.ancestor(
+        of: find.text('The provider rejected your API key.'),
+        matching: find.byType(AppInlineBanner),
+      );
+      expect(authBanner, findsOneWidget);
+      expect(
+        find.text('Check the key for OpenRouter, then try again.'),
+        findsOneWidget,
+      );
+      expect(find.text('Check API key'), findsOneWidget);
+      expect(find.text('Retry'), findsOneWidget);
+      expect(find.byType(VariantCard), findsNothing);
+    });
+
+    testWidgets('Retry reruns the same text', (tester) async {
+      seedAuthFailure(inThePast: false);
+      var generateCalls = 0;
+      final seen = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async {
+              switch (call.method) {
+                case MethodChannelMethods.checkAccessibilityPermissions:
+                  return false;
+                case MethodChannelMethods.getDefaultPrompt:
+                  return 'Default prompt text';
+                case MethodChannelMethods.generateVariants:
+                  generateCalls += 1;
+                  seen.add(call.arguments as String);
+                  throw PlatformException(
+                    code: 'API_ERROR',
+                    message: 'Invalid API key',
+                  );
+                default:
+                  return null;
+              }
+            },
+          );
+
+      await pumpHomeScreen(tester);
+      await tester.enterText(find.byType(TextField).first, 'Original text');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('rewrite-process')));
+      await tester.pumpAndSettle();
+      expect(generateCalls, 1);
+
+      await tester.tap(find.text('Retry'));
+      await tester.pumpAndSettle();
+
+      expect(generateCalls, 2);
+      expect(seen, ['Original text', 'Original text']);
+    });
+
+    testWidgets('a failure older than the run falls back to the toast', (
+      tester,
+    ) async {
+      // The banner must only speak for the run the user just started.
+      seedAuthFailure(inThePast: true);
+      mockFailingRun();
+
+      await pumpHomeScreen(tester);
+      await tester.enterText(find.byType(TextField).first, 'Original text');
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('rewrite-process')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('The provider rejected your API key.'), findsNothing);
+      expect(find.textContaining('Invalid API key'), findsWidgets);
+    });
+  });
+
+  group('HomeScreen variant card interactions', () {
+    const markedVariants =
+        '[BALANCED]Balanced text[/BALANCED][FORMAL]Formal text[/FORMAL]';
+
+    Future<void> showVariants(WidgetTester tester) async {
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+            MethodChannelMethods.channelName,
+            const StandardMethodCodec().encodeMethodCall(
+              const MethodCall(
+                MethodChannelMethods.onVariantsGenerated,
+                markedVariants,
+              ),
+            ),
+            (_) {},
+          );
+      await tester.pumpAndSettle();
+    }
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            null,
+          );
+    });
+
+    testWidgets('copy does not apply the variant', (tester) async {
+      // The whole card is an InkWell(onTap: onApply) and the SelectableText
+      // carries onApply too, so the copy button has to absorb its own tap.
+      // If it stops doing that, copying would paste into another app.
+      SharedPreferences.setMockInitialValues({
+        'target_profile_selection_confirmed': true,
+        'target_profile_selected_id': 'americanEnglish',
+      });
+      final calls = <String>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async {
+              calls.add(call.method);
+              return switch (call.method) {
+                MethodChannelMethods.checkAccessibilityPermissions => false,
+                MethodChannelMethods.getDefaultPrompt => 'Default prompt text',
+                _ => null,
+              };
+            },
+          );
+
+      await pumpHomeScreen(tester);
+      await showVariants(tester);
+
+      final copyButton = find
+          .descendant(
+            of: find.byType(VariantCard),
+            matching: find.byIcon(Icons.copy_rounded),
+          )
+          .first;
+      await tester.ensureVisible(copyButton);
+      await tester.pumpAndSettle();
+      await tester.tap(copyButton);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Copied to clipboard'), findsOneWidget);
+      expect(find.text('Applied'), findsNothing);
+      expect(
+        calls,
+        isNot(contains(MethodChannelMethods.replaceTextInOriginalApp)),
+      );
+    });
+
+    testWidgets('a second Process press cancels the run', (tester) async {
+      // The button stays enabled while running so it can act as Cancel.
+      SharedPreferences.setMockInitialValues({
+        'target_profile_selection_confirmed': true,
+        'target_profile_selected_id': 'americanEnglish',
+      });
+      final completer = Completer<String>();
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async => switch (call.method) {
+              MethodChannelMethods.checkAccessibilityPermissions => false,
+              MethodChannelMethods.getDefaultPrompt => 'Default prompt text',
+              MethodChannelMethods.generateVariants => completer.future,
+              _ => null,
+            },
+          );
+
+      await pumpHomeScreen(tester);
+      await tester.enterText(find.byType(TextField).first, 'Original text');
+      await tester.pump();
+      // The source panel scrolls its own content now, so make sure the button
+      // is actually on screen before pressing it.
+      await tester.ensureVisible(find.byKey(const Key('rewrite-process')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('rewrite-process')));
+      await tester.pump();
+
+      expect(find.text('Processing…'), findsOneWidget);
+      final button = tester.widget<FilledButton>(
+        find.byKey(const Key('rewrite-process')),
+      );
+      expect(button.onPressed, isNotNull, reason: 'must stay pressable');
+
+      // pump, not pumpAndSettle: the running spinner never settles.
+      await tester.ensureVisible(find.byKey(const Key('rewrite-process')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('rewrite-process')));
+      await tester.pump();
+
+      expect(find.text('Processing cancelled'), findsOneWidget);
+      expect(find.text('Processing…'), findsNothing);
+
+      completer.complete('[CASUAL]Late reply must be discarded[/CASUAL]');
+      await tester.pumpAndSettle();
+      expect(find.text('Late reply must be discarded'), findsNothing);
+    });
+  });
+
+  group('HomeScreen auto-apply tone', () {
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            null,
+          );
+    });
+
+    testWidgets('the picker writes what a run reads back', (tester) async {
+      // The dropdown writes CorrectionVariantKind.wireValue while a run
+      // resolves the preferred index by parsing the label. If the two ever
+      // disagree, the chosen tone silently stops being pre-selected.
+      SharedPreferences.setMockInitialValues({
+        'target_profile_selection_confirmed': true,
+        'target_profile_selected_id': 'americanEnglish',
+      });
+      final calls = <MethodCall>[];
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async {
+              calls.add(call);
+              return switch (call.method) {
+                MethodChannelMethods.checkAccessibilityPermissions => false,
+                MethodChannelMethods.getDefaultPrompt => 'Default prompt text',
+                _ => null,
+              };
+            },
+          );
+
+      await pumpHomeScreen(tester);
+
+      await tester.ensureVisible(find.byKey(const Key('rewrite-auto-apply')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('rewrite-auto-apply')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Formal').last);
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('default_variant'), 'Formal');
+      expect(
+        calls.where((c) => c.method == MethodChannelMethods.setDefaultVariant),
+        isNotEmpty,
+      );
+
+      // Close the loop: a run must now pre-select that tone.
+      await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .handlePlatformMessage(
+            MethodChannelMethods.channelName,
+            const StandardMethodCodec().encodeMethodCall(
+              const MethodCall(
+                MethodChannelMethods.onVariantsGenerated,
+                '[BALANCED]Balanced text[/BALANCED][FORMAL]Formal text[/FORMAL]',
+              ),
+            ),
+            (_) {},
+          );
+      await tester.pumpAndSettle();
+
+      final defaultCard = find.ancestor(
+        of: find.text('Default'),
+        matching: find.byType(VariantCard),
+      );
+      expect(defaultCard, findsOneWidget);
+      expect(
+        tester.widget<VariantCard>(defaultCard).name,
+        'Formal',
+        reason: 'the tone the picker wrote must be the one a run pre-selects',
+      );
+    });
   });
 }

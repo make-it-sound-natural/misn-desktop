@@ -1,15 +1,19 @@
 import 'dart:convert';
 
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
+import 'package:make_it_sound_natural/models/catalog_validation_reason.dart';
 import 'package:make_it_sound_natural/models/llm_provider_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Error thrown when provider catalog edits are invalid.
 class ProviderCatalogValidationException implements Exception {
   /// Creates a validation exception.
-  const ProviderCatalogValidationException(this.message);
+  const ProviderCatalogValidationException(this.reason, this.message);
 
-  /// User-readable validation reason.
+  /// Machine-readable cause, which the UI maps onto localized copy.
+  final CatalogValidationReason reason;
+
+  /// English sentence, for logs and as a last-resort fallback.
   final String message;
 
   @override
@@ -77,7 +81,11 @@ class ProviderCatalogService {
     required String displayName,
     required String baseUrl,
   }) async {
-    final name = _normalizeRequired(displayName, 'Provider name is required.');
+    final name = _normalizeRequired(
+      displayName,
+      CatalogValidationReason.providerNameRequired,
+      'Provider name is required.',
+    );
     final url = _normalizeUrl(baseUrl);
     final id = await _generateProviderId(name);
     final provider = LlmProviderEntry(id: id, displayName: name, baseUrl: url);
@@ -95,12 +103,14 @@ class ProviderCatalogService {
     final index = custom.indexWhere((entry) => entry.id == id);
     if (index == -1) {
       throw const ProviderCatalogValidationException(
+        CatalogValidationReason.notMutable,
         'Only custom providers can be edited.',
       );
     }
     final updated = custom[index].copyWith(
       displayName: _normalizeRequired(
         displayName,
+        CatalogValidationReason.providerNameRequired,
         'Provider name is required.',
       ),
       baseUrl: _normalizeUrl(baseUrl),
@@ -117,6 +127,7 @@ class ProviderCatalogService {
     final next = custom.where((entry) => entry.id != id).toList();
     if (next.length == custom.length) {
       throw const ProviderCatalogValidationException(
+        CatalogValidationReason.notMutable,
         'Only custom providers can be deleted.',
       );
     }
@@ -166,22 +177,31 @@ class ProviderCatalogService {
         .replaceAll(RegExp(r'^-+|-+$'), '');
     if (slug.isEmpty) {
       throw const ProviderCatalogValidationException(
+        CatalogValidationReason.providerNameInvalid,
         'Provider name must contain letters or numbers.',
       );
     }
     return slug;
   }
 
-  String _normalizeRequired(String value, String message) {
+  String _normalizeRequired(
+    String value,
+    CatalogValidationReason reason,
+    String message,
+  ) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) {
-      throw ProviderCatalogValidationException(message);
+      throw ProviderCatalogValidationException(reason, message);
     }
     return trimmed;
   }
 
   String _normalizeUrl(String value) {
-    final trimmed = _normalizeRequired(value, 'Base URL is required.');
+    final trimmed = _normalizeRequired(
+      value,
+      CatalogValidationReason.providerUrlRequired,
+      'Base URL is required.',
+    );
     final uri = Uri.tryParse(trimmed);
     if (uri == null ||
         uri.scheme != 'https' ||
@@ -189,6 +209,7 @@ class ProviderCatalogService {
         uri.hasQuery ||
         uri.hasFragment) {
       throw const ProviderCatalogValidationException(
+        CatalogValidationReason.providerUrlInvalid,
         'Base URL must be a valid HTTPS URL.',
       );
     }

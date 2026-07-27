@@ -35,6 +35,7 @@ class VariantHandler {
         pasteAndRestore(
             correctedText,
             previousClipboard: previousClipboard,
+            bundleId: context.lastActiveAppBundleId,
             simulateKeyPress: context.simulateKeyPress,
             log: log
         )
@@ -84,6 +85,7 @@ class VariantHandler {
     private func pasteAndRestore(
         _ text: String,
         previousClipboard: String?,
+        bundleId: String?,
         simulateKeyPress: @escaping (CGKeyCode, CGEventFlags) -> Void,
         log: @escaping (String) -> Void
     ) {
@@ -106,7 +108,12 @@ class VariantHandler {
             }
         }
 
-        delegate?.variantHandler(self, didCompleteSuccessfully: true)
+        delegate?.variantHandler(
+            self,
+            didCompleteSuccessfully: true,
+            pastedText: text,
+            inApp: bundleId
+        )
     }
 }
 
@@ -114,5 +121,15 @@ protocol VariantHandlerDelegate: AnyObject {
     func variantHandler(_ handler: VariantHandler, didGenerateVariants content: String)
     func variantHandler(_ handler: VariantHandler, didFailWithError error: String)
     func variantHandler(_ handler: VariantHandler, didChangeWindow: Bool)
-    func variantHandler(_ handler: VariantHandler, didCompleteSuccessfully: Bool)
+    /// - Parameters:
+    ///   - pastedText: the exact text written into [bundleId]. Carried here so
+    ///     the delegate records what *this* run pasted, rather than pairing a
+    ///     stored variant with whatever app happens to be frontmost by the
+    ///     time the callback lands.
+    func variantHandler(
+        _ handler: VariantHandler,
+        didCompleteSuccessfully: Bool,
+        pastedText: String?,
+        inApp bundleId: String?
+    )
 }

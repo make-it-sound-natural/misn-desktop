@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
-import 'package:make_it_sound_natural/theme/app_theme.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
+import 'package:make_it_sound_natural/widgets/app_toast.dart';
 import 'package:make_it_sound_natural/widgets/prompt_edit_dialog.dart';
 
 /// Settings section for advanced options like custom prompts.
@@ -62,14 +62,10 @@ class _AdvancedSettingsSectionState extends State<AdvancedSettingsSection> {
 
       // Show appropriate feedback
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              result.isEmpty ? l10n.promptReset : l10n.promptSaved,
-            ),
-            backgroundColor: AppStatusColors.of(context).success,
-            duration: const Duration(seconds: 2),
-          ),
+        showAppToast(
+          context,
+          result.isEmpty ? l10n.promptReset : l10n.promptSaved,
+          kind: AppToastKind.success,
         );
       }
     }
@@ -82,11 +78,10 @@ class _AdvancedSettingsSectionState extends State<AdvancedSettingsSection> {
 
     return AppSettingsSection(
       title: l10n.advancedSettings,
+      subtitle: l10n.advancedSectionDescription,
       children: [
         AppSettingsRow(
-          leading: const AppSettingsIconTile(
-            icon: Icons.auto_fix_high_rounded,
-          ),
+          leading: const AppSettingsRowIcon(icon: Icons.auto_fix_high_rounded),
           title: l10n.customPrompt,
           subtitle: hasCustomPrompt
               ? l10n.customPromptActive

@@ -17,6 +17,21 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
     private let screenshotDebugSaver: ScreenshotDebugSaver
 
     private var lastActiveAppBundleId: String?
+
+    /// The exact text this app last pasted into another application, together
+    /// with where it went.
+    ///
+    /// Cleared whenever a run starts or its paste is skipped, so a stale value
+    /// can never authorise an undo in an app we did not just write to. Text
+    /// and destination live in one value because they are only ever true as a
+    /// pair — recording them separately let a second run pair the text of one
+    /// run with the destination of the next.
+    ///
+    /// Owned by the main queue. The completion arrives on a `URLSession`
+    /// thread and `TextReplacer` reports from a background queue, so an
+    /// unsynchronised pair would be a data race, and the undo decision would
+    /// be read while another thread was halfway through rewriting it.
+    private var lastPaste: (text: String, bundleId: String)?
     private var lastActiveWindowID: CGWindowID?
     private var lastCursorPosition: NSPoint?
 
@@ -99,8 +114,15 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 screenshotAttachment: nil
             )
 
-            self.llmService.processText(text, config: config) { fullContent, _ in
-                completion(fullContent, nil)
+            // Surface the failure instead of reporting an empty success:
+            // the Dart side turns an error into the auth-failure banner, and
+            // a nil body with no error reads as "the model returned nothing".
+            self.llmService.processText(text, config: config) { fullContent, error in
+                if fullContent == nil {
+                    completion(nil, error ?? "Request failed. Try again.")
+                } else {
+                    completion(fullContent, nil)
+                }
             }
         }
 
@@ -141,8 +163,40 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
         shortcutManager?.registerShortcut()
     }
 
-    func replaceTextInOriginalApp(_ text: String) {
-        textReplacer?.replaceTextInOriginalApp(text, lastActiveAppBundleId: lastActiveAppBundleId)
+    func replaceTextInOriginalApp(
+        _ text: String,
+        completion: @escaping (Bool) -> Void
+    ) {
+        // The paste record is owned by the main queue, so read it there.
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self, let textReplacer = self.textReplacer else {
+                completion(false)
+                return
+            }
+
+            let target = self.lastActiveAppBundleId
+            let pasted = self.lastPaste.flatMap {
+                $0.bundleId == target ? $0.text : nil
+            }
+
+            textReplacer.replaceTextInOriginalApp(
+                text,
+                lastActiveAppBundleId: target,
+                previouslyPastedText: pasted
+            ) { [weak self] replaced in
+                // TextReplacer reports on the main queue.
+                if let self = self {
+                    // Track what now sits in the field so a second swap can
+                    // undo it; a skipped swap leaves nothing to undo.
+                    if replaced, let target = target {
+                        self.lastPaste = (text: text, bundleId: target)
+                    } else {
+                        self.lastPaste = nil
+                    }
+                }
+                completion(replaced)
+            }
+        }
     }
 
     private func captureAndProcessText() {
@@ -165,6 +219,11 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
 
     private func trackActiveApplication() {
         DispatchQueue.main.async {
+            // A new run invalidates any earlier paste we might have undone.
+            // Cleared on the same queue that owns the record, and in the same
+            // block that records the new front app, so the two can never be
+            // observed out of step.
+            self.lastPaste = nil
             if let frontApp = NSWorkspace.shared.frontmostApplication {
                 self.lastActiveAppBundleId = frontApp.bundleIdentifier
                 self.lastActiveWindowID = AccessibilityHelper.focusedWindowID(
@@ -436,11 +495,24 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
         }
     }
 
-    func variantHandler(_ handler: VariantHandler, didCompleteSuccessfully: Bool) {
-        if didCompleteSuccessfully {
-            log("Processing completed successfully")
-            methodChannelHandler?.sendSuccess()
+    func variantHandler(
+        _ handler: VariantHandler,
+        didCompleteSuccessfully: Bool,
+        pastedText: String?,
+        inApp bundleId: String?
+    ) {
+        guard didCompleteSuccessfully else { return }
+        log("Processing completed successfully")
+
+        // Only this branch actually pastes, so only it may authorise a later
+        // undo. Arrives on the URLSession callback thread; hop to the queue
+        // that owns the record.
+        if let pastedText = pastedText, let bundleId = bundleId {
+            DispatchQueue.main.async {
+                self.lastPaste = (text: pastedText, bundleId: bundleId)
+            }
         }
+        methodChannelHandler?.sendSuccess()
         // `updateState(.success)` already schedules auto-dismiss; do not hide here.
     }
 }

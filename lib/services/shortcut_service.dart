@@ -233,15 +233,21 @@ class ShortcutService {
     }
   }
 
-  /// Replaces text in the original application at the cursor position.
-  Future<void> replaceTextInOriginalApp(String text) async {
+  /// Replaces this app's own previous paste in the app the text came from.
+  ///
+  /// Returns false when the native side declined — no tracked app, nothing
+  /// pasted by us, or the field has changed since — in which case the text is
+  /// only on the clipboard.
+  Future<bool> replaceTextInOriginalApp(String text) async {
     try {
-      await _channel.invokeMethod(
+      final replaced = await _channel.invokeMethod<bool>(
         MethodChannelMethods.replaceTextInOriginalApp,
         text,
       );
+      return replaced ?? false;
     } on PlatformException catch (e) {
       _log.warning('Failed to replace text: ${e.message}');
+      return false;
     }
   }
 
@@ -254,8 +260,18 @@ class ShortcutService {
         MethodChannelMethods.generateVariants,
         text,
       );
+      if (result == null) {
+        // No body and no error is still a failed run. Treating it as success
+        // would clear the auth-failure record the native side just wrote and
+        // hand the caller an empty string to parse into blank variants.
+        throw PlatformException(
+          code: 'EMPTY_RESPONSE',
+          message: 'Request failed. Try again.',
+        );
+      }
+      // Only a real response proves the stored credentials still work.
       await SettingsService().clearAuthFailureForActiveProvider();
-      return result ?? '';
+      return result;
     } on PlatformException catch (e) {
       _log.warning('Failed to generate variants: ${e.message}');
       final message = e.message ?? 'Request failed. Try again.';

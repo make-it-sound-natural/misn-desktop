@@ -5,9 +5,12 @@ import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
-import 'package:make_it_sound_natural/theme/app_theme.dart';
+import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/utils/shortcut_formatter.dart';
+import 'package:make_it_sound_natural/widgets/app_dialog_shell.dart';
+import 'package:make_it_sound_natural/widgets/app_kbd_chip.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
+import 'package:make_it_sound_natural/widgets/app_toast.dart';
 import 'package:make_it_sound_natural/widgets/shortcut_change_dialog.dart';
 
 /// Settings section for global keyboard shortcuts configuration.
@@ -73,15 +76,28 @@ class _ShortcutsSettingsSectionState extends State<ShortcutsSettingsSection> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(AppLocalizations.of(context)!.shortcutSaved),
-            backgroundColor: AppStatusColors.of(context).success,
-            duration: const Duration(seconds: 2),
-          ),
+        showAppToast(
+          context,
+          AppLocalizations.of(context)!.shortcutSaved,
+          kind: AppToastKind.success,
         );
       }
     }
+  }
+
+  Future<void> _confirmResetShortcuts() async {
+    final l10n = AppLocalizations.of(context)!;
+    // Discarding all three global shortcuts is as irreversible as deleting a
+    // model, which already confirms; this used to fire on a single click.
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      title: l10n.shortcutsReset,
+      message: Text(l10n.shortcutsResetConfirm),
+      confirmLabel: l10n.shortcutsReset,
+      cancelLabel: l10n.cancel,
+    );
+    if (!confirmed || !mounted) return;
+    await _resetShortcutsToDefaults();
   }
 
   Future<void> _resetShortcutsToDefaults() async {
@@ -103,12 +119,10 @@ class _ShortcutsSettingsSectionState extends State<ShortcutsSettingsSection> {
     });
 
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(AppLocalizations.of(context)!.shortcutsResetDone),
-        backgroundColor: AppStatusColors.of(context).success,
-        duration: const Duration(seconds: 2),
-      ),
+    showAppToast(
+      context,
+      AppLocalizations.of(context)!.shortcutsResetDone,
+      kind: AppToastKind.success,
     );
   }
 
@@ -118,14 +132,13 @@ class _ShortcutsSettingsSectionState extends State<ShortcutsSettingsSection> {
     required String type,
   }) {
     return AppSettingsRow(
-      leading: const AppSettingsIconTile(
-        icon: Icons.keyboard_rounded,
-      ),
+      leading: const AppSettingsRowIcon(icon: Icons.keyboard_rounded),
       title: title,
-      subtitle: ShortcutFormatter.formatShortcutDisplay(shortcut),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
+          AppKbdChip(ShortcutFormatter.formatShortcutDisplay(shortcut)),
+          const SizedBox(width: AppSpacing.xs),
           TextButton(
             onPressed: () => _changeShortcut(type, shortcut),
             child: Text(AppLocalizations.of(context)!.changeShortcut),
@@ -137,8 +150,9 @@ class _ShortcutsSettingsSectionState extends State<ShortcutsSettingsSection> {
 
   @override
   Widget build(BuildContext context) {
-    return AppSettingsSection(
-      title: AppLocalizations.of(context)!.globalShortcut,
+    final section = AppSettingsSection(
+      title: AppLocalizations.of(context)!.settingsNavShortcuts,
+      subtitle: AppLocalizations.of(context)!.shortcutsSectionDescription,
       children: [
         _buildShortcutRow(
           title: AppLocalizations.of(context)!.shortcutCorrection,
@@ -159,14 +173,42 @@ class _ShortcutsSettingsSectionState extends State<ShortcutsSettingsSection> {
         ),
         const AppSettingsDivider(),
         AppSettingsRow(
-          leading: const AppSettingsIconTile(
-            icon: Icons.restart_alt_rounded,
-          ),
+          leading: const AppSettingsRowIcon(icon: Icons.restart_alt_rounded),
           title: AppLocalizations.of(context)!.shortcutsReset,
-          trailing: FilledButton(
+          trailing: OutlinedButton(
             key: const Key('shortcuts-reset'),
-            onPressed: _resetShortcutsToDefaults,
+            onPressed: () => unawaited(_confirmResetShortcuts()),
             child: Text(AppLocalizations.of(context)!.shortcutsReset),
+          ),
+        ),
+      ],
+    );
+
+    // The Rewrite screen advertises four keys; this is where a user comes to
+    // learn the keyboard model, so it must not hide the two fixed ones.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        section,
+        const SizedBox(height: AppSpacing.sm),
+        Padding(
+          padding: const EdgeInsets.only(left: AppSpacing.xxs),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: AppSizes.iconMd,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  AppLocalizations.of(context)!.shortcutsFixedNote,
+                  style: AppTextStyles.rowSubtitleOf(context),
+                ),
+              ),
+            ],
           ),
         ),
       ],

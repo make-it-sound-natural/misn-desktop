@@ -2,19 +2,16 @@
   "@@locale": "fr",
   "contextCleared": "Contexte effacé",
   "windowChanged": "Fenêtre changée — sélectionnez la variante manuellement",
-  "appliedLabel": "{label} appliqué",
   "copiedToClipboard": "Copié dans le presse-papiers",
   "contextOptional": "Contexte (optionnel)",
   "clear": "Effacer",
-  "addContextHint": "Ajoutez du contexte pour améliorer les résultats...",
-  "contextHelper": "⌘⇧J remplacer, ⌘⇧L ajouter",
-  "selectTextInstruction": "Sélectionnez du texte dans une app et appuyez sur",
+  "addContextHint": "Public, ton ou contexte que le modèle ne peut pas deviner…",
   "applied": "Appliqué",
   "balanced": "Équilibré",
   "casual": "Décontracté",
   "formal": "Formel",
   "concise": "Concis",
-  "autoApplyVariant": "Application auto : {label}",
+  "autoApplyVariant": "Application auto",
   "apply": "Appliquer",
   "copy": "Copier",
   "apiKeyRequired": "Clé API requise pour les corrections",
@@ -25,7 +22,6 @@
   "apiKeySaved": "Clé API enregistrée",
   "openAccessibilitySettings": "Veuillez ouvrir Réglages Système > Confidentialité et sécurité > Accessibilité",
   "settings": "Réglages",
-  "globalShortcut": "Raccourci global",
   "shortcutCorrection": "Correction",
   "shortcutReplaceContext": "Remplacer le contexte",
   "shortcutAppendContext": "Ajouter au contexte",
@@ -83,10 +79,9 @@
   "promptSaved": "Prompt enregistré",
   "promptReset": "Prompt réinitialisé",
   "textToImprove": "Texte à améliorer",
-  "textToImproveHint": "Tapez ou collez le texte à améliorer...",
+  "textToImproveHint": "Collez ou saisissez le texte à rendre naturel…",
   "process": "Traiter",
-  "processing": "Traitement...",
-  "noTextToProcess": "Veuillez entrer du texte à traiter",
+  "processing": "Traitement…",
   "updates": "Mises à jour",
   "checkForUpdates": "Rechercher des mises à jour",
   "checkingUpdates": "Vérification...",
@@ -110,7 +105,6 @@
   "automaticChecksSubtitle": "Rechercher des mises à jour au démarrage",
   "apiProvider": "Fournisseur API",
   "provider": "Fournisseur",
-  "chooseProvider": "Choisissez votre fournisseur AI",
   "openaiApiKey": "Clé API OpenAI",
   "openaiApiKeyHelper": "Votre clé API OpenAI",
   "openrouterApiKey": "Clé API OpenRouter",
@@ -118,18 +112,9 @@
   "settingsNavShortcuts": "Raccourcis",
   "settingsNavWriting": "Écriture",
   "settingsNavLanguage": "Langue",
-  "aiProviderDescription": "Choisissez votre fournisseur AI, gérez la clé API et sélectionnez le modèle utilisé pour générer les réécritures.",
-  "apiKeyStoredLocally": "Stockée localement dans Keychain",
-  "apiKeyNeedsAttention": "La clé API nécessite une vérification",
-  "apiKeyAuthFailureFallback": "Le fournisseur a rejeté cette clé API.",
-  "modelUsedForRewrite": "Utilisé pour générer les réécritures",
   "apiKeySecurityNote": "Votre clé API est stockée en sécurité dans macOS Keychain et n'est jamais envoyée par l'app.",
-  "showApiKey": "Afficher la clé API",
-  "hideApiKey": "Masquer la clé API",
   "openRouterModels": "Modèles OpenRouter",
-  "openRouterModelsDescription": "Choisissez les modèles OpenRouter affichés dans le sélecteur de modèles.",
   "customProviders": "Fournisseurs personnalisés",
-  "customProvidersDescription": "Ajoutez des fournisseurs compatibles OpenAI avec des clés API et des IDs de modèles locaux.",
   "customProviderCompatibilityNote": "Les fournisseurs personnalisés doivent prendre en charge Chat Completions sans streaming. Le contexte de capture d'écran nécessite aussi la prise en charge des images.",
   "addProvider": "Ajouter un fournisseur",
   "editProvider": "Modifier le fournisseur",
@@ -142,9 +127,6 @@
   "providerBaseUrl": "URL de base",
   "providerUrlRequired": "L'URL de base est requise.",
   "providerUrlInvalid": "L'URL de base doit être une URL HTTPS valide.",
-  "customProviderModels": "Modèles {provider}",
-  "customProviderModelsDescription": "Choisissez les modèles du fournisseur personnalisé affichés dans le sélecteur de modèles.",
-  "customProviderNoModels": "Ajoutez un modèle avant d'utiliser ce fournisseur.",
   "addModel": "Ajouter un modèle",
   "editModel": "Modifier le modèle",
   "deleteModel": "Supprimer le modèle",
@@ -187,111 +169,203 @@
   "screenRecordingPermissionDebugHint": "Debug : si macOS demande Terminal ou iTerm, autorisez ce lanceur ou ouvrez directement la .app générée.",
   "openSystemSettings": "Ouvrir Réglages Système",
   "revealInFinder": "Afficher dans le Finder",
-
   "appearance": "Apparence",
-  "@appearance": { "description": "Settings sidebar appearance item and page title" },
-
+  "@appearance": {
+    "description": "Settings sidebar appearance item and page title"
+  },
   "appearanceTheme": "Thème",
-  "@appearanceTheme": { "description": "Appearance setting title for theme mode" },
-
+  "@appearanceTheme": {
+    "description": "Appearance setting title for theme mode"
+  },
   "appearanceThemeHelper": "Utiliser clair, sombre ou suivre macOS",
-  "@appearanceThemeHelper": { "description": "Helper text for theme mode setting" },
-
+  "@appearanceThemeHelper": {
+    "description": "Helper text for theme mode setting"
+  },
   "appearanceThemeSystem": "Système",
-  "@appearanceThemeSystem": { "description": "Theme option that follows macOS" },
-
+  "@appearanceThemeSystem": {
+    "description": "Theme option that follows macOS"
+  },
   "appearanceThemeLight": "Clair",
-  "@appearanceThemeLight": { "description": "Light theme option" },
-
+  "@appearanceThemeLight": {
+    "description": "Light theme option"
+  },
   "appearanceThemeDark": "Sombre",
-  "@appearanceThemeDark": { "description": "Dark theme option" },
-
+  "@appearanceThemeDark": {
+    "description": "Dark theme option"
+  },
   "appearanceMenuFontSize": "Taille de police du menu",
-  "@appearanceMenuFontSize": { "description": "Appearance setting title for menu and UI font size" },
-
+  "@appearanceMenuFontSize": {
+    "description": "Appearance setting title for menu and UI font size"
+  },
   "appearanceMenuFontSizeHelper": "Utilisée pour navigation, libellés, boutons et dialogues",
-  "@appearanceMenuFontSizeHelper": { "description": "Helper text for menu and UI font size" },
-
+  "@appearanceMenuFontSizeHelper": {
+    "description": "Helper text for menu and UI font size"
+  },
   "appearanceEditorFontSize": "Taille de police de l’éditeur",
-  "@appearanceEditorFontSize": { "description": "Appearance setting title for editor and context text font size" },
-
+  "@appearanceEditorFontSize": {
+    "description": "Appearance setting title for editor and context text font size"
+  },
   "appearanceEditorFontSizeHelper": "Utilisée pour le texte de réécriture et le contexte",
-  "@appearanceEditorFontSizeHelper": { "description": "Helper text for editor and context text font size" },
-
+  "@appearanceEditorFontSizeHelper": {
+    "description": "Helper text for editor and context text font size"
+  },
   "appearanceReset": "Réinitialiser l’apparence",
-  "@appearanceReset": { "description": "Button to reset appearance settings" },
-
+  "@appearanceReset": {
+    "description": "Button to reset appearance settings"
+  },
   "appearanceResetDone": "Apparence réinitialisée",
-  "@appearanceResetDone": { "description": "SnackBar message after appearance settings reset" },
-
+  "@appearanceResetDone": {
+    "description": "SnackBar message after appearance settings reset"
+  },
   "pixelsUnit": "px",
-  "@pixelsUnit": { "description": "Pixel unit label for font size inputs" }
-,
-
+  "@pixelsUnit": {
+    "description": "Pixel unit label for font size inputs"
+  },
   "onboardingTitle": "Configurer Make It Sound Natural",
-  "@onboardingTitle": { "description": "First-run onboarding screen title" },
-
+  "@onboardingTitle": {
+    "description": "First-run onboarding screen title"
+  },
   "onboardingProviderTitle": "Fournisseur IA",
-  "@onboardingProviderTitle": { "description": "Onboarding provider setup step title" },
-
+  "@onboardingProviderTitle": {
+    "description": "Onboarding provider setup step title"
+  },
   "onboardingProviderDescription": "OpenRouter et google/gemini-3-flash-preview sont sélectionnés par défaut. Ajoutez votre clé API dans les réglages quand vous êtes prêt.",
-  "@onboardingProviderDescription": { "description": "Onboarding provider setup step description" },
-
+  "@onboardingProviderDescription": {
+    "description": "Onboarding provider setup step description"
+  },
   "onboardingAccessibilityTitle": "Accessibilité",
-  "@onboardingAccessibilityTitle": { "description": "Onboarding Accessibility permission step title" },
-
+  "@onboardingAccessibilityTitle": {
+    "description": "Onboarding Accessibility permission step title"
+  },
   "onboardingAccessibilityDescription": "L’accessibilité permet au raccourci de lire et de remplacer le texte sélectionné dans d’autres apps.",
-  "@onboardingAccessibilityDescription": { "description": "Onboarding Accessibility permission explanation" },
-
+  "@onboardingAccessibilityDescription": {
+    "description": "Onboarding Accessibility permission explanation"
+  },
   "onboardingAccessibilityGrant": "Ouvrir les réglages d’accessibilité",
-  "@onboardingAccessibilityGrant": { "description": "Button to request or open Accessibility permission settings" },
-
+  "@onboardingAccessibilityGrant": {
+    "description": "Button to request or open Accessibility permission settings"
+  },
   "onboardingAccessibilityGranted": "L’accessibilité est autorisée.",
-  "@onboardingAccessibilityGranted": { "description": "Onboarding status when Accessibility is granted" },
-
+  "@onboardingAccessibilityGranted": {
+    "description": "Onboarding status when Accessibility is granted"
+  },
   "onboardingAccessibilityMissing": "L’accessibilité est requise pour les réécritures par raccourci.",
-  "@onboardingAccessibilityMissing": { "description": "Onboarding status when Accessibility is missing" },
-
+  "@onboardingAccessibilityMissing": {
+    "description": "Onboarding status when Accessibility is missing"
+  },
   "onboardingAccessibilitySkipped": "Les réécritures par raccourci ne fonctionneront pas tant que l’accessibilité n’est pas autorisée.",
-  "@onboardingAccessibilitySkipped": { "description": "Onboarding warning when Accessibility was skipped" },
-
+  "@onboardingAccessibilitySkipped": {
+    "description": "Onboarding warning when Accessibility was skipped"
+  },
   "onboardingAccessibilityStillMissing": "L’accessibilité manque toujours. Activez Make It Sound Natural dans Réglages Système, puis vérifiez à nouveau.",
-  "@onboardingAccessibilityStillMissing": { "description": "Onboarding warning after Accessibility request still finds no permission" },
-
+  "@onboardingAccessibilityStillMissing": {
+    "description": "Onboarding warning after Accessibility request still finds no permission"
+  },
   "onboardingAccessibilitySkip": "Ignorer pour l’instant",
-  "@onboardingAccessibilitySkip": { "description": "Button to skip Accessibility permission during onboarding" },
-
+  "@onboardingAccessibilitySkip": {
+    "description": "Button to skip Accessibility permission during onboarding"
+  },
   "onboardingAccessibilityCheckAgain": "Vérifier à nouveau",
-  "@onboardingAccessibilityCheckAgain": { "description": "Button to recheck Accessibility permission status" },
-
+  "@onboardingAccessibilityCheckAgain": {
+    "description": "Button to recheck Accessibility permission status"
+  },
   "onboardingScreenshotTitle": "Contexte de capture",
-  "@onboardingScreenshotTitle": { "description": "Onboarding Screenshot context step title" },
-
+  "@onboardingScreenshotTitle": {
+    "description": "Onboarding Screenshot context step title"
+  },
   "onboardingScreenshotDescription": "Le contexte de capture facultatif peut améliorer les réécritures, mais les captures peuvent inclure du contenu visible sensible.",
-  "@onboardingScreenshotDescription": { "description": "Onboarding Screenshot context privacy explanation" },
-
+  "@onboardingScreenshotDescription": {
+    "description": "Onboarding Screenshot context privacy explanation"
+  },
   "onboardingScreenshotModeLabel": "Mode de contexte de capture",
-  "@onboardingScreenshotModeLabel": { "description": "Accessible label for Screenshot context mode choices in onboarding" },
-
+  "@onboardingScreenshotModeLabel": {
+    "description": "Accessible label for Screenshot context mode choices in onboarding"
+  },
   "onboardingScreenshotOffStatus": "Le contexte de capture est désactivé. L’enregistrement d’écran ne sera pas demandé.",
-  "@onboardingScreenshotOffStatus": { "description": "Onboarding status when Screenshot context remains off" },
-
+  "@onboardingScreenshotOffStatus": {
+    "description": "Onboarding status when Screenshot context remains off"
+  },
   "onboardingScreenshotPermissionGranted": "Le contexte de capture est activé.",
-  "@onboardingScreenshotPermissionGranted": { "description": "Onboarding status after Screen Recording is granted" },
-
+  "@onboardingScreenshotPermissionGranted": {
+    "description": "Onboarding status after Screen Recording is granted"
+  },
   "onboardingScreenshotPermissionNeeded": "L’autorisation d’enregistrement d’écran est encore nécessaire avant d’utiliser le contexte de capture.",
-  "@onboardingScreenshotPermissionNeeded": { "description": "Onboarding status after non-Off Screenshot context could not be enabled" },
-
+  "@onboardingScreenshotPermissionNeeded": {
+    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+  },
   "onboardingScreenshotUnsupported": "Le contexte de capture nécessite macOS 14 ou une version ultérieure.",
-  "@onboardingScreenshotUnsupported": { "description": "Onboarding status when Screenshot context is unsupported" },
-
+  "@onboardingScreenshotUnsupported": {
+    "description": "Onboarding status when Screenshot context is unsupported"
+  },
   "onboardingContinue": "Continuer",
-  "@onboardingContinue": { "description": "Continue button in first-run onboarding" },
-
+  "@onboardingContinue": {
+    "description": "Continue button in first-run onboarding"
+  },
   "onboardingSkipOptional": "Ignorer l’optionnel",
-  "@onboardingSkipOptional": { "description": "Skip optional onboarding content button" },
-
+  "@onboardingSkipOptional": {
+    "description": "Skip optional onboarding content button"
+  },
   "onboardingComplete": "Terminer la configuration",
-  "@onboardingComplete": { "description": "Finish onboarding button" }
-
+  "@onboardingComplete": {
+    "description": "Finish onboarding button"
+  },
+  "processingCancelled": "Traitement annulé",
+  "appliedCopiedToClipboard": "{label} appliqué — copié dans le presse-papiers",
+  "notEditableGeneric": "Le curseur n'est pas dans un champ modifiable",
+  "variantsEmptyStateError": "Corrigez la clé, puis lancez le traitement pour voir quatre variantes de ton.",
+  "authFailureBannerTitle": "Le fournisseur a rejeté votre clé API.",
+  "authFailureBannerBody": "Vérifiez la clé de {provider}, puis réessayez.",
+  "checkApiKey": "Vérifier la clé API",
+  "retry": "Réessayer",
+  "escCancelHint": "annuler",
+  "hintProcess": "traiter",
+  "generatingVariants": "Génération de quatre variantes…",
+  "sourceEyebrow": "Texte source",
+  "variantsEyebrow": "Variantes",
+  "aiProviderSectionDescription": "Ajoutez des fournisseurs, donnez à chacun sa clé et ses modèles, puis choisissez le modèle de réécriture dans une liste.",
+  "appearanceSectionDescription": "Thème et taille du texte.",
+  "writingSectionDescription": "Variante par défaut et contexte par capture d'écran.",
+  "languageSectionDescription": "Le profil cible oriente la formulation et la langue de toutes les variantes.",
+  "shortcutsSectionDescription": "Les raccourcis globaux fonctionnent tant que l'app tourne en arrière-plan.",
+  "permissionsSectionDescription": "macOS gère ces autorisations dans Réglages Système.",
+  "updatesSectionDescription": "Informations sur l'app et recherche de mises à jour.",
+  "advancedSectionDescription": "Remplacement du prompt par défaut.",
+  "modelRowDescription": "Utilisé pour les réécritures. Choisir un modèle sélectionne aussi son fournisseur.",
+  "providersGroupTitle": "Fournisseurs",
+  "modelsGroupTitle": "Modèles",
+  "builtInProvider": "Fournisseur intégré",
+  "apiKeySet": "clé définie",
+  "noApiKeyStatus": "Aucune clé API",
+  "setApiKeyAction": "Définir la clé API",
+  "changeApiKeyAction": "Modifier la clé API",
+  "providerKeyDialogSubtitle": "{provider} · stockée localement dans le trousseau macOS",
+  "apiKeyRemoved": "Clé API supprimée",
+  "providerAdded": "Fournisseur ajouté — ajoutez maintenant ses modèles",
+  "providerUpdated": "Fournisseur mis à jour",
+  "providerDeleted": "Fournisseur supprimé",
+  "deleteProviderMessage": "« {name} », sa clé API et ses modèles seront supprimés de ce Mac.",
+  "addProviderDialogSubtitle": "Point de terminaison compatible OpenAI. Chat Completions non-stream requis.",
+  "modelAddedTo": "Modèle ajouté à {provider}",
+  "modelUpdated": "Modèle mis à jour",
+  "modelDeleted": "Modèle supprimé",
+  "modelShownInPicker": "Modèle affiché dans le sélecteur",
+  "modelHiddenFromPicker": "Modèle masqué du sélecteur",
+  "authFailureNote": "Échec de l'authentification ({message}) pour {provider}. Mettez à jour sa clé ci-dessous et réessayez.",
+  "latencyAvg": "moy. {seconds} s",
+  "noModelsYet": "Aucun modèle pour l'instant",
+  "noModelsYetDescription": "Ajoutez un modèle pour lancer des réécritures.",
+  "deleteAction": "Supprimer",
+  "chooseTargetForcedSubtitle": "Choisissez le profil utilisé pour les réécritures. Obligatoire pour continuer.",
+  "variantDefaultTag": "Par défaut",
+  "rewriteTab": "Réécrire",
+  "emptyPrimerSubtitle": "Le ton choisi s’insère au curseur, les autres vous attendent ici.",
+  "onboardingDoneDescription": "La configuration est terminée. Sélectionnez du texte n'importe où et utilisez votre raccourci.",
+  "onboardingDoneTitle": "Tout est prêt",
+  "shortcutsResetConfirm": "Les trois raccourcis globaux reviendront à leurs valeurs par défaut.",
+  "shortcutsFixedNote": "⌘↵ lance une reformulation depuis l’écran Rewrite et Esc annule celle en cours. Ces deux touches sont fixes.",
+  "emptyPrimerLead": "Sélectionnez du texte dans n’importe quelle app et appuyez sur",
+  "emptyPrimerRewriteTail": "pour le reformuler.",
+  "contextShortcutHintLead": "Sélectionnez du texte et appuyez sur",
+  "contextShortcutHintReplace": "pour remplacer ce contexte, ou",
+  "contextShortcutHintAppend": "pour l’ajouter à la suite."
 }

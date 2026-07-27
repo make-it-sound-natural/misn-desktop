@@ -7,6 +7,7 @@ import 'package:make_it_sound_natural/services/update_service.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/theme/app_theme.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
+import 'package:make_it_sound_natural/widgets/app_toast.dart';
 
 /// Settings section for app updates management.
 class UpdatesSettingsSection extends StatefulWidget {
@@ -113,25 +114,18 @@ class _UpdatesSettingsSectionState extends State<UpdatesSettingsSection> {
     final statusColors = AppStatusColors.of(context);
     switch (_updateCheckState) {
       case UpdateCheckState.idle:
-        return const AppSettingsIconTile(
-          icon: Icons.refresh_rounded,
-        );
+        return const AppSettingsRowIcon(icon: Icons.refresh_rounded);
       case UpdateCheckState.checking:
-        return const AppSettingsIconTile(
-          icon: Icons.hourglass_top_rounded,
-          iconColor: AppColors.secondary,
-        );
+        return const AppSettingsRowIcon(icon: Icons.hourglass_top_rounded);
       case UpdateCheckState.upToDate:
-        return AppSettingsIconTile(
+        return AppSettingsRowIcon(
           icon: Icons.check_circle_rounded,
-          backgroundColor: statusColors.successContainer,
-          iconColor: statusColors.success,
+          color: statusColors.success,
         );
       case UpdateCheckState.error:
-        return AppSettingsIconTile(
+        return AppSettingsRowIcon(
           icon: Icons.warning_rounded,
-          backgroundColor: statusColors.warningContainer,
-          iconColor: statusColors.warning,
+          color: statusColors.warning,
         );
     }
   }
@@ -207,9 +201,7 @@ class _UpdatesSettingsSectionState extends State<UpdatesSettingsSection> {
         ClipboardData(text: _appDiagnosticsText(context)),
       ),
     );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.copiedToClipboard)),
-    );
+    showAppToast(context, AppLocalizations.of(context)!.copiedToClipboard);
   }
 
   Widget _buildAppInformationSection(BuildContext context) {
@@ -218,11 +210,10 @@ class _UpdatesSettingsSectionState extends State<UpdatesSettingsSection> {
 
     return AppSettingsSection(
       title: l10n.appInformation,
+      subtitle: l10n.updatesSectionDescription,
       children: [
         AppSettingsRow(
-          leading: const AppSettingsIconTile(
-            icon: Icons.info_outline_rounded,
-          ),
+          leading: const AppSettingsRowIcon(icon: Icons.info_outline_rounded),
           title: l10n.versionLabel(_appVersion.version),
           subtitle: channelLabel,
           trailing: IconButton(
@@ -255,9 +246,7 @@ class _UpdatesSettingsSectionState extends State<UpdatesSettingsSection> {
             ),
             const AppSettingsDivider(),
             AppSettingsRow(
-              leading: const AppSettingsIconTile(
-                icon: Icons.autorenew_rounded,
-              ),
+              leading: const AppSettingsRowIcon(icon: Icons.autorenew_rounded),
               title: l10n.automaticChecks,
               subtitle: l10n.automaticChecksSubtitle,
               trailing: _buildAutomaticChecksTrailing(),

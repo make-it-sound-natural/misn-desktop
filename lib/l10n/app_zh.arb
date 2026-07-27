@@ -2,19 +2,16 @@
   "@@locale": "zh",
   "contextCleared": "上下文已清除",
   "windowChanged": "窗口已更改 — 请手动选择变体",
-  "appliedLabel": "已应用 {label}",
   "copiedToClipboard": "已复制到剪贴板",
   "contextOptional": "上下文（可选）",
   "clear": "清除",
-  "addContextHint": "添加上下文以改善结果...",
-  "contextHelper": "⌘⇧J 替换，⌘⇧L 追加",
-  "selectTextInstruction": "在任意应用中选择文本并按下",
+  "addContextHint": "模型无法推断的受众、语气或背景…",
   "applied": "已应用",
   "balanced": "平衡",
   "casual": "随意",
   "formal": "正式",
   "concise": "简洁",
-  "autoApplyVariant": "自动应用：{label}",
+  "autoApplyVariant": "自动应用",
   "apply": "应用",
   "copy": "复制",
   "apiKeyRequired": "修正功能需要 API 密钥",
@@ -25,7 +22,6 @@
   "apiKeySaved": "API 密钥已保存",
   "openAccessibilitySettings": "请打开系统设置 > 隐私与安全性 > 辅助功能",
   "settings": "设置",
-  "globalShortcut": "全局快捷键",
   "shortcutCorrection": "修正",
   "shortcutReplaceContext": "替换上下文",
   "shortcutAppendContext": "追加到上下文",
@@ -83,10 +79,9 @@
   "promptSaved": "提示词已保存",
   "promptReset": "提示词已重置",
   "textToImprove": "要改进的文本",
-  "textToImproveHint": "输入或粘贴要改进的文本...",
+  "textToImproveHint": "粘贴或输入想要更自然的文本…",
   "process": "处理",
-  "processing": "处理中...",
-  "noTextToProcess": "请输入要处理的文本",
+  "processing": "处理中…",
   "updates": "更新",
   "checkForUpdates": "检查更新",
   "checkingUpdates": "检查中...",
@@ -110,7 +105,6 @@
   "automaticChecksSubtitle": "启动时检查更新",
   "apiProvider": "API 提供商",
   "provider": "提供商",
-  "chooseProvider": "选择您的 AI 提供商",
   "openaiApiKey": "OpenAI API 密钥",
   "openaiApiKeyHelper": "您的 OpenAI API 密钥",
   "openrouterApiKey": "OpenRouter API 密钥",
@@ -118,18 +112,9 @@
   "settingsNavShortcuts": "快捷键",
   "settingsNavWriting": "写作",
   "settingsNavLanguage": "语言",
-  "aiProviderDescription": "选择您的 AI 提供商，管理 API 密钥，并选择用于生成改写的模型。",
-  "apiKeyStoredLocally": "本地存储在 Keychain 中",
-  "apiKeyNeedsAttention": "API 密钥需要处理",
-  "apiKeyAuthFailureFallback": "提供商拒绝了此 API 密钥。",
-  "modelUsedForRewrite": "用于生成改写",
   "apiKeySecurityNote": "您的 API 密钥会安全存储在 macOS Keychain 中，应用永远不会发送它。",
-  "showApiKey": "显示 API 密钥",
-  "hideApiKey": "隐藏 API 密钥",
   "openRouterModels": "OpenRouter 模型",
-  "openRouterModelsDescription": "选择哪些 OpenRouter 模型显示在模型选择器中。",
   "customProviders": "自定义提供商",
-  "customProvidersDescription": "使用本地 API 密钥和模型 ID 添加 OpenAI 兼容的提供商。",
   "customProviderCompatibilityNote": "自定义提供商必须支持非流式 Chat Completions。截图上下文还需要支持图像输入。",
   "addProvider": "添加提供商",
   "editProvider": "编辑提供商",
@@ -142,9 +127,6 @@
   "providerBaseUrl": "基础 URL",
   "providerUrlRequired": "基础 URL 为必填项。",
   "providerUrlInvalid": "基础 URL 必须是有效的 HTTPS URL。",
-  "customProviderModels": "{provider} 模型",
-  "customProviderModelsDescription": "选择哪些自定义提供商模型显示在模型选择器中。",
-  "customProviderNoModels": "使用此提供商前请先添加模型。",
   "addModel": "添加模型",
   "editModel": "编辑模型",
   "deleteModel": "删除模型",
@@ -187,111 +169,203 @@
   "screenRecordingPermissionDebugHint": "Debug：如果 macOS 请求 Terminal 或 iTerm，请允许该启动器或直接打开构建好的 .app。",
   "openSystemSettings": "打开系统设置",
   "revealInFinder": "在 Finder 中显示",
-
   "appearance": "外观",
-  "@appearance": { "description": "Settings sidebar appearance item and page title" },
-
+  "@appearance": {
+    "description": "Settings sidebar appearance item and page title"
+  },
   "appearanceTheme": "主题",
-  "@appearanceTheme": { "description": "Appearance setting title for theme mode" },
-
+  "@appearanceTheme": {
+    "description": "Appearance setting title for theme mode"
+  },
   "appearanceThemeHelper": "使用浅色、深色或跟随 macOS",
-  "@appearanceThemeHelper": { "description": "Helper text for theme mode setting" },
-
+  "@appearanceThemeHelper": {
+    "description": "Helper text for theme mode setting"
+  },
   "appearanceThemeSystem": "系统",
-  "@appearanceThemeSystem": { "description": "Theme option that follows macOS" },
-
+  "@appearanceThemeSystem": {
+    "description": "Theme option that follows macOS"
+  },
   "appearanceThemeLight": "浅色",
-  "@appearanceThemeLight": { "description": "Light theme option" },
-
+  "@appearanceThemeLight": {
+    "description": "Light theme option"
+  },
   "appearanceThemeDark": "深色",
-  "@appearanceThemeDark": { "description": "Dark theme option" },
-
+  "@appearanceThemeDark": {
+    "description": "Dark theme option"
+  },
   "appearanceMenuFontSize": "菜单字体大小",
-  "@appearanceMenuFontSize": { "description": "Appearance setting title for menu and UI font size" },
-
+  "@appearanceMenuFontSize": {
+    "description": "Appearance setting title for menu and UI font size"
+  },
   "appearanceMenuFontSizeHelper": "用于导航、标签、按钮和对话框",
-  "@appearanceMenuFontSizeHelper": { "description": "Helper text for menu and UI font size" },
-
+  "@appearanceMenuFontSizeHelper": {
+    "description": "Helper text for menu and UI font size"
+  },
   "appearanceEditorFontSize": "编辑器字体大小",
-  "@appearanceEditorFontSize": { "description": "Appearance setting title for editor and context text font size" },
-
+  "@appearanceEditorFontSize": {
+    "description": "Appearance setting title for editor and context text font size"
+  },
   "appearanceEditorFontSizeHelper": "用于改写文本和上下文输入",
-  "@appearanceEditorFontSizeHelper": { "description": "Helper text for editor and context text font size" },
-
+  "@appearanceEditorFontSizeHelper": {
+    "description": "Helper text for editor and context text font size"
+  },
   "appearanceReset": "重置外观",
-  "@appearanceReset": { "description": "Button to reset appearance settings" },
-
+  "@appearanceReset": {
+    "description": "Button to reset appearance settings"
+  },
   "appearanceResetDone": "外观已重置",
-  "@appearanceResetDone": { "description": "SnackBar message after appearance settings reset" },
-
+  "@appearanceResetDone": {
+    "description": "SnackBar message after appearance settings reset"
+  },
   "pixelsUnit": "px",
-  "@pixelsUnit": { "description": "Pixel unit label for font size inputs" }
-,
-
+  "@pixelsUnit": {
+    "description": "Pixel unit label for font size inputs"
+  },
   "onboardingTitle": "设置 Make It Sound Natural",
-  "@onboardingTitle": { "description": "First-run onboarding screen title" },
-
+  "@onboardingTitle": {
+    "description": "First-run onboarding screen title"
+  },
   "onboardingProviderTitle": "AI 提供商",
-  "@onboardingProviderTitle": { "description": "Onboarding provider setup step title" },
-
+  "@onboardingProviderTitle": {
+    "description": "Onboarding provider setup step title"
+  },
   "onboardingProviderDescription": "默认选择 OpenRouter 和 google/gemini-3-flash-preview。准备好后可在设置中添加 API 密钥。",
-  "@onboardingProviderDescription": { "description": "Onboarding provider setup step description" },
-
+  "@onboardingProviderDescription": {
+    "description": "Onboarding provider setup step description"
+  },
   "onboardingAccessibilityTitle": "辅助功能",
-  "@onboardingAccessibilityTitle": { "description": "Onboarding Accessibility permission step title" },
-
+  "@onboardingAccessibilityTitle": {
+    "description": "Onboarding Accessibility permission step title"
+  },
   "onboardingAccessibilityDescription": "辅助功能允许快捷键读取并替换其他应用中选中的文本。",
-  "@onboardingAccessibilityDescription": { "description": "Onboarding Accessibility permission explanation" },
-
+  "@onboardingAccessibilityDescription": {
+    "description": "Onboarding Accessibility permission explanation"
+  },
   "onboardingAccessibilityGrant": "打开辅助功能设置",
-  "@onboardingAccessibilityGrant": { "description": "Button to request or open Accessibility permission settings" },
-
+  "@onboardingAccessibilityGrant": {
+    "description": "Button to request or open Accessibility permission settings"
+  },
   "onboardingAccessibilityGranted": "已授予辅助功能权限。",
-  "@onboardingAccessibilityGranted": { "description": "Onboarding status when Accessibility is granted" },
-
+  "@onboardingAccessibilityGranted": {
+    "description": "Onboarding status when Accessibility is granted"
+  },
   "onboardingAccessibilityMissing": "快捷键改写需要辅助功能权限。",
-  "@onboardingAccessibilityMissing": { "description": "Onboarding status when Accessibility is missing" },
-
+  "@onboardingAccessibilityMissing": {
+    "description": "Onboarding status when Accessibility is missing"
+  },
   "onboardingAccessibilitySkipped": "授予辅助功能权限前，快捷键改写无法工作。",
-  "@onboardingAccessibilitySkipped": { "description": "Onboarding warning when Accessibility was skipped" },
-
+  "@onboardingAccessibilitySkipped": {
+    "description": "Onboarding warning when Accessibility was skipped"
+  },
   "onboardingAccessibilityStillMissing": "仍缺少辅助功能权限。请在系统设置中启用 Make It Sound Natural，然后再次检查。",
-  "@onboardingAccessibilityStillMissing": { "description": "Onboarding warning after Accessibility request still finds no permission" },
-
+  "@onboardingAccessibilityStillMissing": {
+    "description": "Onboarding warning after Accessibility request still finds no permission"
+  },
   "onboardingAccessibilitySkip": "暂时跳过",
-  "@onboardingAccessibilitySkip": { "description": "Button to skip Accessibility permission during onboarding" },
-
+  "@onboardingAccessibilitySkip": {
+    "description": "Button to skip Accessibility permission during onboarding"
+  },
   "onboardingAccessibilityCheckAgain": "再次检查",
-  "@onboardingAccessibilityCheckAgain": { "description": "Button to recheck Accessibility permission status" },
-
+  "@onboardingAccessibilityCheckAgain": {
+    "description": "Button to recheck Accessibility permission status"
+  },
   "onboardingScreenshotTitle": "截图上下文",
-  "@onboardingScreenshotTitle": { "description": "Onboarding Screenshot context step title" },
-
+  "@onboardingScreenshotTitle": {
+    "description": "Onboarding Screenshot context step title"
+  },
   "onboardingScreenshotDescription": "可选的截图上下文可改进改写效果，但截图可能包含敏感的可见内容。",
-  "@onboardingScreenshotDescription": { "description": "Onboarding Screenshot context privacy explanation" },
-
+  "@onboardingScreenshotDescription": {
+    "description": "Onboarding Screenshot context privacy explanation"
+  },
   "onboardingScreenshotModeLabel": "截图上下文模式",
-  "@onboardingScreenshotModeLabel": { "description": "Accessible label for Screenshot context mode choices in onboarding" },
-
+  "@onboardingScreenshotModeLabel": {
+    "description": "Accessible label for Screenshot context mode choices in onboarding"
+  },
   "onboardingScreenshotOffStatus": "截图上下文已关闭。不会请求屏幕录制权限。",
-  "@onboardingScreenshotOffStatus": { "description": "Onboarding status when Screenshot context remains off" },
-
+  "@onboardingScreenshotOffStatus": {
+    "description": "Onboarding status when Screenshot context remains off"
+  },
   "onboardingScreenshotPermissionGranted": "截图上下文已启用。",
-  "@onboardingScreenshotPermissionGranted": { "description": "Onboarding status after Screen Recording is granted" },
-
+  "@onboardingScreenshotPermissionGranted": {
+    "description": "Onboarding status after Screen Recording is granted"
+  },
   "onboardingScreenshotPermissionNeeded": "使用截图上下文前仍需要屏幕录制权限。",
-  "@onboardingScreenshotPermissionNeeded": { "description": "Onboarding status after non-Off Screenshot context could not be enabled" },
-
+  "@onboardingScreenshotPermissionNeeded": {
+    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+  },
   "onboardingScreenshotUnsupported": "截图上下文需要 macOS 14 或更高版本。",
-  "@onboardingScreenshotUnsupported": { "description": "Onboarding status when Screenshot context is unsupported" },
-
+  "@onboardingScreenshotUnsupported": {
+    "description": "Onboarding status when Screenshot context is unsupported"
+  },
   "onboardingContinue": "继续",
-  "@onboardingContinue": { "description": "Continue button in first-run onboarding" },
-
+  "@onboardingContinue": {
+    "description": "Continue button in first-run onboarding"
+  },
   "onboardingSkipOptional": "跳过可选项",
-  "@onboardingSkipOptional": { "description": "Skip optional onboarding content button" },
-
+  "@onboardingSkipOptional": {
+    "description": "Skip optional onboarding content button"
+  },
   "onboardingComplete": "完成设置",
-  "@onboardingComplete": { "description": "Finish onboarding button" }
-
+  "@onboardingComplete": {
+    "description": "Finish onboarding button"
+  },
+  "processingCancelled": "已取消处理",
+  "appliedCopiedToClipboard": "已应用{label} — 已复制到剪贴板",
+  "notEditableGeneric": "光标不在可编辑字段中",
+  "variantsEmptyStateError": "修正密钥后点击「处理」，即可查看四种语气改写。",
+  "authFailureBannerTitle": "提供商拒绝了你的 API 密钥。",
+  "authFailureBannerBody": "请检查 {provider} 的密钥后重试。",
+  "checkApiKey": "检查 API 密钥",
+  "retry": "重试",
+  "escCancelHint": "取消",
+  "hintProcess": "处理",
+  "generatingVariants": "正在生成四种改写…",
+  "sourceEyebrow": "原文",
+  "variantsEyebrow": "改写选项",
+  "aiProviderSectionDescription": "添加提供商，为每个配置密钥和模型，然后在同一个列表中选择改写所用的模型。",
+  "appearanceSectionDescription": "主题与文字大小。",
+  "writingSectionDescription": "默认改写风格与截图上下文。",
+  "languageSectionDescription": "目标配置决定所有改写选项的措辞与语言。",
+  "shortcutsSectionDescription": "全局快捷键在应用后台运行时依然有效。",
+  "permissionsSectionDescription": "这些权限由 macOS 在「系统设置」中管理。",
+  "updatesSectionDescription": "应用信息与更新检查。",
+  "advancedSectionDescription": "自定义提示词覆盖。",
+  "modelRowDescription": "用于改写。选择模型时会同时选定其提供商。",
+  "providersGroupTitle": "提供商",
+  "modelsGroupTitle": "模型",
+  "builtInProvider": "内置提供商",
+  "apiKeySet": "已设置密钥",
+  "noApiKeyStatus": "无 API 密钥",
+  "setApiKeyAction": "设置 API 密钥",
+  "changeApiKeyAction": "更改 API 密钥",
+  "providerKeyDialogSubtitle": "{provider} · 本地保存在 macOS 钥匙串中",
+  "apiKeyRemoved": "已移除 API 密钥",
+  "providerAdded": "已添加提供商 — 接下来添加其模型",
+  "providerUpdated": "已更新提供商",
+  "providerDeleted": "已删除提供商",
+  "deleteProviderMessage": "将从这台 Mac 移除「{name}」及其 API 密钥和模型。",
+  "addProviderDialogSubtitle": "兼容 OpenAI 的接口，需支持非流式 Chat Completions。",
+  "modelAddedTo": "已向 {provider} 添加模型",
+  "modelUpdated": "已更新模型",
+  "modelDeleted": "已删除模型",
+  "modelShownInPicker": "模型已显示在选择列表中",
+  "modelHiddenFromPicker": "模型已从选择列表隐藏",
+  "authFailureNote": "{provider} 认证失败（{message}）。请在下方更新其密钥后重试。",
+  "latencyAvg": "平均 {seconds} 秒",
+  "noModelsYet": "尚无模型",
+  "noModelsYetDescription": "添加模型后即可运行改写。",
+  "deleteAction": "删除",
+  "chooseTargetForcedSubtitle": "请选择用于改写的配置，必须选择后才能继续。",
+  "variantDefaultTag": "默认",
+  "rewriteTab": "改写",
+  "emptyPrimerSubtitle": "所选语气会直接插入光标处，其他版本保留在这里。",
+  "onboardingDoneDescription": "设置完成。在任意位置选中文本并使用你的快捷键。",
+  "onboardingDoneTitle": "一切就绪",
+  "shortcutsResetConfirm": "三个全局快捷键将恢复为默认值。",
+  "shortcutsFixedNote": "⌘↵ 在 Rewrite 界面启动改写，Esc 取消正在进行的改写。这两个快捷键不可更改。",
+  "emptyPrimerLead": "在任意应用中选中文本，按",
+  "emptyPrimerRewriteTail": "即可改写。",
+  "contextShortcutHintLead": "选中文本后按",
+  "contextShortcutHintReplace": "替换此上下文，或按",
+  "contextShortcutHintAppend": "追加到末尾。"
 }

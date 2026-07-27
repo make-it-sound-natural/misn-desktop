@@ -64,7 +64,9 @@ final class AppWindowLifecycleControllerTests: XCTestCase {
 
     func testGeometryKeepsValidCompactSavedFrame() {
         let visibleFrame = NSRect(x: 0, y: 0, width: 1440, height: 900)
-        let compactFrame = NSRect(x: 120, y: 120, width: 820, height: 620)
+        // Narrower than the default but still at or above the minimum, so it
+        // must be preserved rather than grown.
+        let compactFrame = NSRect(x: 120, y: 120, width: 1000, height: 620)
 
         let repaired = MainWindowGeometry.repairedFrame(
             compactFrame,

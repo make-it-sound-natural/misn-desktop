@@ -61,6 +61,14 @@ void main() {
     await tester.tap(find.byKey(const Key('shortcuts-reset')));
     await tester.pumpAndSettle();
 
+    // Discarding all three shortcuts is irreversible, so it confirms first.
+    expect(
+      find.text('The three global shortcuts go back to their defaults.'),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('Reset Shortcuts').last);
+    await tester.pumpAndSettle();
+
     expect(find.text('Shortcuts reset to default'), findsOneWidget);
 
     final prefs = await SharedPreferences.getInstance();

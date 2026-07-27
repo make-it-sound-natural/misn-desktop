@@ -8,6 +8,7 @@ import 'package:make_it_sound_natural/models/appearance_preferences.dart';
 import 'package:make_it_sound_natural/services/appearance_controller.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
+import 'package:make_it_sound_natural/widgets/app_toast.dart';
 
 /// Settings section for app appearance preferences.
 class AppearanceSettingsSection extends StatelessWidget {
@@ -22,9 +23,10 @@ class AppearanceSettingsSection extends StatelessWidget {
 
     return AppSettingsSection(
       title: l10n.appearance,
+      subtitle: l10n.appearanceSectionDescription,
       children: [
         AppSettingsRow(
-          leading: const AppSettingsIconTile(icon: Icons.palette_rounded),
+          leading: const AppSettingsRowIcon(icon: Icons.palette_rounded),
           title: l10n.appearanceTheme,
           subtitle: l10n.appearanceThemeHelper,
           trailing: SegmentedButton<AppearanceThemeMode>(
@@ -86,16 +88,14 @@ class AppearanceSettingsSection extends StatelessWidget {
         ),
         const AppSettingsDivider(),
         AppSettingsRow(
-          leading: const AppSettingsIconTile(icon: Icons.restart_alt_rounded),
+          leading: const AppSettingsRowIcon(icon: Icons.restart_alt_rounded),
           title: l10n.appearanceReset,
-          trailing: FilledButton(
+          trailing: OutlinedButton(
             key: const Key('appearance-reset'),
             onPressed: () async {
               await controller.reset();
               if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(l10n.appearanceResetDone)),
-              );
+              showAppToast(context, l10n.appearanceResetDone);
             },
             child: Text(l10n.appearanceReset),
           ),
@@ -157,7 +157,7 @@ class _FontSizeRowState extends State<_FontSizeRow> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return AppSettingsRow(
-      leading: const AppSettingsIconTile(icon: Icons.format_size_rounded),
+      leading: const AppSettingsRowIcon(icon: Icons.format_size_rounded),
       title: widget.title,
       subtitle: widget.subtitle,
       trailing: Row(

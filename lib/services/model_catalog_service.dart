@@ -1,15 +1,19 @@
 import 'dart:convert';
 
 import 'package:make_it_sound_natural/constants/model_catalog_defaults.dart';
+import 'package:make_it_sound_natural/models/catalog_validation_reason.dart';
 import 'package:make_it_sound_natural/models/llm_model_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Error thrown when a model catalog edit is invalid.
 class ModelCatalogValidationException implements Exception {
   /// Creates a validation exception.
-  const ModelCatalogValidationException(this.message);
+  const ModelCatalogValidationException(this.reason, this.message);
 
-  /// User-readable validation reason.
+  /// Machine-readable cause, which the UI maps onto localized copy.
+  final CatalogValidationReason reason;
+
+  /// English sentence, for logs and as a last-resort fallback.
   final String message;
 
   @override
@@ -89,6 +93,7 @@ class ModelCatalogService {
     );
     if (oldIndex == -1) {
       throw const ModelCatalogValidationException(
+        CatalogValidationReason.notMutable,
         'Only custom models can be edited.',
       );
     }
@@ -120,6 +125,7 @@ class ModelCatalogService {
         .toList(growable: false);
     if (updated.length == custom.length) {
       throw const ModelCatalogValidationException(
+        CatalogValidationReason.notMutable,
         'Only custom models can be deleted.',
       );
     }
@@ -146,11 +152,15 @@ class ModelCatalogService {
   }) async {
     final models = await allModels(provider);
     if (!models.any((entry) => entry.slug == slug)) {
-      throw const ModelCatalogValidationException('Model does not exist.');
+      throw const ModelCatalogValidationException(
+        CatalogValidationReason.notMutable,
+        'Model does not exist.',
+      );
     }
     if (hidden &&
         !models.any((entry) => !entry.isHidden && entry.slug != slug)) {
       throw const ModelCatalogValidationException(
+        CatalogValidationReason.modelVisibilityRequired,
         'At least one model must remain visible.',
       );
     }
@@ -167,7 +177,10 @@ class ModelCatalogService {
   String _normalizeSlug(String slug) {
     final normalized = slug.trim();
     if (normalized.isEmpty) {
-      throw const ModelCatalogValidationException('Model slug is required.');
+      throw const ModelCatalogValidationException(
+        CatalogValidationReason.modelSlugRequired,
+        'Model slug is required.',
+      );
     }
     return normalized;
   }
@@ -182,6 +195,7 @@ class ModelCatalogService {
     });
     if (exists) {
       throw const ModelCatalogValidationException(
+        CatalogValidationReason.modelSlugDuplicate,
         'A model with this slug already exists.',
       );
     }
