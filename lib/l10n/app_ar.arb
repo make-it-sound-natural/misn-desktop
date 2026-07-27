@@ -2,19 +2,16 @@
   "@@locale": "ar",
   "contextCleared": "تم مسح السياق",
   "windowChanged": "تغيرت النافذة — اختر النوع يدوياً",
-  "appliedLabel": "تم تطبيق {label}",
   "copiedToClipboard": "تم النسخ إلى الحافظة",
   "contextOptional": "السياق (اختياري)",
   "clear": "مسح",
-  "addContextHint": "أضف سياقاً لتحسين النتائج...",
-  "contextHelper": "⌘⇧J استبدال، ⌘⇧L إضافة",
-  "selectTextInstruction": "حدد نصاً في أي تطبيق واضغط",
+  "addContextHint": "الجمهور أو النبرة أو خلفية لا يمكن للنموذج استنتاجها…",
   "applied": "مُطبَّق",
   "balanced": "متوازن",
   "casual": "غير رسمي",
   "formal": "رسمي",
   "concise": "موجز",
-  "autoApplyVariant": "تطبيق تلقائي: {label}",
+  "autoApplyVariant": "تطبيق تلقائي",
   "apply": "تطبيق",
   "copy": "نسخ",
   "apiKeyRequired": "مفتاح API مطلوب للتصحيحات",
@@ -25,7 +22,6 @@
   "apiKeySaved": "تم حفظ مفتاح API",
   "openAccessibilitySettings": "يرجى فتح إعدادات النظام > الخصوصية والأمان > إمكانية الوصول",
   "settings": "الإعدادات",
-  "globalShortcut": "اختصار عام",
   "shortcutCorrection": "تصحيح",
   "shortcutReplaceContext": "استبدال السياق",
   "shortcutAppendContext": "إضافة للسياق",
@@ -83,10 +79,9 @@
   "promptSaved": "تم حفظ الموجه",
   "promptReset": "تمت إعادة تعيين الموجه",
   "textToImprove": "النص للتحسين",
-  "textToImproveHint": "اكتب أو الصق النص للتحسين...",
+  "textToImproveHint": "الصق أو اكتب النص الذي تريده أن يبدو طبيعيًا…",
   "process": "معالجة",
-  "processing": "جارٍ المعالجة...",
-  "noTextToProcess": "الرجاء إدخال نص للمعالجة",
+  "processing": "جارٍ المعالجة…",
   "updates": "التحديثات",
   "checkForUpdates": "البحث عن تحديثات",
   "checkingUpdates": "جارٍ البحث...",
@@ -110,7 +105,6 @@
   "automaticChecksSubtitle": "البحث عن تحديثات عند التشغيل",
   "apiProvider": "مزود API",
   "provider": "المزود",
-  "chooseProvider": "اختر مزود AI",
   "openaiApiKey": "مفتاح OpenAI API",
   "openaiApiKeyHelper": "مفتاح OpenAI API الخاص بك",
   "openrouterApiKey": "مفتاح OpenRouter API",
@@ -118,18 +112,9 @@
   "settingsNavShortcuts": "الاختصارات",
   "settingsNavWriting": "الكتابة",
   "settingsNavLanguage": "اللغة",
-  "aiProviderDescription": "اختر مزود AI، وأدر مفتاح API، وحدد النموذج المستخدم لإنشاء إعادة الصياغة.",
-  "apiKeyStoredLocally": "محفوظ محلياً في Keychain",
-  "apiKeyNeedsAttention": "مفتاح API يحتاج إلى انتباه",
-  "apiKeyAuthFailureFallback": "رفض المزوّد مفتاح API هذا.",
-  "modelUsedForRewrite": "مستخدم لإنشاء إعادة الصياغة",
   "apiKeySecurityNote": "يتم تخزين مفتاح API بأمان في macOS Keychain ولا يرسله التطبيق أبداً.",
-  "showApiKey": "إظهار مفتاح API",
-  "hideApiKey": "إخفاء مفتاح API",
   "openRouterModels": "نماذج OpenRouter",
-  "openRouterModelsDescription": "اختر نماذج OpenRouter التي تظهر في قائمة اختيار النموذج.",
   "customProviders": "مزودون مخصصون",
-  "customProvidersDescription": "أضف مزودين متوافقين مع OpenAI باستخدام مفاتيح API ومعرفات نماذج محلية.",
   "customProviderCompatibilityNote": "يجب أن تدعم المزودات المخصصة Chat Completions بدون بث. يتطلب سياق لقطة الشاشة أيضًا دعم إدخال الصور.",
   "addProvider": "إضافة مزود",
   "editProvider": "تعديل المزود",
@@ -142,9 +127,6 @@
   "providerBaseUrl": "عنوان URL الأساسي",
   "providerUrlRequired": "عنوان URL الأساسي مطلوب.",
   "providerUrlInvalid": "يجب أن يكون عنوان URL الأساسي عنوان HTTPS صالحًا.",
-  "customProviderModels": "نماذج {provider}",
-  "customProviderModelsDescription": "اختر نماذج المزود المخصص التي تظهر في قائمة اختيار النموذج.",
-  "customProviderNoModels": "أضف نموذجًا قبل استخدام هذا المزود.",
   "addModel": "إضافة نموذج",
   "editModel": "تعديل النموذج",
   "deleteModel": "حذف النموذج",
@@ -187,111 +169,203 @@
   "screenRecordingPermissionDebugHint": "Debug: إذا طلب macOS تطبيق Terminal أو iTerm، فامنح ذلك المشغّل الإذن أو افتح ملف .app المبني مباشرة.",
   "openSystemSettings": "فتح إعدادات النظام",
   "revealInFinder": "إظهار في Finder",
-
   "appearance": "المظهر",
-  "@appearance": { "description": "Settings sidebar appearance item and page title" },
-
+  "@appearance": {
+    "description": "Settings sidebar appearance item and page title"
+  },
   "appearanceTheme": "السمة",
-  "@appearanceTheme": { "description": "Appearance setting title for theme mode" },
-
+  "@appearanceTheme": {
+    "description": "Appearance setting title for theme mode"
+  },
   "appearanceThemeHelper": "استخدم الفاتح أو الداكن أو اتبع macOS",
-  "@appearanceThemeHelper": { "description": "Helper text for theme mode setting" },
-
+  "@appearanceThemeHelper": {
+    "description": "Helper text for theme mode setting"
+  },
   "appearanceThemeSystem": "النظام",
-  "@appearanceThemeSystem": { "description": "Theme option that follows macOS" },
-
+  "@appearanceThemeSystem": {
+    "description": "Theme option that follows macOS"
+  },
   "appearanceThemeLight": "فاتح",
-  "@appearanceThemeLight": { "description": "Light theme option" },
-
+  "@appearanceThemeLight": {
+    "description": "Light theme option"
+  },
   "appearanceThemeDark": "داكن",
-  "@appearanceThemeDark": { "description": "Dark theme option" },
-
+  "@appearanceThemeDark": {
+    "description": "Dark theme option"
+  },
   "appearanceMenuFontSize": "حجم خط القائمة",
-  "@appearanceMenuFontSize": { "description": "Appearance setting title for menu and UI font size" },
-
+  "@appearanceMenuFontSize": {
+    "description": "Appearance setting title for menu and UI font size"
+  },
   "appearanceMenuFontSizeHelper": "يستخدم للتنقل والتسميات والأزرار والحوارات",
-  "@appearanceMenuFontSizeHelper": { "description": "Helper text for menu and UI font size" },
-
+  "@appearanceMenuFontSizeHelper": {
+    "description": "Helper text for menu and UI font size"
+  },
   "appearanceEditorFontSize": "حجم خط المحرر",
-  "@appearanceEditorFontSize": { "description": "Appearance setting title for editor and context text font size" },
-
+  "@appearanceEditorFontSize": {
+    "description": "Appearance setting title for editor and context text font size"
+  },
   "appearanceEditorFontSizeHelper": "يستخدم لنص إعادة الكتابة وإدخال السياق",
-  "@appearanceEditorFontSizeHelper": { "description": "Helper text for editor and context text font size" },
-
+  "@appearanceEditorFontSizeHelper": {
+    "description": "Helper text for editor and context text font size"
+  },
   "appearanceReset": "إعادة ضبط المظهر",
-  "@appearanceReset": { "description": "Button to reset appearance settings" },
-
+  "@appearanceReset": {
+    "description": "Button to reset appearance settings"
+  },
   "appearanceResetDone": "تمت إعادة ضبط المظهر",
-  "@appearanceResetDone": { "description": "SnackBar message after appearance settings reset" },
-
+  "@appearanceResetDone": {
+    "description": "SnackBar message after appearance settings reset"
+  },
   "pixelsUnit": "px",
-  "@pixelsUnit": { "description": "Pixel unit label for font size inputs" }
-,
-
+  "@pixelsUnit": {
+    "description": "Pixel unit label for font size inputs"
+  },
   "onboardingTitle": "إعداد Make It Sound Natural",
-  "@onboardingTitle": { "description": "First-run onboarding screen title" },
-
+  "@onboardingTitle": {
+    "description": "First-run onboarding screen title"
+  },
   "onboardingProviderTitle": "مزود الذكاء الاصطناعي",
-  "@onboardingProviderTitle": { "description": "Onboarding provider setup step title" },
-
+  "@onboardingProviderTitle": {
+    "description": "Onboarding provider setup step title"
+  },
   "onboardingProviderDescription": "OpenRouter و google/gemini-3-flash-preview محددان افتراضيًا. أضف مفتاح API في الإعدادات عندما تكون جاهزًا.",
-  "@onboardingProviderDescription": { "description": "Onboarding provider setup step description" },
-
+  "@onboardingProviderDescription": {
+    "description": "Onboarding provider setup step description"
+  },
   "onboardingAccessibilityTitle": "إمكانية الوصول",
-  "@onboardingAccessibilityTitle": { "description": "Onboarding Accessibility permission step title" },
-
+  "@onboardingAccessibilityTitle": {
+    "description": "Onboarding Accessibility permission step title"
+  },
   "onboardingAccessibilityDescription": "تتيح إمكانية الوصول للاختصار قراءة النص المحدد واستبداله في التطبيقات الأخرى.",
-  "@onboardingAccessibilityDescription": { "description": "Onboarding Accessibility permission explanation" },
-
+  "@onboardingAccessibilityDescription": {
+    "description": "Onboarding Accessibility permission explanation"
+  },
   "onboardingAccessibilityGrant": "فتح إعدادات إمكانية الوصول",
-  "@onboardingAccessibilityGrant": { "description": "Button to request or open Accessibility permission settings" },
-
+  "@onboardingAccessibilityGrant": {
+    "description": "Button to request or open Accessibility permission settings"
+  },
   "onboardingAccessibilityGranted": "تم منح إذن إمكانية الوصول.",
-  "@onboardingAccessibilityGranted": { "description": "Onboarding status when Accessibility is granted" },
-
+  "@onboardingAccessibilityGranted": {
+    "description": "Onboarding status when Accessibility is granted"
+  },
   "onboardingAccessibilityMissing": "إمكانية الوصول مطلوبة لإعادة الكتابة عبر الاختصار.",
-  "@onboardingAccessibilityMissing": { "description": "Onboarding status when Accessibility is missing" },
-
+  "@onboardingAccessibilityMissing": {
+    "description": "Onboarding status when Accessibility is missing"
+  },
   "onboardingAccessibilitySkipped": "لن تعمل إعادة الكتابة عبر الاختصار حتى يتم منح إذن إمكانية الوصول.",
-  "@onboardingAccessibilitySkipped": { "description": "Onboarding warning when Accessibility was skipped" },
-
+  "@onboardingAccessibilitySkipped": {
+    "description": "Onboarding warning when Accessibility was skipped"
+  },
   "onboardingAccessibilityStillMissing": "لا يزال إذن إمكانية الوصول مفقودًا. فعّل Make It Sound Natural في إعدادات النظام، ثم تحقق مرة أخرى.",
-  "@onboardingAccessibilityStillMissing": { "description": "Onboarding warning after Accessibility request still finds no permission" },
-
+  "@onboardingAccessibilityStillMissing": {
+    "description": "Onboarding warning after Accessibility request still finds no permission"
+  },
   "onboardingAccessibilitySkip": "تخطي الآن",
-  "@onboardingAccessibilitySkip": { "description": "Button to skip Accessibility permission during onboarding" },
-
+  "@onboardingAccessibilitySkip": {
+    "description": "Button to skip Accessibility permission during onboarding"
+  },
   "onboardingAccessibilityCheckAgain": "تحقق مرة أخرى",
-  "@onboardingAccessibilityCheckAgain": { "description": "Button to recheck Accessibility permission status" },
-
+  "@onboardingAccessibilityCheckAgain": {
+    "description": "Button to recheck Accessibility permission status"
+  },
   "onboardingScreenshotTitle": "سياق لقطة الشاشة",
-  "@onboardingScreenshotTitle": { "description": "Onboarding Screenshot context step title" },
-
+  "@onboardingScreenshotTitle": {
+    "description": "Onboarding Screenshot context step title"
+  },
   "onboardingScreenshotDescription": "يمكن لسياق لقطة الشاشة الاختياري تحسين إعادة الكتابة، لكن اللقطات قد تتضمن محتوى مرئيًا حساسًا.",
-  "@onboardingScreenshotDescription": { "description": "Onboarding Screenshot context privacy explanation" },
-
+  "@onboardingScreenshotDescription": {
+    "description": "Onboarding Screenshot context privacy explanation"
+  },
   "onboardingScreenshotModeLabel": "وضع سياق لقطة الشاشة",
-  "@onboardingScreenshotModeLabel": { "description": "Accessible label for Screenshot context mode choices in onboarding" },
-
+  "@onboardingScreenshotModeLabel": {
+    "description": "Accessible label for Screenshot context mode choices in onboarding"
+  },
   "onboardingScreenshotOffStatus": "سياق لقطة الشاشة متوقف. لن يتم طلب إذن تسجيل الشاشة.",
-  "@onboardingScreenshotOffStatus": { "description": "Onboarding status when Screenshot context remains off" },
-
+  "@onboardingScreenshotOffStatus": {
+    "description": "Onboarding status when Screenshot context remains off"
+  },
   "onboardingScreenshotPermissionGranted": "تم تفعيل سياق لقطة الشاشة.",
-  "@onboardingScreenshotPermissionGranted": { "description": "Onboarding status after Screen Recording is granted" },
-
+  "@onboardingScreenshotPermissionGranted": {
+    "description": "Onboarding status after Screen Recording is granted"
+  },
   "onboardingScreenshotPermissionNeeded": "لا يزال إذن تسجيل الشاشة مطلوبًا قبل استخدام سياق لقطة الشاشة.",
-  "@onboardingScreenshotPermissionNeeded": { "description": "Onboarding status after non-Off Screenshot context could not be enabled" },
-
+  "@onboardingScreenshotPermissionNeeded": {
+    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+  },
   "onboardingScreenshotUnsupported": "يتطلب سياق لقطة الشاشة macOS 14 أو أحدث.",
-  "@onboardingScreenshotUnsupported": { "description": "Onboarding status when Screenshot context is unsupported" },
-
+  "@onboardingScreenshotUnsupported": {
+    "description": "Onboarding status when Screenshot context is unsupported"
+  },
   "onboardingContinue": "متابعة",
-  "@onboardingContinue": { "description": "Continue button in first-run onboarding" },
-
+  "@onboardingContinue": {
+    "description": "Continue button in first-run onboarding"
+  },
   "onboardingSkipOptional": "تخطي الاختياري",
-  "@onboardingSkipOptional": { "description": "Skip optional onboarding content button" },
-
+  "@onboardingSkipOptional": {
+    "description": "Skip optional onboarding content button"
+  },
   "onboardingComplete": "إنهاء الإعداد",
-  "@onboardingComplete": { "description": "Finish onboarding button" }
-
+  "@onboardingComplete": {
+    "description": "Finish onboarding button"
+  },
+  "processingCancelled": "تم إلغاء المعالجة",
+  "appliedCopiedToClipboard": "تم تطبيق {label} — ونُسخ إلى الحافظة",
+  "notEditableGeneric": "المؤشر ليس في حقل قابل للتحرير",
+  "variantsEmptyStateError": "صحّح المفتاح ثم شغّل المعالجة لعرض أربع صياغات بنبرات مختلفة.",
+  "authFailureBannerTitle": "رفض المزوّد مفتاح API الخاص بك.",
+  "authFailureBannerBody": "تحقّق من مفتاح {provider} ثم أعد المحاولة.",
+  "checkApiKey": "تحقّق من مفتاح API",
+  "retry": "إعادة المحاولة",
+  "escCancelHint": "إلغاء",
+  "hintProcess": "معالجة",
+  "generatingVariants": "يجري إنشاء أربع صياغات…",
+  "sourceEyebrow": "النص المصدر",
+  "variantsEyebrow": "الصياغات",
+  "aiProviderSectionDescription": "أضف المزوّدين، وامنح كلًا منهم مفتاحه ونماذجه، ثم اختر نموذج إعادة الصياغة من قائمة واحدة.",
+  "appearanceSectionDescription": "المظهر وحجم النص.",
+  "writingSectionDescription": "الصياغة الافتراضية وسياق لقطة الشاشة.",
+  "languageSectionDescription": "يوجّه الملف المستهدف الصياغة واللغة في جميع البدائل.",
+  "shortcutsSectionDescription": "تعمل الاختصارات العامة ما دام التطبيق يعمل في الخلفية.",
+  "permissionsSectionDescription": "يدير macOS هذه الأذونات من إعدادات النظام.",
+  "updatesSectionDescription": "معلومات التطبيق والتحقق من التحديثات.",
+  "advancedSectionDescription": "استبدال المُوجّه الافتراضي.",
+  "modelRowDescription": "يُستخدم لإعادة الصياغة. اختيار النموذج يحدّد مزوّده أيضًا.",
+  "providersGroupTitle": "المزوّدون",
+  "modelsGroupTitle": "النماذج",
+  "builtInProvider": "مزوّد مدمج",
+  "apiKeySet": "المفتاح مضبوط",
+  "noApiKeyStatus": "لا يوجد مفتاح API",
+  "setApiKeyAction": "تعيين مفتاح API",
+  "changeApiKeyAction": "تغيير مفتاح API",
+  "providerKeyDialogSubtitle": "{provider} · مخزَّن محليًا في سلسلة مفاتيح macOS",
+  "apiKeyRemoved": "تمت إزالة مفتاح API",
+  "providerAdded": "تمت إضافة المزوّد — أضف نماذجه الآن",
+  "providerUpdated": "تم تحديث المزوّد",
+  "providerDeleted": "تم حذف المزوّد",
+  "deleteProviderMessage": "ستتم إزالة «{name}» ومفتاح API الخاص به ونماذجه من هذا الـ Mac.",
+  "addProviderDialogSubtitle": "نقطة نهاية متوافقة مع OpenAI. يلزم Chat Completions بدون بث.",
+  "modelAddedTo": "تمت إضافة النموذج إلى {provider}",
+  "modelUpdated": "تم تحديث النموذج",
+  "modelDeleted": "تم حذف النموذج",
+  "modelShownInPicker": "يظهر النموذج في قائمة الاختيار",
+  "modelHiddenFromPicker": "أُخفي النموذج من قائمة الاختيار",
+  "authFailureNote": "فشلت المصادقة ({message}) لدى {provider}. حدّث مفتاحه أدناه وأعد المحاولة.",
+  "latencyAvg": "بمتوسط {seconds} ث",
+  "noModelsYet": "لا توجد نماذج بعد",
+  "noModelsYetDescription": "أضف نموذجًا لتشغيل إعادة الصياغة.",
+  "deleteAction": "حذف",
+  "chooseTargetForcedSubtitle": "اختر الملف المستخدم لإعادة الصياغة. مطلوب للمتابعة.",
+  "variantDefaultTag": "افتراضي",
+  "rewriteTab": "إعادة صياغة",
+  "emptyPrimerSubtitle": "تُدرج النبرة المختارة عند المؤشر مباشرة، وتبقى البدائل هنا.",
+  "onboardingDoneDescription": "اكتمل الإعداد. حدّد نصًا في أي مكان واستخدم اختصارك.",
+  "onboardingDoneTitle": "كل شيء جاهز",
+  "shortcutsResetConfirm": "ستعود الاختصارات العامة الثلاثة إلى قيمها الافتراضية.",
+  "shortcutsFixedNote": "‏⌘↵ يبدأ إعادة الصياغة من شاشة Rewrite، و Esc يلغي العملية الجارية. هذان الاختصاران ثابتان.",
+  "emptyPrimerLead": "حدّد نصًا في أي تطبيق واضغط",
+  "emptyPrimerRewriteTail": "لإعادة صياغته.",
+  "contextShortcutHintLead": "حدّد نصًا واضغط",
+  "contextShortcutHintReplace": "لاستبدال هذا السياق، أو",
+  "contextShortcutHintAppend": "للإضافة إليه."
 }

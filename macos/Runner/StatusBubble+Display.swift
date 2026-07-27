@@ -6,7 +6,7 @@ extension StatusBubble {
     /// Shows the processing state with spinner animation
     func showProcessing() {
         spinnerView.isHidden = false
-        spinnerView.startAnimation(nil)
+        spinnerView.startAnimating()
         iconLabel.isHidden = true
 
         containerView.layer?.borderWidth = 0
@@ -14,7 +14,7 @@ extension StatusBubble {
 
     /// Shows the success state with checkmark icon
     func showSuccess() {
-        spinnerView.stopAnimation(nil)
+        spinnerView.stopAnimating()
         spinnerView.isHidden = true
 
         iconLabel.stringValue = "✓"
@@ -29,7 +29,7 @@ extension StatusBubble {
 
     /// Shows the cancelled state with X icon
     func showCancelled() {
-        spinnerView.stopAnimation(nil)
+        spinnerView.stopAnimating()
         spinnerView.isHidden = true
 
         iconLabel.stringValue = "✗"
@@ -48,7 +48,7 @@ extension StatusBubble {
         #if DEBUG
         print("🔴 StatusBubble: showError() with message: \(message)")
         #endif
-        spinnerView.stopAnimation(nil)
+        spinnerView.stopAnimating()
         spinnerView.isHidden = true
 
         iconLabel.stringValue = "!"

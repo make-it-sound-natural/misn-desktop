@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/models/target_profile.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
-import 'package:make_it_sound_natural/theme/app_theme.dart';
-import 'package:make_it_sound_natural/widgets/app_dialog_escape_dismiss.dart';
+import 'package:make_it_sound_natural/widgets/app_dialog_shell.dart';
 
 /// User-entered custom target profile values.
 class TargetProfileDraft {
@@ -82,79 +81,47 @@ class _TargetProfileEditorDialogState extends State<TargetProfileEditorDialog> {
         ? l10n.addCustom
         : l10n.editPrompt;
 
-    return AppDialogEscapeDismiss<TargetProfileDraft>(
-      child: Dialog(
-        insetPadding: const EdgeInsets.all(AppSpacing.xl),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-        ),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(
-            maxWidth: AppSizes.dialogCompactMaxWidth,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.language_rounded,
-                      color: AppColors.primary,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      title,
-                      style: AppTextStyles.pageTitleOf(context),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                TextField(
-                  key: const Key('targetProfileNameField'),
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    labelText: l10n.targetProfileName,
-                    helperText: _nameController.text.trim().isEmpty
-                        ? l10n.fieldRequired
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                TextField(
-                  key: const Key('targetProfileInstructionField'),
-                  controller: _instructionController,
-                  minLines: 3,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    labelText: l10n.targetProfileInstruction,
-                    helperText: _instructionController.text.trim().isEmpty
-                        ? l10n.fieldRequired
-                        : null,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: Text(l10n.cancel),
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    ElevatedButton(
-                      onPressed: _canSave ? _save : null,
-                      child: Text(l10n.save),
-                    ),
-                  ],
-                ),
-              ],
+    return AppDialogShell(
+      title: title,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            key: const Key('targetProfileNameField'),
+            controller: _nameController,
+            decoration: InputDecoration(
+              labelText: l10n.targetProfileName,
+              helperText: _nameController.text.trim().isEmpty
+                  ? l10n.fieldRequired
+                  : null,
             ),
           ),
-        ),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            key: const Key('targetProfileInstructionField'),
+            controller: _instructionController,
+            minLines: 3,
+            maxLines: 5,
+            decoration: InputDecoration(
+              labelText: l10n.targetProfileInstruction,
+              helperText: _instructionController.text.trim().isEmpty
+                  ? l10n.fieldRequired
+                  : null,
+            ),
+          ),
+        ],
       ),
+      actions: [
+        OutlinedButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: _canSave ? _save : null,
+          child: Text(l10n.save),
+        ),
+      ],
     );
   }
 }

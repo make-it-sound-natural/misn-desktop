@@ -6,6 +6,7 @@ import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/screens/settings_screen.dart';
 import 'package:make_it_sound_natural/theme/app_theme.dart';
+import 'package:make_it_sound_natural/widgets/app_popup_select.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -428,22 +429,23 @@ void main() {
     );
   });
 
-  testWidgets('Writing dropdowns use readable dark colors', (tester) async {
+  testWidgets('Writing pop-up selects use readable dark colors', (
+    tester,
+  ) async {
     await pumpDarkWritingSettings(tester);
 
-    final filledControls = tester
-        .widgetList<InputDecorator>(find.byType(InputDecorator))
-        .where(
-          (decorator) =>
-              decorator.decoration.fillColor == AppColors.darkControlSurface,
-        );
-    expect(filledControls.length, greaterThanOrEqualTo(2));
+    final selects = find.byType(AppPopupSelect<String>);
+    expect(selects, findsWidgets);
 
-    expect(
-      filledControls.every(
-        (decorator) => decorator.decoration.filled ?? false,
-      ),
-      isTrue,
+    // The control reads its fill from the scheme, which maps to the dark
+    // field token; asserting the rendered decoration catches a regression in
+    // either direction.
+    final container = tester.widget<Container>(
+      find
+          .descendant(of: selects.first, matching: find.byType(Container))
+          .first,
     );
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.color, AppColors.darkField);
   });
 }

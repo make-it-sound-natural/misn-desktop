@@ -39,21 +39,48 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('uses traffic-light safe leading inset at compact widths', (
+  testWidgets('carries only the view switcher, no app name or icon', (
     tester,
   ) async {
-    await pumpHeader(tester, width: 800);
+    await pumpHeader(tester, width: 1_200);
 
-    final iconLeft = tester.getTopLeft(find.byType(Image)).dx;
-
-    expect(iconLeft, AppSizes.headerTrafficLightInset);
+    expect(find.byType(AppSegmentedTabs), findsOneWidget);
+    // macOS shows the app name in the menu bar and the icon in the Dock;
+    // repeating either inside the window is what made the band feel heavy.
+    expect(find.byType(Image), findsNothing);
+    expect(find.text('Make It Sound Natural'), findsNothing);
   });
 
-  testWidgets('uses wide leading inset at wide widths', (tester) async {
-    await pumpHeader(tester, width: 1_600);
+  testWidgets('reserves a fixed traffic-light inset at every width', (
+    tester,
+  ) async {
+    for (final width in [800.0, 1_600.0]) {
+      await pumpHeader(tester, width: width);
 
-    final iconLeft = tester.getTopLeft(find.byType(Image)).dx;
+      final tabsLeft = tester.getTopLeft(find.byType(AppSegmentedTabs)).dx;
+      expect(
+        tabsLeft,
+        greaterThan(AppSizes.headerTrafficLightInset),
+        reason: 'tabs must never overlap the traffic lights',
+      );
+    }
+  });
 
-    expect(iconLeft, AppSizes.headerWideLeadingInset);
+  testWidgets('is transparent so the window material shows through', (
+    tester,
+  ) async {
+    await pumpHeader(tester, width: 1_200);
+
+    final container = tester.widget<Container>(
+      find
+          .descendant(
+            of: find.byType(AppWindowHeader),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    final decoration = container.decoration! as BoxDecoration;
+    expect(decoration.color, isNull);
+    expect(decoration.border, isNotNull);
   });
 }

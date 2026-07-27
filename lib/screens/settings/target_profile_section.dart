@@ -6,6 +6,7 @@ import 'package:make_it_sound_natural/models/target_profile.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
 import 'package:make_it_sound_natural/services/target_profile_service.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
+import 'package:make_it_sound_natural/widgets/app_toast.dart';
 import 'package:make_it_sound_natural/widgets/target_profile_editor_dialog.dart';
 import 'package:make_it_sound_natural/widgets/target_profile_picker_dialog.dart';
 
@@ -56,9 +57,7 @@ class _TargetProfileSettingsRowState extends State<TargetProfileSettingsRow> {
 
     setState(() => _profile = profile);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.targetProfileSaved)),
-    );
+    showAppToast(context, AppLocalizations.of(context)!.targetProfileSaved);
   }
 
   Future<void> _removeCurrentProfile() async {
@@ -78,12 +77,9 @@ class _TargetProfileSettingsRowState extends State<TargetProfileSettingsRow> {
 
     setState(() => _profile = result.fallbackProfile);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          AppLocalizations.of(context)!.targetProfileResetToDefault,
-        ),
-      ),
+    showAppToast(
+      context,
+      AppLocalizations.of(context)!.targetProfileResetToDefault,
     );
   }
 
@@ -108,9 +104,7 @@ class _TargetProfileSettingsRowState extends State<TargetProfileSettingsRow> {
       );
     } on TargetProfileValidationException catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.message)),
-      );
+      showAppToast(context, error.message);
       return;
     }
     await _shortcutService.setTargetProfile(
@@ -121,9 +115,7 @@ class _TargetProfileSettingsRowState extends State<TargetProfileSettingsRow> {
 
     setState(() => _profile = updatedProfile);
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.targetProfileSaved)),
-    );
+    showAppToast(context, AppLocalizations.of(context)!.targetProfileSaved);
   }
 
   @override
@@ -133,9 +125,7 @@ class _TargetProfileSettingsRowState extends State<TargetProfileSettingsRow> {
     return AppSettingsRow(
       key: const Key('targetProfileSettingsRow'),
       onTap: _chooseProfile,
-      leading: const AppSettingsIconTile(
-        icon: Icons.language_rounded,
-      ),
+      leading: const AppSettingsRowIcon(icon: Icons.language_rounded),
       title: l10n.targetLanguage,
       subtitle: _profile?.name ?? l10n.chooseTargetLanguage,
       trailing: Row(

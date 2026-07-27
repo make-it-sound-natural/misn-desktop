@@ -18,7 +18,14 @@ class StatusBubble: NSPanel {
     // MARK: - UI Components
 
     let containerView = NSView()
-    let spinnerView = NSProgressIndicator()
+    let spinnerView = StatusBubbleSpinnerView(
+        frame: NSRect(
+            x: 0,
+            y: 0,
+            width: StatusBubbleSpinnerView.diameter,
+            height: StatusBubbleSpinnerView.diameter
+        )
+    )
     let iconLabel = NSTextField(labelWithString: "")
 
     // App theme colors

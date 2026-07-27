@@ -7,8 +7,13 @@ import 'package:make_it_sound_natural/models/screen_recording_permission_status.
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/widgets/app_panel.dart';
+import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
 
-/// First-run onboarding shell.
+const double _stepDotSize = 6;
+const double _stepDotGap = 6;
+const double _onboardingMaxWidth = 640;
+
+/// First-run setup flow shown before the main window.
 class OnboardingScreen extends StatefulWidget {
   /// Creates the onboarding shell.
   const OnboardingScreen({
@@ -166,112 +171,120 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
     return Scaffold(
       key: const Key('onboarding-screen'),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xxl),
-            child: AppPanel(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.onboardingTitle,
-                    style: AppTextStyles.pageTitleOf(context),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(step.icon, size: 28),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              step.title,
-                              style: AppTextStyles.sectionTitleOf(context),
-                            ),
-                            const SizedBox(height: AppSpacing.sm),
-                            Text(
-                              step.description,
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            ),
-                            if (_state.lastStep ==
-                                OnboardingStep.screenshotContext)
-                              _buildScreenshotContextChoices(l10n),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  if (_state.lastStep == OnboardingStep.accessibility) ...[
-                    _AccessibilityStatusRow(
-                      status: _accessibilityStatus,
-                      l10n: l10n,
+      // Scrolls so the panel survives short windows and larger text sizes.
+      body: SingleChildScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _onboardingMaxWidth),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.xxl),
+              child: AppPanel(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.onboardingTitle,
+                      style: AppTextStyles.pageTitleOf(context),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                  ] else if (_state.accessibilitySkipped &&
-                      _state.lastStep != OnboardingStep.done) ...[
-                    _WarningText(l10n.onboardingAccessibilitySkipped),
-                    const SizedBox(height: AppSpacing.xl),
-                  ],
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Wrap(
-                      spacing: AppSpacing.sm,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (_state.lastStep ==
-                            OnboardingStep.accessibility) ...[
-                          TextButton(
-                            key: const Key(
-                              'onboarding-accessibility-check-again',
-                            ),
-                            onPressed: _refreshAccessibilityStatus,
-                            child: Text(l10n.onboardingAccessibilityCheckAgain),
+                        AppSettingsRowIcon(icon: step.icon),
+                        const SizedBox(width: AppSpacing.smPlus),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                step.title,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              Text(
+                                step.description,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              if (_state.lastStep ==
+                                  OnboardingStep.screenshotContext)
+                                _buildScreenshotContextChoices(l10n),
+                            ],
                           ),
-                          TextButton(
-                            key: const Key('onboarding-accessibility-skip'),
-                            onPressed: _skipAccessibility,
-                            child: Text(l10n.onboardingAccessibilitySkip),
-                          ),
-                          FilledButton(
-                            key: const Key('onboarding-accessibility-grant'),
-                            onPressed:
-                                _accessibilityStatus ==
-                                    _AccessibilityOnboardingStatus.requesting
-                                ? null
-                                : _requestAccessibility,
-                            child: Text(l10n.onboardingAccessibilityGrant),
-                          ),
-                        ] else if (_state.lastStep ==
-                            OnboardingStep.screenshotContext)
-                          TextButton(
-                            key: const Key('onboarding-skip-optional'),
-                            onPressed: _skipOptional,
-                            child: Text(l10n.onboardingSkipOptional),
-                          ),
-                        if (_state.lastStep == OnboardingStep.done)
-                          FilledButton(
-                            key: const Key('onboarding-complete'),
-                            onPressed: _complete,
-                            child: Text(l10n.onboardingComplete),
-                          )
-                        else if (_state.lastStep !=
-                            OnboardingStep.accessibility)
-                          FilledButton(
-                            key: const Key('onboarding-continue'),
-                            onPressed: () => unawaited(_continue()),
-                            child: Text(l10n.onboardingContinue),
-                          ),
+                        ),
                       ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: AppSpacing.xl),
+                    if (_state.lastStep == OnboardingStep.accessibility) ...[
+                      _AccessibilityStatusRow(
+                        status: _accessibilityStatus,
+                        l10n: l10n,
+                      ),
+                      const SizedBox(height: AppSpacing.xl),
+                    ] else if (_state.accessibilitySkipped &&
+                        _state.lastStep != OnboardingStep.done) ...[
+                      _WarningText(l10n.onboardingAccessibilitySkipped),
+                      const SizedBox(height: AppSpacing.xl),
+                    ],
+                    _StepDots(current: _state.lastStep.index, total: 4),
+                    const SizedBox(height: AppSpacing.xl),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Wrap(
+                        spacing: AppSpacing.sm,
+                        children: [
+                          if (_state.lastStep ==
+                              OnboardingStep.accessibility) ...[
+                            TextButton(
+                              key: const Key(
+                                'onboarding-accessibility-check-again',
+                              ),
+                              onPressed: _refreshAccessibilityStatus,
+                              child: Text(
+                                l10n.onboardingAccessibilityCheckAgain,
+                              ),
+                            ),
+                            TextButton(
+                              key: const Key('onboarding-accessibility-skip'),
+                              onPressed: _skipAccessibility,
+                              child: Text(l10n.onboardingAccessibilitySkip),
+                            ),
+                            FilledButton(
+                              key: const Key('onboarding-accessibility-grant'),
+                              onPressed:
+                                  _accessibilityStatus ==
+                                      _AccessibilityOnboardingStatus.requesting
+                                  ? null
+                                  : _requestAccessibility,
+                              child: Text(l10n.onboardingAccessibilityGrant),
+                            ),
+                          ] else if (_state.lastStep ==
+                              OnboardingStep.screenshotContext)
+                            TextButton(
+                              key: const Key('onboarding-skip-optional'),
+                              onPressed: _skipOptional,
+                              child: Text(l10n.onboardingSkipOptional),
+                            ),
+                          if (_state.lastStep == OnboardingStep.done)
+                            FilledButton(
+                              key: const Key('onboarding-complete'),
+                              onPressed: _complete,
+                              child: Text(l10n.onboardingComplete),
+                            )
+                          else if (_state.lastStep !=
+                              OnboardingStep.accessibility)
+                            FilledButton(
+                              key: const Key('onboarding-continue'),
+                              onPressed: () => unawaited(_continue()),
+                              child: Text(l10n.onboardingContinue),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -299,8 +312,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
       OnboardingStep.done => _OnboardingStepContent(
         icon: Icons.check_circle_rounded,
-        title: l10n.onboardingTitle,
-        description: l10n.onboardingScreenshotDescription,
+        title: l10n.onboardingDoneTitle,
+        description: l10n.onboardingDoneDescription,
       ),
     };
   }
@@ -368,6 +381,38 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       key: const Key('onboarding-screenshot-status'),
       text,
       style: Theme.of(context).textTheme.bodySmall,
+    );
+  }
+}
+
+/// Progress dots for the four setup steps.
+class _StepDots extends StatelessWidget {
+  const _StepDots({required this.current, required this.total});
+
+  final int current;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Row(
+      children: [
+        for (var i = 0; i < total; i++) ...[
+          if (i > 0) const SizedBox(width: _stepDotGap),
+          Container(
+            width: _stepDotSize,
+            height: _stepDotSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: i == current
+                  ? colorScheme.primary
+                  : i < current
+                  ? colorScheme.onSurfaceVariant
+                  : Theme.of(context).dividerColor,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

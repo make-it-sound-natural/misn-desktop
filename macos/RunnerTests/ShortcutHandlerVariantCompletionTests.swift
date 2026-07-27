@@ -33,7 +33,12 @@ final class ShortcutHandlerVariantCompletionTests: XCTestCase {
             statusBubble: bubble
         )
 
-        handler.variantHandler(VariantHandler(), didCompleteSuccessfully: true)
+        handler.variantHandler(
+            VariantHandler(),
+            didCompleteSuccessfully: true,
+            pastedText: "hello",
+            inApp: "com.example.editor"
+        )
 
         XCTAssertEqual(
             bubble.hideCallCount,
@@ -49,7 +54,12 @@ final class ShortcutHandlerVariantCompletionTests: XCTestCase {
             statusBubble: bubble
         )
 
-        handler.variantHandler(VariantHandler(), didCompleteSuccessfully: false)
+        handler.variantHandler(
+            VariantHandler(),
+            didCompleteSuccessfully: false,
+            pastedText: nil,
+            inApp: nil
+        )
 
         XCTAssertEqual(bubble.hideCallCount, 0)
     }

@@ -1,16 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:make_it_sound_natural/theme/app_theme.dart';
 
 /// Shared layout, radius, size, and typography tokens for desktop UI.
 abstract final class AppSpacing {
   /// 4 px spacing token.
   static const double xxs = 4;
 
+  /// 6 px spacing token.
+  ///
+  /// Half-step between [xxs] and [xs]. The compact desktop density needs 2 px
+  /// granularity below 8 px: badge insets and tight vertical stacks land here.
+  static const double xxsPlus = 6;
+
   /// 8 px spacing token.
   static const double xs = 8;
 
+  /// 10 px spacing token — half-step between [xs] and [sm].
+  static const double xsPlus = 10;
+
   /// 12 px spacing token.
   static const double sm = 12;
+
+  /// 14 px spacing token — half-step between [sm] and [md].
+  ///
+  /// The shared vertical padding of fields, variant cards, and skeletons; the
+  /// value is load-bearing, so it is named rather than snapped to 16.
+  static const double smPlus = 14;
 
   /// 16 px spacing token.
   static const double md = 16;
@@ -23,16 +37,13 @@ abstract final class AppSpacing {
 
   /// 32 px spacing token.
   static const double xxl = 32;
-
-  /// 40 px spacing token.
-  static const double xxxl = 40;
-
-  /// 48 px spacing token.
-  static const double huge = 48;
 }
 
 /// Shared corner radii.
 abstract final class AppRadius {
+  /// 5 px radius, for keycap chips and other small inline pills.
+  static const double xs = 5;
+
   /// 8 px radius.
   static const double sm = 8;
 
@@ -52,7 +63,10 @@ abstract final class AppRadius {
 /// Shared fixed dimensions and responsive width caps.
 abstract final class AppSizes {
   /// Main macOS window header height.
-  static const double headerHeight = 68;
+  ///
+  /// Matches AppKit's compact unified toolbar: this band carries one small
+  /// control, not a full toolbar's worth.
+  static const double headerHeight = 40;
 
   /// Segmented tab height.
   static const double tabHeight = 40;
@@ -60,20 +74,18 @@ abstract final class AppSizes {
   /// Segmented tab width.
   static const double tabWidth = 96;
 
-  /// Rewrite width where Source and Variants switch to side-by-side.
-  static const double rewriteTwoPanelBreakpoint = 1100;
+  /// Widest the Rewrite content grows before it stops filling the window.
+  ///
+  /// Caps each column near 500pt, which keeps the rewrite text inside a
+  /// readable measure on a large display.
+  static const double rewriteMaxContentWidth = 1240;
 
   /// Header leading inset that clears macOS traffic-light controls.
-  static const double headerTrafficLightInset = 136;
-
-  /// Header leading inset for wide desktop windows.
-  static const double headerWideLeadingInset = 152;
-
-  /// Width where the header uses the wide leading inset.
-  static const double headerWideBreakpoint = 1500;
-
-  /// Width where the header uses wider trailing padding.
-  static const double headerTrailingBreakpoint = 980;
+  ///
+  /// The cluster's right edge sits at 69pt; AppKit's own toolbars start their
+  /// first item near 80pt. The lights do not move when the window widens, so
+  /// this inset is fixed.
+  static const double headerTrafficLightInset = 80;
 
   /// Compact desktop row height.
   static const double compactRowHeight = 52;
@@ -83,12 +95,6 @@ abstract final class AppSizes {
 
   /// Small icon tile.
   static const double iconTileSmall = 44;
-
-  /// Default settings icon tile.
-  static const double iconTile = 44;
-
-  /// Main content max width.
-  static const double contentMaxWidth = 980;
 
   /// Dialog max width.
   static const double dialogMaxWidth = 720;
@@ -102,87 +108,136 @@ abstract final class AppSizes {
   /// Compact settings trailing control width.
   static const double settingsControlWidth = 280;
 
-  /// Default form control width.
-  static const double controlWidth = 464;
+  /// Trailing control width where the value is a model id or a URL.
+  ///
+  /// Wider than [settingsControlWidth] because a monospaced slug does not
+  /// ellipsise gracefully; named so the two widths are a documented choice
+  /// rather than one section quietly disagreeing with the others.
+  static const double settingsWideControlWidth = 320;
 
-  /// Maximum form control width.
-  static const double controlMaxWidth = 490;
+  /// Settings row glyph size.
+  static const double rowIconSize = 22;
+
+  /// Inline glyph beside body text (badges, hints, notes).
+  static const double iconSm = 14;
+
+  /// Default glyph inside compact controls and menu rows.
+  static const double iconMd = 16;
+
+  /// Glyph inside row actions, toasts, and dialog affordances.
+  static const double iconLg = 18;
+
+  /// Segmented tab height in the window header.
+  ///
+  /// Deliberately shorter than [tabHeight]: the header band is 40pt tall and
+  /// the raised segment has to sit inside it with breathing room.
+  static const double segmentedTabHeight = 28;
+
+  /// Standard form control height (selects, inputs, secondary buttons).
+  static const double controlHeight = 36;
+
+  /// Primary call-to-action height on the Rewrite screen.
+  static const double ctaHeight = 40;
+
+  /// Widest the Settings content pane grows before it stops filling the pane.
+  ///
+  /// Without it the pane stretched to the window: on a wide display a row's
+  /// title sat at one edge and its control at the other, while the Rewrite
+  /// tab stayed capped — switching tabs read as switching apps.
+  static const double settingsMaxContentWidth = 980;
+
+  /// Settings sidebar row height.
+  ///
+  /// Its own token rather than borrowing [tabHeight], which documents itself
+  /// as the segmented tab height — the sidebar's density was coupled to an
+  /// unrelated control by accident.
+  static const double sidebarRowHeight = 40;
+
+  /// Settings sidebar width.
+  static const double settingsSidebarWidth = 236;
+
+  /// Floating toast width.
+  static const double toastWidth = 420;
 }
 
 /// Shared typography roles.
 abstract final class AppTextStyles {
-  /// Application title in the window header.
-  static const TextStyle appTitle = TextStyle(
-    color: Color(0xFF101828),
-    fontSize: 22,
-    fontWeight: FontWeight.w700,
-  );
-
-  /// Settings or page title.
-  static const TextStyle pageTitle = TextStyle(
-    color: Color(0xFF101828),
-    fontSize: 24,
-    fontWeight: FontWeight.w800,
-  );
-
-  /// Main content section title.
-  static const TextStyle sectionTitle = TextStyle(
-    color: AppColors.primary,
-    fontSize: 14,
-    fontWeight: FontWeight.w800,
-  );
-
-  /// Settings row title.
-  static const TextStyle rowTitle = TextStyle(
-    color: Color(0xFF101828),
-    fontSize: 15,
-    fontWeight: FontWeight.w700,
-  );
-
-  /// Settings row subtitle.
-  static const TextStyle rowSubtitle = TextStyle(
-    color: Color(0xFF667085),
-    fontSize: 13,
-  );
-
-  /// Form and button control text.
-  static const TextStyle control = TextStyle(
-    color: Color(0xFF101828),
-    fontSize: 15,
-    fontWeight: FontWeight.w600,
-  );
-
-  /// Small helper or status text.
-  static const TextStyle helper = TextStyle(
-    color: Color(0xFF667085),
-    fontSize: 13,
-  );
-
-  /// Application title adjusted by current theme text size.
-  static TextStyle appTitleOf(BuildContext context) {
-    return Theme.of(context).textTheme.titleLarge!.copyWith(
-      fontWeight: FontWeight.w700,
-    );
-  }
-
   /// Page title adjusted by current theme text size.
   static TextStyle pageTitleOf(BuildContext context) {
     return Theme.of(context).textTheme.headlineMedium!.copyWith(
-      fontWeight: FontWeight.w800,
+      fontWeight: FontWeight.w700,
+      // Display type needs more optical tightening than the smaller headers,
+      // not less; without it the sidebar title read loose against them.
+      letterSpacing: -0.4,
     );
   }
 
-  /// Section title adjusted by current theme text size.
-  static TextStyle sectionTitleOf(BuildContext context) {
-    return Theme.of(context).textTheme.bodyMedium!.copyWith(
-      color: Theme.of(context).brightness == Brightness.dark
-          ? Theme.of(context).colorScheme.primary
-          : AppColors.primary,
-      fontWeight: FontWeight.w800,
+  /// Uppercase muted eyebrow above a Rewrite panel.
+  static TextStyle eyebrowOf(BuildContext context) {
+    final base = Theme.of(context).textTheme.bodySmall!;
+    return base.copyWith(
+      fontSize: base.fontSize! - 1,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 1,
+    );
+  }
+
+  /// Settings section header.
+  static TextStyle settingsHeaderOf(BuildContext context) {
+    return Theme.of(context).textTheme.titleLarge!.copyWith(
+      color: Theme.of(context).colorScheme.onSurface,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.2,
+    );
+  }
+
+  /// Group title inside a settings section, and field labels inside a panel.
+  ///
+  /// The two ranks are deliberately identical: the mockups spell `.group-title`
+  /// and `.field-label` the same. Based on `bodyMedium` rather than `bodySmall`
+  /// so a heading is never smaller than the rows it heads — at the default
+  /// text size the old value put a 12px title over 14px row titles.
+  static TextStyle groupTitleOf(BuildContext context) {
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    return base.copyWith(
+      fontSize: base.fontSize! - 1,
+      color: Theme.of(context).colorScheme.onSurface,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -0.1,
+    );
+  }
+
+  /// Monospaced face, reserved for model ids, base URLs, and latency numbers.
+  ///
+  /// One declaration so the rule stays enforceable: the face used to be
+  /// spelled out as the literal `'Menlo'` in four places.
+  static const String monoFontFamily = 'Menlo';
+
+  /// Model ids and base URLs shown inline.
+  static TextStyle monoOf(BuildContext context) {
+    final base = Theme.of(context).textTheme.bodyMedium!;
+    return base.copyWith(
+      fontFamily: monoFontFamily,
+      fontSize: base.fontSize! - 1,
+    );
+  }
+
+  /// Secondary monospaced detail (latency, slugs inside a row subtitle).
+  static TextStyle monoDetailOf(BuildContext context) {
+    final base = Theme.of(context).textTheme.bodySmall!;
+    return base.copyWith(
+      fontFamily: monoFontFamily,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
     );
   }
 
   /// Settings row title adjusted by current theme text size.
+  ///
+  /// w700 to match the mockups and the variant card, which were already at
+  /// 700 — the same structural element used to read bolder on Rewrite than in
+  /// Settings. Weight and tracking separate this from [groupTitleOf], not an
+  /// inverted size step.
   static TextStyle rowTitleOf(BuildContext context) {
     return Theme.of(context).textTheme.bodyMedium!.copyWith(
       color: Theme.of(context).colorScheme.onSurface,
@@ -197,11 +252,9 @@ abstract final class AppTextStyles {
     );
   }
 
-  /// Form and button control text adjusted by current theme text size.
-  static TextStyle controlOf(BuildContext context) {
-    return Theme.of(context).textTheme.bodyMedium!.copyWith(
-      color: Theme.of(context).colorScheme.onSurface,
-      fontWeight: FontWeight.w600,
-    );
-  }
+  /// Form and button control text.
+  ///
+  /// Identical to [rowTitleOf] by design: a control's label and the row that
+  /// holds it sit at the same rank.
+  static TextStyle controlOf(BuildContext context) => rowTitleOf(context);
 }

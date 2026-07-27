@@ -37,14 +37,12 @@ extension StatusBubble {
         contentView.addSubview(containerView)
 
         // Spinner for processing state
-        spinnerView.style = .spinning
-        spinnerView.controlSize = .small
-        spinnerView.isIndeterminate = true
+        let spinnerSize = StatusBubbleSpinnerView.diameter
         spinnerView.frame = NSRect(
-            x: (bubbleSize - 20) / 2,
-            y: (bubbleSize - 20) / 2,
-            width: 20,
-            height: 20
+            x: (bubbleSize - spinnerSize) / 2,
+            y: (bubbleSize - spinnerSize) / 2,
+            width: spinnerSize,
+            height: spinnerSize
         )
         containerView.addSubview(spinnerView)
 
@@ -62,7 +60,17 @@ extension StatusBubble {
             from: [.darkAqua, .aqua]
         ) == .darkAqua
         containerView.layer?.backgroundColor = isDarkMode
-            ? NSColor(white: 0.2, alpha: 0.95).cgColor
-            : NSColor(white: 0.95, alpha: 0.95).cgColor
+            ? BubbleColors.backgroundDark.cgColor
+            : BubbleColors.backgroundLight.cgColor
+
+        // Track and arc follow the app's border/muted tokens per appearance.
+        spinnerView.applyColors(
+            track: isDarkMode
+                ? BubbleColors.trackDark
+                : BubbleColors.trackLight,
+            head: isDarkMode
+                ? BubbleColors.arcDark
+                : BubbleColors.arcLight
+        )
     }
 }

@@ -28,6 +28,10 @@
 		STATUSCTL001 /* StatusBubbleControlling.swift in Sources */ = {isa = PBXBuildFile; fileRef = STATUSCTL002 /* StatusBubbleControlling.swift */; };
 		SPARKLE001234567890ABCD /* SparkleUpdater.swift in Sources */ = {isa = PBXBuildFile; fileRef = SPARKLE001234567890ABCE /* SparkleUpdater.swift */; };
 		331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C80D7294CF71000263BE5 /* RunnerTests.swift */; };
+		BUBSNAP01 /* StatusBubbleSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BUBSNAP02 /* StatusBubbleSnapshotTests.swift */; };
+		BUBCOLOR01 /* BubbleColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = BUBCOLOR02 /* BubbleColors.swift */; };
+		PASTETEST01 /* PasteVerificationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = PASTETEST02 /* PasteVerificationTests.swift */; };
+		TXTREPTEST01 /* TextReplacerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TXTREPTEST02 /* TextReplacerTests.swift */; };
 		335BBD1B22A9A15E00E9071D /* GeneratedPluginRegistrant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */; };
 		33CC10F12044A3C60003C045 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33CC10F02044A3C60003C045 /* AppDelegate.swift */; };
 		33CC10F32044A3C60003C045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33CC10F22044A3C60003C045 /* Assets.xcassets */; };
@@ -54,6 +58,8 @@
 		TOKENCOUNTER1 /* TokenCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = TOKENCOUNTER2 /* TokenCounter.swift */; };
 		VARIANTHAND01 /* VariantHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = VARIANTHAND02 /* VariantHandler.swift */; };
 		STATUSBUBUI01 /* StatusBubble+UI.swift in Sources */ = {isa = PBXBuildFile; fileRef = STATUSBUBUI02 /* StatusBubble+UI.swift */; };
+		STATUSBUBSPIN01 /* StatusBubbleSpinnerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = STATUSBUBSPIN02 /* StatusBubbleSpinnerView.swift */; };
+		PASTEVER01 /* AccessibilityHelper+PasteVerification.swift in Sources */ = {isa = PBXBuildFile; fileRef = PASTEVER02 /* AccessibilityHelper+PasteVerification.swift */; };
 		STATUSBUBDI01 /* StatusBubble+Display.swift in Sources */ = {isa = PBXBuildFile; fileRef = STATUSBUBDI02 /* StatusBubble+Display.swift */; };
 		STATUSBUBTR01 /* StatusBubble+Tracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = STATUSBUBTR02 /* StatusBubble+Tracking.swift */; };
 		SHORTCUTDISP1 /* ShortcutDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHORTCUTDISP2 /* ShortcutDispatcher.swift */; };
@@ -107,6 +113,10 @@
 		2BB7E992073C5568D8E11356 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C80D7294CF71000263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
+		BUBSNAP02 /* StatusBubbleSnapshotTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusBubbleSnapshotTests.swift; sourceTree = "<group>"; };
+		BUBCOLOR02 /* BubbleColors.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BubbleColors.swift; sourceTree = "<group>"; };
+		PASTETEST02 /* PasteVerificationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PasteVerificationTests.swift; sourceTree = "<group>"; };
+		TXTREPTEST02 /* TextReplacerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextReplacerTests.swift; sourceTree = "<group>"; };
 		333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = "<group>"; };
 		335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedPluginRegistrant.swift; sourceTree = "<group>"; };
 		33CC10ED2044A3C60003C045 /* flutter_app.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = flutter_app.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -163,6 +173,8 @@
 		TOKENCOUNTER2 /* TokenCounter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenCounter.swift; sourceTree = "<group>"; };
 		VARIANTHAND02 /* VariantHandler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VariantHandler.swift; sourceTree = "<group>"; };
 		STATUSBUBUI02 /* StatusBubble+UI.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "StatusBubble+UI.swift"; sourceTree = "<group>"; };
+		STATUSBUBSPIN02 /* StatusBubbleSpinnerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = StatusBubbleSpinnerView.swift; sourceTree = "<group>"; };
+		PASTEVER02 /* AccessibilityHelper+PasteVerification.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AccessibilityHelper+PasteVerification.swift"; sourceTree = "<group>"; };
 		STATUSBUBDI02 /* StatusBubble+Display.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "StatusBubble+Display.swift"; sourceTree = "<group>"; };
 		STATUSBUBTR02 /* StatusBubble+Tracking.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "StatusBubble+Tracking.swift"; sourceTree = "<group>"; };
 		SHORTCUTDISP2 /* ShortcutDispatcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShortcutDispatcher.swift; sourceTree = "<group>"; };
@@ -220,6 +232,9 @@
 			isa = PBXGroup;
 			children = (
 				331C80D7294CF71000263BE5 /* RunnerTests.swift */,
+				BUBSNAP02 /* StatusBubbleSnapshotTests.swift */,
+				PASTETEST02 /* PasteVerificationTests.swift */,
+				TXTREPTEST02 /* TextReplacerTests.swift */,
 				APPWINLIFETEST02 /* AppWindowLifecycleControllerTests.swift */,
 				LLMERRTEST02 /* LLMErrorMessageParserTests.swift */,
 				LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */,
@@ -302,6 +317,9 @@
 				A1B2C3D4E5F6789012345679 /* StatusBubble.swift */,
 				STATUSCTL002 /* StatusBubbleControlling.swift */,
 				STATUSBUBUI02 /* StatusBubble+UI.swift */,
+				STATUSBUBSPIN02 /* StatusBubbleSpinnerView.swift */,
+				PASTEVER02 /* AccessibilityHelper+PasteVerification.swift */,
+				BUBCOLOR02 /* BubbleColors.swift */,
 				STATUSBUBDI02 /* StatusBubble+Display.swift */,
 				STATUSBUBTR02 /* StatusBubble+Tracking.swift */,
 				B2038DE631C727B9BB088BD0 /* MethodChannelHandler.swift */,
@@ -573,6 +591,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				331C80D8294CF71000263BE5 /* RunnerTests.swift in Sources */,
+				BUBSNAP01 /* StatusBubbleSnapshotTests.swift in Sources */,
+				PASTETEST01 /* PasteVerificationTests.swift in Sources */,
+				TXTREPTEST01 /* TextReplacerTests.swift in Sources */,
 				APPWINLIFETEST01 /* AppWindowLifecycleControllerTests.swift in Sources */,
 				LLMERRTEST01 /* LLMErrorMessageParserTests.swift in Sources */,
 				LLMAUTHTEST01 /* LLMServiceAuthFailureTests.swift in Sources */,
@@ -597,6 +618,9 @@
 				A1B2C3D4E5F6789012345678 /* StatusBubble.swift in Sources */,
 				STATUSCTL001 /* StatusBubbleControlling.swift in Sources */,
 				STATUSBUBUI01 /* StatusBubble+UI.swift in Sources */,
+				STATUSBUBSPIN01 /* StatusBubbleSpinnerView.swift in Sources */,
+				PASTEVER01 /* AccessibilityHelper+PasteVerification.swift in Sources */,
+				BUBCOLOR01 /* BubbleColors.swift in Sources */,
 				STATUSBUBDI01 /* StatusBubble+Display.swift in Sources */,
 				STATUSBUBTR01 /* StatusBubble+Tracking.swift in Sources */,
 				9E1E4516C18E3F563B3BFBFA /* MethodChannelHandler.swift in Sources */,

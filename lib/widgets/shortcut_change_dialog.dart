@@ -9,7 +9,11 @@ import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/theme/app_theme.dart';
 import 'package:make_it_sound_natural/utils/logger.dart';
 import 'package:make_it_sound_natural/utils/shortcut_formatter.dart';
-import 'package:make_it_sound_natural/widgets/app_dialog_escape_dismiss.dart';
+import 'package:make_it_sound_natural/widgets/app_dialog_shell.dart';
+
+const double _recorderVerticalPadding = 26;
+const double _recorderGlowAlpha = 0.2;
+const double _feedbackRowHeight = 16;
 
 /// States for the keyboard shortcut recording process.
 enum ShortcutRecordingState {
@@ -194,156 +198,119 @@ class _ShortcutChangeDialogState extends State<ShortcutChangeDialog> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return AppDialogEscapeDismiss<String>(
-      child: AlertDialog(
-        insetPadding: const EdgeInsets.all(AppSpacing.xl),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.xl),
-        ),
-        titlePadding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl,
-          AppSpacing.xl,
-          AppSpacing.xl,
-          AppSpacing.xs,
-        ),
-        contentPadding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl,
-          0,
-          AppSpacing.xl,
-          AppSpacing.md,
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl,
-          0,
-          AppSpacing.xl,
-          AppSpacing.xl,
-        ),
-        title: Text(
-          l10n.changeShortcutTitle,
-          style: AppTextStyles.pageTitleOf(context),
-        ),
-        content: SingleChildScrollView(
-          child: SizedBox(
-            width: AppSizes.controlMinWidth,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Current Shortcut Display
-                Row(
-                  children: [
-                    Text(
-                      '${l10n.currentShortcut}: ',
-                      style: AppTextStyles.rowTitleOf(context),
+    return AppDialogShell(
+      title: l10n.changeShortcutTitle,
+      // Escape cancels recording rather than being captured as the new
+      // shortcut; the caller blocks barrier taps instead.
+      content: SizedBox(
+        width: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '${l10n.currentShortcut}: ',
+                    style: AppTextStyles.groupTitleOf(context),
+                  ),
+                  TextSpan(
+                    text: ShortcutFormatter.formatShortcutDisplay(
+                      widget.currentShortcut,
                     ),
-                    Text(
-                      ShortcutFormatter.formatShortcutDisplay(
-                        widget.currentShortcut,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.lg),
-
-                Text(
-                  l10n.newShortcut,
-                  style: AppTextStyles.rowTitleOf(context),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-
-                // Recording Area
-                Focus(
-                  focusNode: _focusNode,
-                  onKeyEvent: (node, event) {
-                    _handleKeyEvent(event);
-                    return KeyEventResult.handled;
-                  },
-                  child: GestureDetector(
-                    onTap: _focusNode.requestFocus,
-                    child: Container(
-                      height: 80,
-                      width: double.infinity,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: colorScheme.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                        border: Border.all(
-                          color: _getBorderColor(),
-                          width: 2,
-                          style: _state == ShortcutRecordingState.idle
-                              ? BorderStyle.none
-                              : BorderStyle.solid,
-                        ),
-                        boxShadow: _state == ShortcutRecordingState.recording
-                            ? [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  blurRadius: 8,
-                                  spreadRadius: 2,
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Text(
-                        _recordedShortcut.isEmpty
-                            ? l10n.pressKeyCombination
-                            : ShortcutFormatter.formatShortcutDisplay(
-                                _recordedShortcut,
-                              ),
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
-                          color: _recordedShortcut.isEmpty
-                              ? theme.textTheme.bodySmall?.color
-                              : theme.textTheme.bodyMedium?.color,
-                        ),
-                      ),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.newShortcut,
+              style: AppTextStyles.groupTitleOf(context),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Focus(
+              focusNode: _focusNode,
+              onKeyEvent: (node, event) {
+                _handleKeyEvent(event);
+                return KeyEventResult.handled;
+              },
+              child: GestureDetector(
+                onTap: _focusNode.requestFocus,
+                child: AnimatedContainer(
+                  duration: MediaQuery.of(context).disableAnimations
+                      ? Duration.zero
+                      : const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: _recorderVerticalPadding,
+                  ),
+                  width: double.infinity,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: colorScheme.surfaceContainerLowest,
+                    borderRadius: BorderRadius.circular(AppRadius.lg),
+                    border: Border.all(color: _getBorderColor(), width: 2),
+                    boxShadow: _state == ShortcutRecordingState.recording
+                        ? [
+                            BoxShadow(
+                              color: colorScheme.primary.withValues(
+                                alpha: _recorderGlowAlpha,
+                              ),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Text(
+                    _recordedShortcut.isEmpty
+                        ? l10n.pressKeyCombination
+                        : ShortcutFormatter.formatShortcutDisplay(
+                            _recordedShortcut,
+                          ),
+                    style: _recordedShortcut.isEmpty
+                        ? theme.textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          )
+                        : theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                          ),
+                  ),
                 ),
-
-                const SizedBox(height: AppSpacing.sm),
-
-                // Feedback / Validation Message
-                _buildFeedbackMessage(l10n),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(height: AppSpacing.xs),
+            _buildFeedbackMessage(l10n),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: _clear,
-            child: Text(l10n.clear),
-          ),
-          TextButton(
-            onPressed: _cancel,
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: _state == ShortcutRecordingState.valid
-                ? () => _transitionTo(ShortcutRecordingState.validating)
-                : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child:
-                _state == ShortcutRecordingState.validating ||
-                    _state == ShortcutRecordingState.saving
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                    ),
-                  )
-                : Text(l10n.save),
-          ),
-        ],
       ),
+      actions: [
+        TextButton(onPressed: _clear, child: Text(l10n.clear)),
+        OutlinedButton(onPressed: _cancel, child: Text(l10n.cancel)),
+        FilledButton(
+          onPressed: _state == ShortcutRecordingState.valid
+              ? () => _transitionTo(ShortcutRecordingState.validating)
+              : null,
+          child:
+              _state == ShortcutRecordingState.validating ||
+                  _state == ShortcutRecordingState.saving
+              ? SizedBox(
+                  width: AppSizes.iconLg,
+                  height: AppSizes.iconLg,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: colorScheme.onPrimary,
+                  ),
+                )
+              : Text(l10n.save),
+        ),
+      ],
     );
   }
 
@@ -351,16 +318,16 @@ class _ShortcutChangeDialogState extends State<ShortcutChangeDialog> {
     final statusColors = AppStatusColors.of(context);
     switch (_state) {
       case ShortcutRecordingState.recording:
-        return AppColors.primary;
+        return Theme.of(context).colorScheme.primary;
       case ShortcutRecordingState.valid:
       case ShortcutRecordingState.saving:
       case ShortcutRecordingState.validating:
-        return statusColors.success;
+        return Theme.of(context).colorScheme.primary;
       case ShortcutRecordingState.invalid:
       case ShortcutRecordingState.conflict:
         return statusColors.error;
       case ShortcutRecordingState.idle:
-        return Colors.grey.withValues(alpha: 0.3);
+        return Theme.of(context).dividerColor;
     }
   }
 
@@ -378,7 +345,9 @@ class _ShortcutChangeDialogState extends State<ShortcutChangeDialog> {
             const SizedBox(width: 8),
             Text(
               l10n.shortcutMustIncludeModifier,
-              style: TextStyle(color: statusColors.error, fontSize: 12),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: statusColors.error),
             ),
           ],
         );
@@ -394,7 +363,9 @@ class _ShortcutChangeDialogState extends State<ShortcutChangeDialog> {
             Expanded(
               child: Text(
                 l10n.shortcutConflictsWith(_conflictName ?? 'System'),
-                style: TextStyle(color: statusColors.error, fontSize: 12),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: statusColors.error),
               ),
             ),
           ],
@@ -410,19 +381,20 @@ class _ShortcutChangeDialogState extends State<ShortcutChangeDialog> {
             const SizedBox(width: 8),
             Text(
               l10n.validatingShortcut,
-              style: const TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ],
         );
       case ShortcutRecordingState.valid:
-        return const SizedBox.shrink(); // Or a success message
+        return const SizedBox(
+          height: _feedbackRowHeight,
+        ); // Or a success message
       case ShortcutRecordingState.idle:
       case ShortcutRecordingState.recording:
       case ShortcutRecordingState.saving:
-        return const SizedBox(height: 16); // Placeholder
+        return const SizedBox(height: _feedbackRowHeight); // Placeholder
     }
   }
 }

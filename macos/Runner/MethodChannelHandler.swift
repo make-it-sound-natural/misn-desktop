@@ -42,7 +42,7 @@ class MethodChannelHandler {
 
     // Delegate or callback to ShortcutHandler
     var onRegisterShortcut: (() -> Void)?
-    var onReplaceText: ((String) -> Void)?
+    var onReplaceText: ((String, @escaping (Bool) -> Void) -> Void)?
     var onGenerateVariants: ((String, @escaping (String?, String?) -> Void) -> Void)?
     var onUpdateCorrectionShortcut: ((String) -> Void)?
     var onUpdateReplaceShortcut: ((String) -> Void)?
@@ -143,8 +143,16 @@ class MethodChannelHandler {
             result(FlutterError(code: "INVALID_ARGUMENT", message: "Text must be a string", details: nil))
             return
         }
-        onReplaceText?(text)
-        result(nil)
+        guard let replace = onReplaceText else {
+            result(false)
+            return
+        }
+        // Reports whether the text actually reached the other app, so the UI
+        // can say "copied" instead of claiming a replacement that was
+        // skipped.
+        replace(text) { replaced in
+            result(replaced)
+        }
     }
 
     private func handleGenerateVariants(_ call: FlutterMethodCall, result: @escaping FlutterResult) {

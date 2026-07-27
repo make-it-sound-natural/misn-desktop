@@ -2,19 +2,16 @@
   "@@locale": "ru",
   "contextCleared": "Контекст очищен",
   "windowChanged": "Окно изменилось — выберите вариант вручную",
-  "appliedLabel": "Применён {label}",
   "copiedToClipboard": "Скопировано в буфер обмена",
   "contextOptional": "Контекст (необязательно)",
   "clear": "Очистить",
-  "addContextHint": "Добавьте контекст для улучшения результатов...",
-  "contextHelper": "⌘⇧J заменить, ⌘⇧L добавить",
-  "selectTextInstruction": "Выделите текст в любом приложении и нажмите",
+  "addContextHint": "Аудитория, тон или детали, которые модель не угадает…",
   "applied": "Применён",
   "balanced": "Сбалансированный",
   "casual": "Разговорный",
   "formal": "Формальный",
   "concise": "Краткий",
-  "autoApplyVariant": "Автоприменение: {label}",
+  "autoApplyVariant": "Автоприменение",
   "apply": "Применить",
   "copy": "Копировать",
   "apiKeyRequired": "Для исправлений требуется API-ключ",
@@ -25,7 +22,6 @@
   "apiKeySaved": "API-ключ сохранён",
   "openAccessibilitySettings": "Откройте Системные настройки > Конфиденциальность и безопасность > Универсальный доступ",
   "settings": "Настройки",
-  "globalShortcut": "Глобальное сочетание",
   "shortcutCorrection": "Исправление",
   "shortcutReplaceContext": "Заменить контекст",
   "shortcutAppendContext": "Добавить к контексту",
@@ -83,10 +79,9 @@
   "promptSaved": "Промпт сохранён",
   "promptReset": "Промпт сброшен",
   "textToImprove": "Текст для улучшения",
-  "textToImproveHint": "Введите или вставьте текст для улучшения...",
+  "textToImproveHint": "Вставьте или введите текст, который должен звучать естественно…",
   "process": "Обработать",
-  "processing": "Обработка...",
-  "noTextToProcess": "Пожалуйста, введите текст для обработки",
+  "processing": "Обработка…",
   "updates": "Обновления",
   "checkForUpdates": "Проверить обновления",
   "checkingUpdates": "Проверка...",
@@ -110,7 +105,6 @@
   "automaticChecksSubtitle": "Проверять обновления при запуске",
   "apiProvider": "Провайдер API",
   "provider": "Провайдер",
-  "chooseProvider": "Выберите AI провайдера",
   "openaiApiKey": "API-ключ OpenAI",
   "openaiApiKeyHelper": "Ваш API-ключ OpenAI",
   "openrouterApiKey": "API-ключ OpenRouter",
@@ -118,18 +112,9 @@
   "settingsNavShortcuts": "Сочетания клавиш",
   "settingsNavWriting": "Письмо",
   "settingsNavLanguage": "Язык",
-  "aiProviderDescription": "Выберите AI провайдера, управляйте API-ключом и выберите модель для генерации переписывания.",
-  "apiKeyStoredLocally": "Хранится локально в Keychain",
-  "apiKeyNeedsAttention": "API-ключ требует внимания",
-  "apiKeyAuthFailureFallback": "Провайдер отклонил этот API-ключ.",
-  "modelUsedForRewrite": "Используется для генерации переписывания",
   "apiKeySecurityNote": "Ваш API-ключ безопасно хранится в macOS Keychain и никогда не отправляется приложением.",
-  "showApiKey": "Показать API-ключ",
-  "hideApiKey": "Скрыть API-ключ",
   "openRouterModels": "Модели OpenRouter",
-  "openRouterModelsDescription": "Выберите, какие модели OpenRouter видны в списке выбора.",
   "customProviders": "Пользовательские провайдеры",
-  "customProvidersDescription": "Добавьте OpenAI-совместимых провайдеров с локальными API-ключами и идентификаторами моделей.",
   "customProviderCompatibilityNote": "Пользовательские провайдеры должны поддерживать Chat Completions без потоковой передачи. Для контекста снимка экрана также нужна поддержка изображений.",
   "addProvider": "Добавить провайдера",
   "editProvider": "Редактировать провайдера",
@@ -142,9 +127,6 @@
   "providerBaseUrl": "Базовый URL",
   "providerUrlRequired": "Базовый URL обязателен.",
   "providerUrlInvalid": "Базовый URL должен быть корректным HTTPS URL.",
-  "customProviderModels": "Модели {provider}",
-  "customProviderModelsDescription": "Выберите, какие модели пользовательского провайдера видны в списке выбора.",
-  "customProviderNoModels": "Добавьте модель перед использованием этого провайдера.",
   "addModel": "Добавить модель",
   "editModel": "Редактировать модель",
   "deleteModel": "Удалить модель",
@@ -187,111 +169,203 @@
   "screenRecordingPermissionDebugHint": "Debug: если macOS запросила Terminal или iTerm, разрешите этот запускатель или откройте собранный .app напрямую.",
   "openSystemSettings": "Открыть Системные настройки",
   "revealInFinder": "Показать в Finder",
-
   "appearance": "Внешний вид",
-  "@appearance": { "description": "Settings sidebar appearance item and page title" },
-
+  "@appearance": {
+    "description": "Settings sidebar appearance item and page title"
+  },
   "appearanceTheme": "Тема",
-  "@appearanceTheme": { "description": "Appearance setting title for theme mode" },
-
+  "@appearanceTheme": {
+    "description": "Appearance setting title for theme mode"
+  },
   "appearanceThemeHelper": "Использовать светлую, темную или тему macOS",
-  "@appearanceThemeHelper": { "description": "Helper text for theme mode setting" },
-
+  "@appearanceThemeHelper": {
+    "description": "Helper text for theme mode setting"
+  },
   "appearanceThemeSystem": "Система",
-  "@appearanceThemeSystem": { "description": "Theme option that follows macOS" },
-
+  "@appearanceThemeSystem": {
+    "description": "Theme option that follows macOS"
+  },
   "appearanceThemeLight": "Светлая",
-  "@appearanceThemeLight": { "description": "Light theme option" },
-
+  "@appearanceThemeLight": {
+    "description": "Light theme option"
+  },
   "appearanceThemeDark": "Темная",
-  "@appearanceThemeDark": { "description": "Dark theme option" },
-
+  "@appearanceThemeDark": {
+    "description": "Dark theme option"
+  },
   "appearanceMenuFontSize": "Размер шрифта меню",
-  "@appearanceMenuFontSize": { "description": "Appearance setting title for menu and UI font size" },
-
+  "@appearanceMenuFontSize": {
+    "description": "Appearance setting title for menu and UI font size"
+  },
   "appearanceMenuFontSizeHelper": "Для навигации, подписей, кнопок и диалогов",
-  "@appearanceMenuFontSizeHelper": { "description": "Helper text for menu and UI font size" },
-
+  "@appearanceMenuFontSizeHelper": {
+    "description": "Helper text for menu and UI font size"
+  },
   "appearanceEditorFontSize": "Размер шрифта редактора",
-  "@appearanceEditorFontSize": { "description": "Appearance setting title for editor and context text font size" },
-
+  "@appearanceEditorFontSize": {
+    "description": "Appearance setting title for editor and context text font size"
+  },
   "appearanceEditorFontSizeHelper": "Для текста переписывания и поля контекста",
-  "@appearanceEditorFontSizeHelper": { "description": "Helper text for editor and context text font size" },
-
+  "@appearanceEditorFontSizeHelper": {
+    "description": "Helper text for editor and context text font size"
+  },
   "appearanceReset": "Сбросить внешний вид",
-  "@appearanceReset": { "description": "Button to reset appearance settings" },
-
+  "@appearanceReset": {
+    "description": "Button to reset appearance settings"
+  },
   "appearanceResetDone": "Внешний вид сброшен",
-  "@appearanceResetDone": { "description": "SnackBar message after appearance settings reset" },
-
+  "@appearanceResetDone": {
+    "description": "SnackBar message after appearance settings reset"
+  },
   "pixelsUnit": "px",
-  "@pixelsUnit": { "description": "Pixel unit label for font size inputs" }
-,
-
+  "@pixelsUnit": {
+    "description": "Pixel unit label for font size inputs"
+  },
   "onboardingTitle": "Настройка Make It Sound Natural",
-  "@onboardingTitle": { "description": "First-run onboarding screen title" },
-
+  "@onboardingTitle": {
+    "description": "First-run onboarding screen title"
+  },
   "onboardingProviderTitle": "Провайдер ИИ",
-  "@onboardingProviderTitle": { "description": "Onboarding provider setup step title" },
-
+  "@onboardingProviderTitle": {
+    "description": "Onboarding provider setup step title"
+  },
   "onboardingProviderDescription": "OpenRouter и google/gemini-3-flash-preview выбраны по умолчанию. Добавьте API-ключ в настройках, когда будете готовы.",
-  "@onboardingProviderDescription": { "description": "Onboarding provider setup step description" },
-
+  "@onboardingProviderDescription": {
+    "description": "Onboarding provider setup step description"
+  },
   "onboardingAccessibilityTitle": "Универсальный доступ",
-  "@onboardingAccessibilityTitle": { "description": "Onboarding Accessibility permission step title" },
-
+  "@onboardingAccessibilityTitle": {
+    "description": "Onboarding Accessibility permission step title"
+  },
   "onboardingAccessibilityDescription": "Универсальный доступ позволяет сочетанию клавиш читать и заменять выделенный текст в других приложениях.",
-  "@onboardingAccessibilityDescription": { "description": "Onboarding Accessibility permission explanation" },
-
+  "@onboardingAccessibilityDescription": {
+    "description": "Onboarding Accessibility permission explanation"
+  },
   "onboardingAccessibilityGrant": "Открыть настройки Универсального доступа",
-  "@onboardingAccessibilityGrant": { "description": "Button to request or open Accessibility permission settings" },
-
+  "@onboardingAccessibilityGrant": {
+    "description": "Button to request or open Accessibility permission settings"
+  },
   "onboardingAccessibilityGranted": "Универсальный доступ разрешён.",
-  "@onboardingAccessibilityGranted": { "description": "Onboarding status when Accessibility is granted" },
-
+  "@onboardingAccessibilityGranted": {
+    "description": "Onboarding status when Accessibility is granted"
+  },
   "onboardingAccessibilityMissing": "Универсальный доступ нужен для переписывания по сочетанию клавиш.",
-  "@onboardingAccessibilityMissing": { "description": "Onboarding status when Accessibility is missing" },
-
+  "@onboardingAccessibilityMissing": {
+    "description": "Onboarding status when Accessibility is missing"
+  },
   "onboardingAccessibilitySkipped": "Переписывание по сочетанию клавиш не будет работать, пока не разрешён Универсальный доступ.",
-  "@onboardingAccessibilitySkipped": { "description": "Onboarding warning when Accessibility was skipped" },
-
+  "@onboardingAccessibilitySkipped": {
+    "description": "Onboarding warning when Accessibility was skipped"
+  },
   "onboardingAccessibilityStillMissing": "Универсальный доступ всё ещё не разрешён. Включите Make It Sound Natural в Системных настройках и проверьте снова.",
-  "@onboardingAccessibilityStillMissing": { "description": "Onboarding warning after Accessibility request still finds no permission" },
-
+  "@onboardingAccessibilityStillMissing": {
+    "description": "Onboarding warning after Accessibility request still finds no permission"
+  },
   "onboardingAccessibilitySkip": "Пропустить пока",
-  "@onboardingAccessibilitySkip": { "description": "Button to skip Accessibility permission during onboarding" },
-
+  "@onboardingAccessibilitySkip": {
+    "description": "Button to skip Accessibility permission during onboarding"
+  },
   "onboardingAccessibilityCheckAgain": "Проверить снова",
-  "@onboardingAccessibilityCheckAgain": { "description": "Button to recheck Accessibility permission status" },
-
+  "@onboardingAccessibilityCheckAgain": {
+    "description": "Button to recheck Accessibility permission status"
+  },
   "onboardingScreenshotTitle": "Контекст скриншота",
-  "@onboardingScreenshotTitle": { "description": "Onboarding Screenshot context step title" },
-
+  "@onboardingScreenshotTitle": {
+    "description": "Onboarding Screenshot context step title"
+  },
   "onboardingScreenshotDescription": "Необязательный контекст скриншота может улучшить переписывание, но скриншоты могут содержать видимые конфиденциальные данные.",
-  "@onboardingScreenshotDescription": { "description": "Onboarding Screenshot context privacy explanation" },
-
+  "@onboardingScreenshotDescription": {
+    "description": "Onboarding Screenshot context privacy explanation"
+  },
   "onboardingScreenshotModeLabel": "Режим контекста скриншота",
-  "@onboardingScreenshotModeLabel": { "description": "Accessible label for Screenshot context mode choices in onboarding" },
-
+  "@onboardingScreenshotModeLabel": {
+    "description": "Accessible label for Screenshot context mode choices in onboarding"
+  },
   "onboardingScreenshotOffStatus": "Контекст скриншота выключен. Доступ к записи экрана не будет запрошен.",
-  "@onboardingScreenshotOffStatus": { "description": "Onboarding status when Screenshot context remains off" },
-
+  "@onboardingScreenshotOffStatus": {
+    "description": "Onboarding status when Screenshot context remains off"
+  },
   "onboardingScreenshotPermissionGranted": "Контекст скриншота включен.",
-  "@onboardingScreenshotPermissionGranted": { "description": "Onboarding status after Screen Recording is granted" },
-
+  "@onboardingScreenshotPermissionGranted": {
+    "description": "Onboarding status after Screen Recording is granted"
+  },
   "onboardingScreenshotPermissionNeeded": "Перед использованием контекста скриншота всё ещё нужен доступ к записи экрана.",
-  "@onboardingScreenshotPermissionNeeded": { "description": "Onboarding status after non-Off Screenshot context could not be enabled" },
-
+  "@onboardingScreenshotPermissionNeeded": {
+    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+  },
   "onboardingScreenshotUnsupported": "Контекст скриншота требует macOS 14 или новее.",
-  "@onboardingScreenshotUnsupported": { "description": "Onboarding status when Screenshot context is unsupported" },
-
+  "@onboardingScreenshotUnsupported": {
+    "description": "Onboarding status when Screenshot context is unsupported"
+  },
   "onboardingContinue": "Продолжить",
-  "@onboardingContinue": { "description": "Continue button in first-run onboarding" },
-
+  "@onboardingContinue": {
+    "description": "Continue button in first-run onboarding"
+  },
   "onboardingSkipOptional": "Пропустить необязательное",
-  "@onboardingSkipOptional": { "description": "Skip optional onboarding content button" },
-
+  "@onboardingSkipOptional": {
+    "description": "Skip optional onboarding content button"
+  },
   "onboardingComplete": "Завершить настройку",
-  "@onboardingComplete": { "description": "Finish onboarding button" }
-
+  "@onboardingComplete": {
+    "description": "Finish onboarding button"
+  },
+  "processingCancelled": "Обработка отменена",
+  "appliedCopiedToClipboard": "{label} применён — скопировано в буфер обмена",
+  "notEditableGeneric": "Курсор не в редактируемом поле",
+  "variantsEmptyStateError": "Исправьте ключ и нажмите «Обработать», чтобы увидеть четыре варианта тона.",
+  "authFailureBannerTitle": "Провайдер отклонил ваш API-ключ.",
+  "authFailureBannerBody": "Проверьте ключ для {provider} и попробуйте снова.",
+  "checkApiKey": "Проверить API-ключ",
+  "retry": "Повторить",
+  "escCancelHint": "отмена",
+  "hintProcess": "обработать",
+  "generatingVariants": "Генерируются четыре варианта…",
+  "sourceEyebrow": "Исходный текст",
+  "variantsEyebrow": "Варианты",
+  "aiProviderSectionDescription": "Добавьте провайдеров, задайте каждому ключ и модели, затем выберите модель для переписывания из общего списка.",
+  "appearanceSectionDescription": "Тема и размер текста.",
+  "writingSectionDescription": "Вариант по умолчанию и контекст со скриншотом.",
+  "languageSectionDescription": "Целевой профиль задаёт формулировки и язык для всех вариантов.",
+  "shortcutsSectionDescription": "Глобальные сочетания работают, пока приложение запущено в фоне.",
+  "permissionsSectionDescription": "Этими разрешениями управляет macOS в Системных настройках.",
+  "updatesSectionDescription": "Сведения о приложении и проверка обновлений.",
+  "advancedSectionDescription": "Переопределение промпта.",
+  "modelRowDescription": "Используется для переписывания. Выбор модели задаёт и её провайдера.",
+  "providersGroupTitle": "Провайдеры",
+  "modelsGroupTitle": "Модели",
+  "builtInProvider": "Встроенный провайдер",
+  "apiKeySet": "ключ задан",
+  "noApiKeyStatus": "Нет API-ключа",
+  "setApiKeyAction": "Задать API-ключ",
+  "changeApiKeyAction": "Изменить API-ключ",
+  "providerKeyDialogSubtitle": "{provider} · хранится локально в связке ключей macOS",
+  "apiKeyRemoved": "API-ключ удалён",
+  "providerAdded": "Провайдер добавлен — теперь добавьте его модели",
+  "providerUpdated": "Провайдер обновлён",
+  "providerDeleted": "Провайдер удалён",
+  "deleteProviderMessage": "«{name}», его API-ключ и модели будут удалены с этого Mac.",
+  "addProviderDialogSubtitle": "Совместимый с OpenAI эндпоинт. Нужны непотоковые Chat Completions.",
+  "modelAddedTo": "Модель добавлена в {provider}",
+  "modelUpdated": "Модель обновлена",
+  "modelDeleted": "Модель удалена",
+  "modelShownInPicker": "Модель показана в списке выбора",
+  "modelHiddenFromPicker": "Модель скрыта из списка выбора",
+  "authFailureNote": "Ошибка аутентификации ({message}) для {provider}. Обновите ключ ниже и попробуйте снова.",
+  "latencyAvg": "в среднем {seconds} с",
+  "noModelsYet": "Пока нет моделей",
+  "noModelsYetDescription": "Добавьте модель, чтобы запускать переписывание.",
+  "deleteAction": "Удалить",
+  "chooseTargetForcedSubtitle": "Выберите профиль для переписывания. Без него продолжить нельзя.",
+  "variantDefaultTag": "По умолчанию",
+  "rewriteTab": "Переписать",
+  "emptyPrimerSubtitle": "Выбранный тон вставляется прямо у курсора, остальные ждут здесь.",
+  "onboardingDoneDescription": "Настройка завершена. Выделите текст где угодно и нажмите шорткат.",
+  "onboardingDoneTitle": "Всё готово",
+  "shortcutsResetConfirm": "Три глобальных шортката вернутся к значениям по умолчанию.",
+  "shortcutsFixedNote": "⌘↵ запускает переписывание на экране Rewrite, Esc отменяет текущее. Эти две клавиши не меняются.",
+  "emptyPrimerLead": "Выделите текст в любом приложении и нажмите",
+  "emptyPrimerRewriteTail": "чтобы переписать его.",
+  "contextShortcutHintLead": "Выделите текст и нажмите",
+  "contextShortcutHintReplace": "чтобы заменить этот контекст, или",
+  "contextShortcutHintAppend": "чтобы дополнить его."
 }
