@@ -64,6 +64,7 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
 │   └── l10n/                 # ARB sources + ignored generated localizations
 ├── tool/                     # Release automation and localization tooling
 │   ├── nightly_version.py    # Nightly numbering and artifact validation
+│   ├── verify_nightly_update.py # Install signed candidate before publishing
 │   ├── release_manager.dart  # Entrypoint: dart run tool/release_manager.dart
 │   └── release_manager/      # Channel config, version policy, CLI commands
 ├── test/                     # Dart unit/widget tests
@@ -319,7 +320,9 @@ All Markdown in this repo **SHOULD** follow:
   across base versions and both current appcasts, retaining release tags as
   history. Keep the repository-wide `nightly` concurrency group stable and do
   not cancel a publishing run. Build and feed versions must match the signed
-  artifact; reject stale/duplicate publication. See
+  artifact; reject stale/duplicate publication. Before publishing, install the
+  signed candidate through Sparkle over a disposable copy of the live nightly.
+  Preserve the installed bundle identity, feed URL and signing key. See
   [docs/nightly-versioning.md](docs/nightly-versioning.md) for migration and
   recovery constraints.
 

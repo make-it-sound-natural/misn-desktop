@@ -30,6 +30,12 @@ before publication. Do not widen the suffix without a migration review.
   they do not consume versions. Do not run an older workflow revision during
   migration: it still uses the old allocation and cancellation policy.
 - Recheck history and the extracted signed app before creating release assets.
+  Before publication, `tool/verify_nightly_update.py` downloads the live DMG,
+  copies its app to a temporary directory, and uses the pinned Sparkle CLI to
+  install the signed candidate from a loopback-only feed. The candidate DMG
+  bytes and signature remain unchanged. Installation failure blocks release;
+  the installed version, bundle ID, production feed URL, public key, code
+  signature and Gatekeeper assessment must all pass.
   Publish the GitHub release/tag before an external appcast, then commit only
   the updated nightly feed on the freshly fetched default branch.
 
@@ -88,6 +94,7 @@ numbering. It should be addressed before their first public release.
   Sparkle comparison behavior.
 - `make lint-flutter`, `make lint-swift`, and a debug macOS build.
 
-No release or live feed mutation is needed for these checks. Actual signed,
-notarized installation and Sparkle download/install remain a release-time
-verification; do not mark MT-899 Done based only on these local checks.
+Local unit tests do not replace the release-time installation gate. Run the
+full nightly workflow to exercise the signed, notarized artifact through the
+real Sparkle downloader and installer before publishing it. Do not mark MT-899
+Done until that gate and the published feed/artifact readback pass.

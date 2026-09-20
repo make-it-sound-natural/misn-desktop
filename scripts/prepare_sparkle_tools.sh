@@ -22,7 +22,7 @@ sign_update="$tools_dir/bin/sign_update"
 archive="$tools_dir/Sparkle-$version.tar.xz"
 archive_url="https://github.com/sparkle-project/Sparkle/releases/download/$version/Sparkle-$version.tar.xz"
 
-if [ ! -x "$sign_update" ]; then
+if [ ! -x "$sign_update" ] || [ ! -x "$tools_dir/sparkle.app/Contents/MacOS/sparkle" ]; then
   rm -rf "$tools_dir"
   mkdir -p "$tools_dir"
   echo "Downloading Sparkle $version tools from $archive_url..." >&2
@@ -37,7 +37,7 @@ if [ ! -x "$sign_update" ]; then
     tar -tf "$archive" | head -50 >&2
     exit 1
   fi
-  tar -xJf "$archive" -C "$tools_dir" ./bin/sign_update
+  tar -xJf "$archive" -C "$tools_dir" ./bin/sign_update ./sparkle.app
   chmod +x "$sign_update"
 fi
 
