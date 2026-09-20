@@ -8,6 +8,7 @@ import 'package:make_it_sound_natural/models/llm_model_entry.dart';
 import 'package:make_it_sound_natural/models/llm_provider_entry.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
 import 'package:make_it_sound_natural/screens/settings/api_provider_dialogs.dart';
+import 'package:make_it_sound_natural/screens/settings/reasoning_effort_row.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
 import 'package:make_it_sound_natural/services/provider_catalog_service.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
@@ -437,7 +438,11 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
         AppSettingsSection(
           title: l10n.apiProvider,
           subtitle: l10n.aiProviderSectionDescription,
-          children: [_buildModelPickerRow(l10n)],
+          children: [
+            _buildModelPickerRow(l10n),
+            const AppSettingsDivider(),
+            const ReasoningEffortRow(),
+          ],
         ),
         if (_activeAuthFailure != null) _buildAuthFailureNote(l10n),
         _buildProvidersGroup(l10n),

@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/constants/shortcut_status.dart';
+import 'package:make_it_sound_natural/models/reasoning_effort.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/models/target_profile.dart';
@@ -112,6 +113,7 @@ class ShortcutService {
     // Load and sync model
     final model = await settings.getModel();
     await setModel(model);
+    await setReasoningEffort(await settings.getReasoningEffort());
 
     final providerCatalog = ProviderCatalogService();
     final providerEntry = await providerCatalog.providerById(provider);
@@ -340,6 +342,14 @@ class ShortcutService {
     } on PlatformException catch (e) {
       _log.warning('Failed to set context: ${e.message}');
     }
+  }
+
+  /// Applies the reasoning budget to native rewrites and global shortcuts.
+  Future<void> setReasoningEffort(ReasoningEffort effort) async {
+    await _channel.invokeMethod<void>(
+      MethodChannelMethods.setReasoningEffort,
+      effort.name,
+    );
   }
 
   /// Sets the LLM model in the native layer.

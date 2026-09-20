@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/models/appearance_preferences.dart';
+import 'package:make_it_sound_natural/models/reasoning_effort.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -45,6 +46,26 @@ void main() {
         await service.getAppearancePreferences(),
         const AppearancePreferences.defaults(),
       );
+    });
+
+    test(
+      'reasoning defaults safely for absent and unknown saved values',
+      () async {
+        final service = SettingsService();
+        expect(await service.getReasoningEffort(), AppDefaults.reasoningEffort);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('reasoning_effort', 'retired-level');
+        expect(await service.getReasoningEffort(), AppDefaults.reasoningEffort);
+      },
+    );
+
+    test('restores every reasoning level from persisted settings', () async {
+      for (final effort in ReasoningEffort.values) {
+        await SettingsService().setReasoningEffort(effort);
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('reasoning_effort'), effort.name);
+        expect(await SettingsService().getReasoningEffort(), effort);
+      }
     });
 
     test('persists appearance preferences in one versioned object', () async {

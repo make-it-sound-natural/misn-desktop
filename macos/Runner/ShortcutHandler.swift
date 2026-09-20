@@ -111,7 +111,9 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 customPrompt: self.methodChannelHandler?.getCustomPrompt(),
                 context: self.methodChannelHandler?.getContext(),
                 targetProfileInstruction: self.methodChannelHandler?.getTargetProfileInstruction(),
-                screenshotAttachment: nil
+                screenshotAttachment: nil,
+                reasoningEffort: self.methodChannelHandler?.getReasoningEffort()
+                    ?? AppDefaults.reasoningEffort
             )
 
             // Surface the failure instead of reporting an empty success:
@@ -335,7 +337,9 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                         customPrompt: self.methodChannelHandler?.getCustomPrompt(),
                         context: self.methodChannelHandler?.getContext(),
                         targetProfileInstruction: self.methodChannelHandler?.getTargetProfileInstruction(),
-                        screenshotAttachment: screenshotAttachment
+                        screenshotAttachment: screenshotAttachment,
+                        reasoningEffort: self.methodChannelHandler?
+                            .getReasoningEffort() ?? AppDefaults.reasoningEffort
                     )
 
                     self.startLlmProcessing(

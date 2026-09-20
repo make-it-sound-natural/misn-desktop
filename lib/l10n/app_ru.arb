@@ -367,5 +367,13 @@
   "emptyPrimerRewriteTail": "чтобы переписать его.",
   "contextShortcutHintLead": "Выделите текст и нажмите",
   "contextShortcutHintReplace": "чтобы заменить этот контекст, или",
-  "contextShortcutHintAppend": "чтобы дополнить его."
+  "contextShortcutHintAppend": "чтобы дополнить его.",
+  "reasoningEffort": "Глубина рассуждений",
+  "reasoningDescription": "Ниже — быстрее, выше — более глубокое обдумывание.",
+  "reasoningCompatibility": "Для всех моделей. Если уровень не поддерживается, используется настройка провайдера.",
+  "reasoningNone": "Без рассуждений",
+  "reasoningLow": "Низкая (по умолчанию)",
+  "reasoningMedium": "Средняя",
+  "reasoningHigh": "Высокая",
+  "reasoningSaveFailed": "Не удалось сохранить глубину рассуждений. Повторите попытку."
 }

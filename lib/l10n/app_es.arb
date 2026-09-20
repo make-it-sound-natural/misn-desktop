@@ -367,5 +367,13 @@
   "emptyPrimerRewriteTail": "para reescribirlo.",
   "contextShortcutHintLead": "Selecciona texto y pulsa",
   "contextShortcutHintReplace": "para reemplazar este contexto, o",
-  "contextShortcutHintAppend": "para añadir al final."
+  "contextShortcutHintAppend": "para añadir al final.",
+  "reasoningEffort": "Esfuerzo de razonamiento",
+  "reasoningDescription": "Los niveles bajos priorizan la rapidez; los altos permiten razonar más.",
+  "reasoningCompatibility": "Se aplica a todos los modelos. Si no se admite, se usa el valor del proveedor.",
+  "reasoningNone": "Ninguno",
+  "reasoningLow": "Bajo (predeterminado)",
+  "reasoningMedium": "Medio",
+  "reasoningHigh": "Alto",
+  "reasoningSaveFailed": "No se pudo guardar el esfuerzo de razonamiento. Inténtalo de nuevo."
 }

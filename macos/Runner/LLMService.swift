@@ -23,6 +23,7 @@ class LLMService {
         let context: String?
         let targetProfileInstruction: String?
         let screenshotAttachment: ScreenshotAttachment?
+        var reasoningEffort: ReasoningEffort = AppDefaults.reasoningEffort
     }
 
     private let logger = OSLog(
@@ -31,10 +32,16 @@ class LLMService {
     )
     let environment: [String: String]
 
+    private let session: URLSession
+
     weak var delegate: LLMServiceDelegate?
 
-    init(environment: [String: String] = ProcessInfo.processInfo.environment) {
+    init(
+        environment: [String: String] = ProcessInfo.processInfo.environment,
+        session: URLSession = .shared
+    ) {
         self.environment = environment
+        self.session = session
     }
 
     func processText(
@@ -94,33 +101,10 @@ class LLMService {
         debugLog("═══════════════════════════════════════════")
         #endif
 
-        guard let request = buildRequest(
+        executeRequest(
             text: text,
             config: config,
             systemInstructions: finalInstructionsWithScreenshot,
-            includeResponseFormat: true
-        ) else {
-            delegate?.llmService(
-                self,
-                didFailWithError: "Failed to encode payload",
-                isAuthenticationFailure: false,
-                provider: provider
-            )
-            completion(nil, nil)
-            return
-        }
-
-        let fallbackRequest = responseFormatFallbackRequest(
-            text: text,
-            config: config,
-            systemInstructions: finalInstructionsWithScreenshot
-        )
-
-        executeRequest(
-            request,
-            provider: provider,
-            model: model,
-            fallbackRequest: fallbackRequest,
             completion: completion
         )
     }
@@ -180,7 +164,8 @@ class LLMService {
         text: String,
         config: Configuration,
         systemInstructions: String,
-        includeResponseFormat: Bool
+        includeResponseFormat: Bool,
+        includeReasoningEffort: Bool = true
     ) -> URLRequest? {
         guard let url = requestUrl(for: config) else {
             log("Error: Invalid URL for provider \(config.provider)")
@@ -191,12 +176,15 @@ class LLMService {
         request.httpMethod = "POST"
         configureRequestHeaders(&request, config: config)
 
-        let payload = buildPayload(
+        var payload = buildPayload(
             text: text,
             config: config,
             systemInstructions: systemInstructions,
             includeResponseFormat: includeResponseFormat
         )
+        if !includeReasoningEffort {
+            payload.removeValue(forKey: "reasoning_effort")
+        }
 
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: payload)
@@ -272,21 +260,6 @@ extension LLMService {
         provider == AppDefaults.openRouterProvider || provider == "openai"
     }
 
-    private func responseFormatFallbackRequest(
-        text: String,
-        config: Configuration,
-        systemInstructions: String
-    ) -> URLRequest? {
-        guard !isBuiltInProvider(config.provider) else { return nil }
-
-        return buildRequest(
-            text: text,
-            config: config,
-            systemInstructions: fallbackJsonInstructions(systemInstructions),
-            includeResponseFormat: false
-        )
-    }
-
     private func fallbackJsonInstructions(_ systemInstructions: String) -> String {
         systemInstructions + """
 
@@ -357,6 +330,7 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
     ) -> [String: Any] {
         var payload: [String: Any] = [
             "model": config.model,
+            "reasoning_effort": config.reasoningEffort.rawValue,
             "messages": [
                 ["role": "system", "content": systemInstructions],
                 [
@@ -431,15 +405,33 @@ they are needed to preserve the selected text's intended meaning.
     }
 
     private func executeRequest(
-        _ request: URLRequest,
-        provider: String,
-        model: String,
-        fallbackRequest: URLRequest? = nil,
+        text: String,
+        config: Configuration,
+        systemInstructions: String,
+        excludedParameters: Set<LLMCompatibility.Parameter> = [],
         completion: @escaping (String?, String?) -> Void
     ) {
+        let provider = config.provider
+        let model = config.model
+        let includeResponseFormat = !excludedParameters.contains(.responseFormat)
+        guard let request = buildRequest(
+            text: text,
+            config: config,
+            systemInstructions: includeResponseFormat
+                ? systemInstructions : fallbackJsonInstructions(systemInstructions),
+            includeResponseFormat: includeResponseFormat,
+            includeReasoningEffort: !excludedParameters.contains(.reasoningEffort)
+        ) else {
+            reportErrorResponse(
+                .init(message: "Failed to encode payload", isAuthenticationFailure: false),
+                provider: provider,
+                completion: completion
+            )
+            return
+        }
         let startTime = Date()
 
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+        let task = session.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self else { return }
 
             let elapsed = Date().timeIntervalSince(startTime)
@@ -473,16 +465,20 @@ they are needed to preserve the selected text's intended meaning.
                     from: data,
                     statusCode: httpResponse.statusCode
                 )
-                if let fallbackRequest = fallbackRequest,
-                   self.shouldRetryWithoutResponseFormat(errorInfo.message) {
-                    self.log(
-                        "Retrying custom provider request without " +
-                        "response_format."
-                    )
+                let rejected = LLMCompatibility.rejectedParameters(
+                    data: data,
+                    statusCode: httpResponse.statusCode
+                ).subtracting(excludedParameters).filter {
+                    $0 != .responseFormat || !self.isBuiltInProvider(provider)
+                }
+                if !errorInfo.isAuthenticationFailure, !rejected.isEmpty {
+                    // Removed parameters stay removed; at most two retries.
+                    self.log("Retrying without: \(rejected.map(\.rawValue).sorted())")
                     self.executeRequest(
-                        fallbackRequest,
-                        provider: provider,
-                        model: model,
+                        text: text,
+                        config: config,
+                        systemInstructions: systemInstructions,
+                        excludedParameters: excludedParameters.union(rejected),
                         completion: completion
                     )
                     return
@@ -546,14 +542,6 @@ they are needed to preserve the selected text's intended meaning.
             provider: provider
         )
         completion(nil, errorInfo.message)
-    }
-
-    private func shouldRetryWithoutResponseFormat(_ message: String) -> Bool {
-        let lowercased = message.lowercased()
-        return lowercased.contains("response_format") &&
-            (lowercased.contains("unavailable") ||
-             lowercased.contains("unsupported") ||
-             lowercased.contains("not support"))
     }
 
     private func parseErrorInfo(

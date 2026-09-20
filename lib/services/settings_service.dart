@@ -5,6 +5,7 @@ import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/models/appearance_preferences.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
+import 'package:make_it_sound_natural/models/reasoning_effort.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +21,7 @@ class SettingsService {
   static const String _openRouterApiKeyKey = 'openrouter_api_key';
   static const String _customPromptKey = 'custom_prompt';
   static const String _contextKey = 'user_context';
+  static const String _reasoningEffortKey = 'reasoning_effort';
   static const String _modelKey = 'openai_model';
   static const String _shortcutKey = 'app_shortcut';
   static const String _shortcutReplaceKey = 'app_shortcut_replace';
@@ -277,6 +279,22 @@ class SettingsService {
   Future<void> setContext(String context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_contextKey, context);
+  }
+
+  /// Returns the saved reasoning budget, defaulting for absent or stale values.
+  Future<ReasoningEffort> getReasoningEffort() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(_reasoningEffortKey);
+    return ReasoningEffort.values
+            .where((effort) => effort.name == value)
+            .firstOrNull ??
+        AppDefaults.reasoningEffort;
+  }
+
+  /// Saves the reasoning budget for all rewrite entry points.
+  Future<void> setReasoningEffort(ReasoningEffort effort) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_reasoningEffortKey, effort.name);
   }
 
   /// Gets the selected LLM model.

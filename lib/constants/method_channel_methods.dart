@@ -65,6 +65,9 @@ abstract class MethodChannelMethods {
   /// Sets the user context for text generation.
   static const String setContext = 'setContext';
 
+  /// Applies the selected reasoning budget.
+  static const String setReasoningEffort = 'setReasoningEffort';
+
   /// Sets the LLM model to use.
   static const String setModel = 'setModel';
 

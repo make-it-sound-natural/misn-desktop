@@ -367,6 +367,28 @@ void main() {
           );
     });
 
+    test(
+      'loadAndSyncSettings restores reasoning and defaults stale values',
+      () async {
+        final prefs = await SharedPreferences.getInstance();
+        for (final value in [
+          'none',
+          'low',
+          'medium',
+          'high',
+          'retired-level',
+        ]) {
+          await prefs.setString('reasoning_effort', value);
+          methodCalls.clear();
+          await ShortcutService().loadAndSyncSettings();
+          final call = methodCalls.singleWhere(
+            (call) => call.method == MethodChannelMethods.setReasoningEffort,
+          );
+          expect(call.arguments, value == 'retired-level' ? 'low' : value);
+        }
+      },
+    );
+
     test('loadAndSyncSettings sends selected target profile', () async {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('target_profile_selected_id', 'britishEnglish');

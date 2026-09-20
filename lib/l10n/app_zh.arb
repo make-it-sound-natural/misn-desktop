@@ -367,5 +367,13 @@
   "emptyPrimerRewriteTail": "即可改写。",
   "contextShortcutHintLead": "选中文本后按",
   "contextShortcutHintReplace": "替换此上下文，或按",
-  "contextShortcutHintAppend": "追加到末尾。"
+  "contextShortcutHintAppend": "追加到末尾。",
+  "reasoningEffort": "推理深度",
+  "reasoningDescription": "较低级别优先考虑速度，较高级别允许更深入的推理。",
+  "reasoningCompatibility": "适用于所有模型。不支持的级别将使用提供商的默认值。",
+  "reasoningNone": "无",
+  "reasoningLow": "低（默认）",
+  "reasoningMedium": "中",
+  "reasoningHigh": "高",
+  "reasoningSaveFailed": "无法保存推理深度，请重试。"
 }

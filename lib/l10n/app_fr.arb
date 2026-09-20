@@ -367,5 +367,13 @@
   "emptyPrimerRewriteTail": "pour le reformuler.",
   "contextShortcutHintLead": "Sélectionnez du texte et appuyez sur",
   "contextShortcutHintReplace": "pour remplacer ce contexte, ou",
-  "contextShortcutHintAppend": "pour l’ajouter à la suite."
+  "contextShortcutHintAppend": "pour l’ajouter à la suite.",
+  "reasoningEffort": "Effort de raisonnement",
+  "reasoningDescription": "Un niveau bas privilégie la vitesse ; un niveau élevé permet de réfléchir davantage.",
+  "reasoningCompatibility": "Pour tous les modèles. Les niveaux non pris en charge utilisent la valeur du fournisseur.",
+  "reasoningNone": "Aucun",
+  "reasoningLow": "Faible (par défaut)",
+  "reasoningMedium": "Moyen",
+  "reasoningHigh": "Élevé",
+  "reasoningSaveFailed": "Impossible d’enregistrer l’effort de raisonnement. Réessayez."
 }

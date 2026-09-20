@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
+import 'package:make_it_sound_natural/models/reasoning_effort.dart';
 import 'package:make_it_sound_natural/screens/settings_screen.dart';
 import 'package:make_it_sound_natural/widgets/app_popup_select.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -143,6 +144,69 @@ void main() {
     await tester.tap(find.byKey(key));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('reasoning picker persists all levels and restores selection', (
+    tester,
+  ) async {
+    setupSettings();
+    await pumpSettings(tester);
+    final picker = find.byKey(const Key('apiProvider-reasoningPicker'));
+    expect(
+      tester.widget<AppPopupSelect<ReasoningEffort>>(picker).value,
+      AppDefaults.reasoningEffort,
+    );
+    final labels = {
+      ReasoningEffort.none: 'None',
+      ReasoningEffort.low: 'Low (default)',
+      ReasoningEffort.medium: 'Medium',
+      ReasoningEffort.high: 'High',
+    };
+    for (final entry in labels.entries) {
+      await tester.tap(picker);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(entry.value).last);
+      await tester.pumpAndSettle();
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('reasoning_effort'), entry.key.name);
+      expect(
+        methodCalls
+            .lastWhere(
+              (call) => call.method == MethodChannelMethods.setReasoningEffort,
+            )
+            .arguments,
+        entry.key.name,
+      );
+    }
+    await tester.pumpWidget(const SizedBox.shrink());
+    await pumpSettings(tester);
+    expect(
+      tester.widget<AppPopupSelect<ReasoningEffort>>(picker).value,
+      ReasoningEffort.high,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('reasoning change reports native failure without saving', (
+    tester,
+  ) async {
+    setupSettings();
+    await pumpSettings(tester);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel(MethodChannelMethods.channelName),
+          (call) async => throw PlatformException(code: 'unavailable'),
+        );
+    await tester.tap(find.byKey(const Key('apiProvider-reasoningPicker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('High').last);
+    await tester.pumpAndSettle();
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('reasoning_effort'), isNull);
+    expect(
+      find.text('Could not save reasoning effort. Try again.'),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('renders the restructured AI Provider layout', (tester) async {
     setupSettings();

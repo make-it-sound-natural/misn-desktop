@@ -367,5 +367,13 @@
   "emptyPrimerRewriteTail": "を押すと書き換えられます。",
   "contextShortcutHintLead": "テキストを選択して",
   "contextShortcutHintReplace": "でこのコンテキストを置き換え、",
-  "contextShortcutHintAppend": "で末尾に追加します。"
+  "contextShortcutHintAppend": "で末尾に追加します。",
+  "reasoningEffort": "推論の深さ",
+  "reasoningDescription": "低い設定は速度を優先し、高い設定はより深く考えます。",
+  "reasoningCompatibility": "すべてのモデルに適用されます。非対応の場合はプロバイダーの既定値を使用します。",
+  "reasoningNone": "なし",
+  "reasoningLow": "低（既定）",
+  "reasoningMedium": "中",
+  "reasoningHigh": "高",
+  "reasoningSaveFailed": "推論の深さを保存できませんでした。もう一度お試しください。"
 }

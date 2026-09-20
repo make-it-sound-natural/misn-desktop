@@ -367,5 +367,13 @@
   "emptyPrimerRewriteTail": "لإعادة صياغته.",
   "contextShortcutHintLead": "حدّد نصًا واضغط",
   "contextShortcutHintReplace": "لاستبدال هذا السياق، أو",
-  "contextShortcutHintAppend": "للإضافة إليه."
+  "contextShortcutHintAppend": "للإضافة إليه.",
+  "reasoningEffort": "عمق التفكير",
+  "reasoningDescription": "المستويات المنخفضة تفضّل السرعة، والعالية تتيح تفكيرًا أعمق.",
+  "reasoningCompatibility": "ينطبق على جميع النماذج. تُستخدم إعدادات المزوّد الافتراضية للمستويات غير المدعومة.",
+  "reasoningNone": "بلا تفكير",
+  "reasoningLow": "منخفض (افتراضي)",
+  "reasoningMedium": "متوسط",
+  "reasoningHigh": "عالٍ",
+  "reasoningSaveFailed": "تعذّر حفظ عمق التفكير. حاول مرة أخرى."
 }
