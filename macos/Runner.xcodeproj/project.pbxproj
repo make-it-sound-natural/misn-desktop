@@ -21,6 +21,7 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
+		NATIVELOCTEST01 /* NativeLocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = NATIVELOCTEST02 /* NativeLocalizationTests.swift */; };
 		07179EAE7F4A819779EB36E8 /* ShortcutHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C42E1CF3C551BBEDD68B0C5 /* ShortcutHandler.swift */; };
 		APPWINLIFE01 /* AppWindowLifecycleController.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPWINLIFE02 /* AppWindowLifecycleController.swift */; };
 		APPWINLIFETEST01 /* AppWindowLifecycleControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPWINLIFETEST02 /* AppWindowLifecycleControllerTests.swift */; };
@@ -113,6 +114,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		NATIVELOCTEST02 /* NativeLocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeLocalizationTests.swift; sourceTree = "<group>"; };
 		2BB7E992073C5568D8E11356 /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		331C80D5294CF71000263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		331C80D7294CF71000263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 				PASTETEST02 /* PasteVerificationTests.swift */,
 				TXTREPTEST02 /* TextReplacerTests.swift */,
 				APPWINLIFETEST02 /* AppWindowLifecycleControllerTests.swift */,
+				NATIVELOCTEST02 /* NativeLocalizationTests.swift */,
 				LLMERRTEST02 /* LLMErrorMessageParserTests.swift */,
 				LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */,
 				SHORTCUTDTEST2 /* ShortcutDispatchTests.swift */,
@@ -604,6 +607,7 @@
 				PASTETEST01 /* PasteVerificationTests.swift in Sources */,
 				TXTREPTEST01 /* TextReplacerTests.swift in Sources */,
 				APPWINLIFETEST01 /* AppWindowLifecycleControllerTests.swift in Sources */,
+				NATIVELOCTEST01 /* NativeLocalizationTests.swift in Sources */,
 				LLMERRTEST01 /* LLMErrorMessageParserTests.swift in Sources */,
 				LLMAUTHTEST01 /* LLMServiceAuthFailureTests.swift in Sources */,
 				SHORTCUTDTEST /* ShortcutDispatchTests.swift in Sources */,

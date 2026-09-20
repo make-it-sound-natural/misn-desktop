@@ -207,18 +207,6 @@ final class AppWindowLifecycleControllerTests: XCTestCase {
         XCTAssertNotEqual(MenuBarStrings.quitTitle, "MenuBar.Quit")
     }
 
-    func testEnglishMenuBarStringsAreBundledWithApp() {
-        let bundle = Bundle(for: AppWindowLifecycleController.self)
-        let stringsPath = bundle.path(
-            forResource: "Localizable",
-            ofType: "strings",
-            inDirectory: nil,
-            forLocalization: "en"
-        )
-
-        XCTAssertNotNil(stringsPath)
-    }
-
     func testStatusItemInstallsOnceWithOpenAndQuitMenuItems() throws {
         let factory = makeStatusItemFactory()
         let controller = AppWindowLifecycleController(
