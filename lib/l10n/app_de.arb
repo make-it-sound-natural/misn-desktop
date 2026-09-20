@@ -367,5 +367,13 @@
   "emptyPrimerRewriteTail": "um ihn umzuformulieren.",
   "contextShortcutHintLead": "Wählen Sie Text aus und drücken Sie",
   "contextShortcutHintReplace": "um diesen Kontext zu ersetzen, oder",
-  "contextShortcutHintAppend": "um ihn zu ergänzen."
+  "contextShortcutHintAppend": "um ihn zu ergänzen.",
+  "reasoningEffort": "Denktiefe",
+  "reasoningDescription": "Niedrige Stufen bevorzugen Tempo, höhere erlauben tieferes Nachdenken.",
+  "reasoningCompatibility": "Gilt für alle Modelle. Nicht unterstützte Stufen nutzen den Anbieterstandard.",
+  "reasoningNone": "Keine",
+  "reasoningLow": "Niedrig (Standard)",
+  "reasoningMedium": "Mittel",
+  "reasoningHigh": "Hoch",
+  "reasoningSaveFailed": "Denktiefe konnte nicht gespeichert werden. Erneut versuchen."
 }

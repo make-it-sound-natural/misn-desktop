@@ -1117,5 +1117,13 @@
   "contextShortcutHintAppend": "to append to it.",
   "@contextShortcutHintAppend": {
     "description": "Fragment after the append-context chip under the Context field"
-  }
+  },
+  "reasoningEffort": "Reasoning effort",
+  "reasoningDescription": "Lower levels favor speed; higher levels allow deeper reasoning.",
+  "reasoningCompatibility": "Applies to all models. Unsupported levels use the provider’s default.",
+  "reasoningNone": "None",
+  "reasoningLow": "Low (default)",
+  "reasoningMedium": "Medium",
+  "reasoningHigh": "High",
+  "reasoningSaveFailed": "Could not save reasoning effort. Try again."
 }

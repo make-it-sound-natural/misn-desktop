@@ -12,6 +12,9 @@ enum AppDefaults {
     /// Default LLM model used when no model has been saved.
     static let model = "gpt-5.4-mini"
 
+    /// Default reasoning budget for rewrites.
+    static let reasoningEffort = ReasoningEffort.low
+
     /// Default correction variant used when no variant has been saved.
     static let variant = "Balanced"
 
@@ -29,4 +32,9 @@ enum AppDefaults {
 
     /// Default keyboard shortcut for context append
     static let appendShortcut = "cmd+shift+l"
+}
+
+/// Reasoning levels shared with the Flutter settings picker.
+enum ReasoningEffort: String, CaseIterable {
+    case none, low, medium, high
 }

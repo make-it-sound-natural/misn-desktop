@@ -1,3 +1,4 @@
+import 'package:make_it_sound_natural/models/reasoning_effort.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 
 /// Application default values.
@@ -26,6 +27,9 @@ class AppDefaults {
 
   /// Default LLM model used when no model has been saved.
   static const String model = 'google/gemini-3-flash-preview';
+
+  /// Default reasoning budget for rewrites.
+  static const ReasoningEffort reasoningEffort = ReasoningEffort.low;
 
   /// Default correction variant used when no variant has been saved.
   static const String variant = 'Balanced';

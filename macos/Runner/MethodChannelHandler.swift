@@ -30,7 +30,8 @@ class MethodChannelHandler {
     private var customProviderApiKeys: [String: String] = [:]
     private var customProviderBaseUrl: String = ""
     private var context: String = AppDefaults.context
-    private var model: String = AppDefaults.model
+    var reasoningEffort = AppDefaults.reasoningEffort
+    var model: String = AppDefaults.model
     private var defaultVariant: String = AppDefaults.variant
     private var customPrompt: String = ""
     private var targetProfileId: String = "americanEnglish"
@@ -95,6 +96,7 @@ class MethodChannelHandler {
         "deleteStoredCustomProviderApiKey": handleDeleteStoredCustomProviderApiKey,
         "setContext": handleSetContext,
         "setModel": handleSetModel,
+        "setReasoningEffort": handleSetReasoningEffort,
         "setDefaultVariant": handleSetDefaultVariant,
         "setCustomPrompt": handleSetCustomPrompt,
         "setTargetProfile": handleSetTargetProfile,
@@ -342,18 +344,6 @@ class MethodChannelHandler {
             return
         }
         context = ctx
-        result(nil)
-    }
-
-    private func handleSetModel(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        guard let mdl = call.arguments as? String else {
-            result(FlutterError(code: "INVALID_ARGUMENT", message: "Model must be a string", details: nil))
-            return
-        }
-        #if DEBUG
-        print("MethodChannelHandler: setModel called with: \(mdl)")
-        #endif
-        model = mdl
         result(nil)
     }
 
@@ -670,12 +660,6 @@ extension MethodChannelHandler {
     }
     func getCustomProviderBaseUrl() -> String { customProviderBaseUrl }
     func getContext() -> String { context }
-    func getModel() -> String {
-        #if DEBUG
-        print("MethodChannelHandler: getModel returning: \(model)")
-        #endif
-        return model
-    }
     func getDefaultVariant() -> String {
         #if DEBUG
         print("MethodChannelHandler: getDefaultVariant returning: \(defaultVariant)")

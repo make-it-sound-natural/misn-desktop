@@ -49,6 +49,8 @@
 		OPENAIPARSE01 /* LLMResponseParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = OPENAIPARSE02 /* LLMResponseParser.swift */; };
 		OPENAISERVIC1 /* LLMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = OPENAISERVIC2 /* LLMService.swift */; };
 		LLMDBGLOG01 /* LLMService+DebugLogging.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMDBGLOG02 /* LLMService+DebugLogging.swift */; };
+		MODELSET01 /* MethodChannelHandler+ModelSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = MODELSET02 /* MethodChannelHandler+ModelSettings.swift */; };
+		LLMCOMPAT01 /* LLMCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMCOMPAT02 /* LLMCompatibility.swift */; };
 		LLMERRPARS01 /* LLMErrorMessageParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMERRPARS02 /* LLMErrorMessageParser.swift */; };
 		LLMERRTEST01 /* LLMErrorMessageParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMERRTEST02 /* LLMErrorMessageParserTests.swift */; };
 		LLMAUTHTEST01 /* LLMServiceAuthFailureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */; };
@@ -75,6 +77,7 @@
 		SRPERMISS01 /* ScreenRecordingPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRPERMISS02 /* ScreenRecordingPermission.swift */; };
 		SRGUIDECTL1 /* ScreenRecordingPermissionGuideController.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRGUIDECTL2 /* ScreenRecordingPermissionGuideController.swift */; };
 		LLMPAYTEST01 /* LLMServicePayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMPAYTEST02 /* LLMServicePayloadTests.swift */; };
+		LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */; };
 		SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */; };
 		SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */; };
 /* End PBXBuildFile section */
@@ -164,6 +167,8 @@
 		OPENAIPARSE02 /* LLMResponseParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LLMResponseParser.swift; sourceTree = "<group>"; };
 		OPENAISERVIC2 /* LLMService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LLMService.swift; sourceTree = "<group>"; };
 		LLMDBGLOG02 /* LLMService+DebugLogging.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "LLMService+DebugLogging.swift"; sourceTree = "<group>"; };
+		MODELSET02 /* MethodChannelHandler+ModelSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "MethodChannelHandler+ModelSettings.swift"; sourceTree = "<group>"; };
+		LLMCOMPAT02 /* LLMCompatibility.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "LLMCompatibility.swift"; sourceTree = "<group>"; };
 		LLMERRPARS02 /* LLMErrorMessageParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LLMErrorMessageParser.swift; sourceTree = "<group>"; };
 		LLMERRTEST02 /* LLMErrorMessageParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMErrorMessageParserTests.swift; sourceTree = "<group>"; };
 		LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceAuthFailureTests.swift; sourceTree = "<group>"; };
@@ -190,6 +195,7 @@
 		SRPERMISS02 /* ScreenRecordingPermission.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenRecordingPermission.swift; sourceTree = "<group>"; };
 		SRGUIDECTL2 /* ScreenRecordingPermissionGuideController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenRecordingPermissionGuideController.swift; sourceTree = "<group>"; };
 		LLMPAYTEST02 /* LLMServicePayloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServicePayloadTests.swift; sourceTree = "<group>"; };
+		LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceCompatibilityTests.swift; sourceTree = "<group>"; };
 		SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCapturerTests.swift; sourceTree = "<group>"; };
 		SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDebugSaverTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -242,6 +248,7 @@
 				VARTEST002 /* ShortcutHandlerVariantCompletionTests.swift */,
 				PROMPTTEST02 /* PromptTemplatesTests.swift */,
 				LLMPAYTEST02 /* LLMServicePayloadTests.swift */,
+				LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */,
 				SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */,
 				SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */,
 			);
@@ -333,6 +340,8 @@
 				LLMERRPARS02 /* LLMErrorMessageParser.swift */,
 				OPENAISERVIC2 /* LLMService.swift */,
 				LLMDBGLOG02 /* LLMService+DebugLogging.swift */,
+				MODELSET02 /* MethodChannelHandler+ModelSettings.swift */,
+				LLMCOMPAT02 /* LLMCompatibility.swift */,
 				PROMPTTEMP002 /* PromptTemplates.swift */,
 				SHORTCUTMGR02 /* ShortcutManager.swift */,
 				SHORTCUTDISP2 /* ShortcutDispatcher.swift */,
@@ -601,6 +610,7 @@
 				VARTEST001 /* ShortcutHandlerVariantCompletionTests.swift in Sources */,
 				PROMPTTEST01 /* PromptTemplatesTests.swift in Sources */,
 				LLMPAYTEST01 /* LLMServicePayloadTests.swift in Sources */,
+				LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */,
 				SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */,
 				SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */,
 			);
@@ -634,6 +644,8 @@
 				LLMERRPARS01 /* LLMErrorMessageParser.swift in Sources */,
 				OPENAISERVIC1 /* LLMService.swift in Sources */,
 				LLMDBGLOG01 /* LLMService+DebugLogging.swift in Sources */,
+				MODELSET01 /* MethodChannelHandler+ModelSettings.swift in Sources */,
+				LLMCOMPAT01 /* LLMCompatibility.swift in Sources */,
 				PROMPTTEMP001 /* PromptTemplates.swift in Sources */,
 				SHORTCUTMGR01 /* ShortcutManager.swift in Sources */,
 				SHORTCUTDISP1 /* ShortcutDispatcher.swift in Sources */,

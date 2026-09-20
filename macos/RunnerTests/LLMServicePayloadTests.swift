@@ -2,6 +2,34 @@ import XCTest
 @testable import Make_It_Sound_Natural
 
 final class LLMServicePayloadTests: XCTestCase {
+    func testSerializedReasoningLevelsAndDefaultForEveryProvider() throws {
+        let service = LLMService()
+        for provider in ["openai", "openrouter", "tokenguard", "custom-endpoint"] {
+            var config = LLMService.Configuration(
+                provider: provider,
+                apiKey: "key", openRouterApiKey: "router-key",
+                customProviderApiKey: "custom-key",
+                customProviderBaseUrl: "https://example.test/v1",
+                model: "test-model", customPrompt: nil, context: nil,
+                targetProfileInstruction: nil, screenshotAttachment: nil
+            )
+            XCTAssertEqual(config.reasoningEffort, .low)
+            for effort in ReasoningEffort.allCases {
+                config.reasoningEffort = effort
+                let request = try XCTUnwrap(service.buildRequestForTesting(
+                    text: "hello", config: config, systemInstructions: "system"
+                ))
+                let body = try XCTUnwrap(request.httpBody)
+                let payload = try XCTUnwrap(
+                    JSONSerialization.jsonObject(with: body) as? [String: Any]
+                )
+                XCTAssertEqual(payload["reasoning_effort"] as? String, effort.rawValue)
+                XCTAssertNil(payload["reasoning"])
+                XCTAssertNotNil(payload["response_format"])
+            }
+        }
+    }
+
     func testDebugRequestContextLinesShowAttachedInputs() {
         let service = LLMService()
         let attachment = LLMService.ScreenshotAttachment(
@@ -88,6 +116,7 @@ final class LLMServicePayloadTests: XCTestCase {
 
         let messages = try XCTUnwrap(payload["messages"] as? [[String: Any]])
         XCTAssertEqual(messages[1]["content"] as? String, "hello")
+        XCTAssertEqual(payload["reasoning_effort"] as? String, "low")
     }
 
     func testImagePayloadUsesMultimodalUserContent() throws {
