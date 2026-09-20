@@ -115,8 +115,12 @@ lint-swift:
 l10n-check: pub-get
 	@$(DART) run tool/check_l10n.dart
 
-# Run all tests: Flutter (`test/`) then native XCTest (`macos/RunnerTests/`)
-test: test-flutter test-macos
+# Run release policy tests, Flutter tests, then native XCTest.
+test: test-release test-flutter test-macos
+
+.PHONY: test-release
+test-release:
+	@python3 -m unittest discover -s test/tool -p '*_test.py'
 
 # Flutter / Dart tests (--no-pub skips dependency check for faster runs)
 test-flutter: pub-get

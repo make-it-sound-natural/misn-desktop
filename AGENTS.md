@@ -62,13 +62,15 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
 │   ├── theme/                # Theming
 │   ├── utils/                # Logging, formatters
 │   └── l10n/                 # ARB sources + ignored generated localizations
-├── tool/                     # Dart CLI tooling for release automation
+├── tool/                     # Release automation and localization tooling
+│   ├── nightly_version.py    # Nightly numbering and artifact validation
 │   ├── release_manager.dart  # Entrypoint: dart run tool/release_manager.dart
 │   └── release_manager/      # Channel config, version policy, CLI commands
 ├── test/                     # Dart unit/widget tests
-│   └── tool/                 # Tests for release_manager CLI
+│   └── tool/                 # Dart CLI and Python nightly policy tests
 ├── docs/
 │   ├── design-system.md      # Compact desktop UI layout rules and tokens
+│   ├── nightly-versioning.md # Nightly allocation and migration constraints
 │   └── ci-cd-setup.md        # CI/CD overview
 ├── .github/workflows/        # CI/CD workflows
 │   ├── test.yml              # PR / push test pipeline
@@ -97,7 +99,8 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
 | Lint Swift | `make lint-swift` (requires SwiftLint) |
 | Check localizations | `make l10n-check` |
 | Lint all | `make lint` (format-check + Flutter analyze + SwiftLint) |
-| **All tests** | `make test` (Flutter tests, then macOS XCTest) |
+| **All tests** | `make test` (release policy, Flutter, macOS XCTest) |
+| Nightly release policy tests | `make test-release` |
 | Flutter tests only | `make test-flutter` |
 | macOS XCTest only | `make test-macos` (needs `cd macos && pod install`) |
 | Clean | `make clean` |
@@ -246,7 +249,9 @@ business rules that belong in shared Dart unless required for OS integration.
 - **Dart**: tests under `test/`; use `flutter_test`; Arrange-Act-Assert.
 - **Native**: `macos/RunnerTests/` — XCTest; `@testable import` the app module
   (e.g. `Make_It_Sound_Natural`).
-- **`make test`** runs **both** stacks; CI runs `pod install` then `make test`.
+- **`make test`** runs release policy tests and **both** app stacks; CI runs
+  `pod install` before native tests. `make test-release` uses Python 3
+  standard-library unittest to exercise nightly allocation and artifact checks.
 - **Settings compatibility**: changing persisted keys or option values needs
   migration/fallback and a test so stale saves do not break UI.
 - **Status bubble policy**: after success, `VariantHandler` calls
@@ -309,6 +314,14 @@ All Markdown in this repo **SHOULD** follow:
 - **Tables**: compact pipes if wide tables break 80 columns or linters.
 
 ### Other conventions
+
+- **Nightly versions**: allocate from the maximum published daily sequence
+  across base versions and both current appcasts, retaining release tags as
+  history. Keep the repository-wide `nightly` concurrency group stable and do
+  not cancel a publishing run. Build and feed versions must match the signed
+  artifact; reject stale/duplicate publication. See
+  [docs/nightly-versioning.md](docs/nightly-versioning.md) for migration and
+  recovery constraints.
 
 - **Flutter–Swift bridge**: `MethodChannelHandler.swift`; map types safely
   (String, Int, Double, Bool, List, Map). Channel name uses reverse-domain

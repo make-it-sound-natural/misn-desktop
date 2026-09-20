@@ -142,19 +142,6 @@ void main() {
         expect(workflow, contains('UPDATE_SSH_PRIVATE_KEY'));
       });
     }
-
-    test('nightly workflow uses run number for Sparkle comparison version', () {
-      final workflow = File(
-        '.github/workflows/release-nightly.yml',
-      ).readAsStringSync();
-
-      expect(workflow, contains(r'bundle_version=${{ github.run_number }}'));
-      expect(workflow, contains('--bundle-version'));
-      expect(
-        workflow,
-        contains(r'--sparkle-version "${{ github.run_number }}"'),
-      );
-    });
   });
 
   group('Fastlane release packaging', () {
