@@ -25,25 +25,26 @@ The response-format fallback adds the existing JSON-only output instruction.
 Authentication, quota, server errors, unrelated validation failures, and
 repeated rejection of an already removed field do not trigger another retry.
 
-## Latency validation
+## Historical latency observations
 
-Automated tests use an isolated HTTP transport, not real providers. They do
-not measure latency. The benchmark numbers and p50 ≤ 5 seconds target in
-MT-1087 are the card author's observations and target for its specific cases.
-They are not measurements made during this implementation.
+Acceptance is based on a working, persisted reasoning-level choice with the
+Low default, request serialization, bounded compatibility fallback, and
+functional tests. Users decide which level suits their model and workflow.
+The scope clarification on 2026-09-20 removed the Gemini p50 target and the
+separate OpenRouter strict-output routing study from acceptance criteria.
+Additional benchmarks are not required for this change.
 
-Keep strict `response_format` enabled by default. OpenRouter's
-[structured-output documentation](https://openrouter.ai/docs/guides/features/structured-outputs)
-requires a compatible model/provider. Whether strict output changes the
-available DeepSeek route and latency needs a separate live comparison using
-the same model, prompts, reasoning level, and recorded provider route.
+The original benchmark in MT-1087 remains historical context. Strict
+`response_format` stays enabled; its routing behavior is outside this task.
+
 ### TokenGuard smoke comparison — 2026-09-20
 
 Six requests used the configured TokenGuard endpoint and the saved
 `deepseek-v4.1-flash` model. They alternated omitted `reasoning_effort` and
 `low` on the same short synthetic English text and short rewrite instruction.
-Strict `response_format` stayed enabled. Both conditions used `max_tokens: 1024`, a 30-second request deadline, and no retries. No private user text was
-sent, and no credentials or response text were recorded.
+Strict `response_format` stayed enabled. Both conditions used
+`max_tokens: 1024`, a 30-second request deadline, and no retries. No private
+user text was sent, and no credentials or response text were recorded.
 
 | Pair | Parameter omitted | `low` |
 | --- | ---: | ---: |
@@ -57,6 +58,6 @@ required nonempty string variants. The sample medians were 1.740 s and
 stable latency improvement or an underlying reasoning budget. Response
 semantics were not evaluated by a quality judge.
 
-This smoke test used a different model and shorter prompt than the card's
-benchmark, so it does not verify the Gemini p50 target. The separate
-OpenRouter routing comparison remains unperformed.
+This historical smoke test used a different model and shorter prompt than
+the original benchmark. Its timings do not establish a general latency
+guarantee and are not acceptance thresholds.
