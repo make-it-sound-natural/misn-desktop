@@ -7,6 +7,26 @@
         <language>en</language>
 
     <item>
+        <title>Nightly 1.1.0-nightly.20260921.1</title>
+        <pubDate>Mon, 21 Sep 2026 08:54:17 GMT</pubDate>
+        <sparkle:version>2026092101</sparkle:version>
+        <sparkle:shortVersionString>1.1.0-nightly.20260921.1</sparkle:shortVersionString>
+        <sparkle:minimumSystemVersion>10.15</sparkle:minimumSystemVersion>
+        <description><![CDATA[
+            <h2>What's Changed</h2>
+            <ul>
+            <li>Nightly build. Not for production use.</li>
+            </ul>
+        ]]></description>
+        <enclosure
+            url="https://github.com/make-it-sound-natural/misn-desktop/releases/download/v1.1.0-nightly.20260921.1/MakeItSoundNaturalNightly-1.1.0-nightly.20260921.1.dmg"
+            sparkle:edSignature="cZ+AZpyjC9zEaCceuh6V4KUVTryNPPp6Jyqm8MN3Iyh1ycQFbR06ypzoHGgXRWcH440qIEc4/8uO1Cx7TCsRCQ=="
+            length="12197478"
+            type="application/octet-stream"/>
+    </item>
+
+
+    <item>
         <title>Nightly 1.1.0-nightly.20260727.6</title>
         <pubDate>Mon, 27 Jul 2026 16:29:44 GMT</pubDate>
         <sparkle:version>6</sparkle:version>
