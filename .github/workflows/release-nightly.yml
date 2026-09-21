@@ -3,6 +3,11 @@ name: Release Nightly
 on:
   workflow_dispatch:
     inputs:
+      verify_only:
+        description: 'Verify signed update and save artifacts without publishing'
+        type: boolean
+        required: true
+        default: false
       start_from:
         description: 'Start from job'
         required: true
@@ -513,7 +518,20 @@ jobs:
             --live-feed build/nightly-live.xml \
             --sparkle "$SPARKLE_CLI"
 
+      - name: Save verified nightly candidate
+        if: inputs.verify_only
+        uses: actions/upload-artifact@v6
+        with:
+          name: verified-nightly-${{ steps.version.outputs.version }}
+          path: |
+            ${{ steps.app_zip.outputs.zip_path }}
+            ${{ steps.artifacts.outputs.dmg_path }}
+            ${{ env.FEED_PATH }}
+          if-no-files-found: error
+          retention-days: 3
+
       - name: Create GitHub Release
+        if: ${{ !inputs.verify_only }}
         uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: v${{ steps.version.outputs.version }}
@@ -536,6 +554,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish Sparkle update files
+        if: ${{ !inputs.verify_only }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -550,6 +569,7 @@ jobs:
             "${{ env.FEED_PATH }}"
 
       - name: Commit updated appcast
+        if: ${{ !inputs.verify_only }}
         run: |
           cp "$FEED_PATH" "$RUNNER_TEMP/nightly-appcast.xml"
           git fetch origin "$DEFAULT_BRANCH"
@@ -567,6 +587,7 @@ jobs:
           fi
 
       - name: Delete old nightly releases
+        if: ${{ !inputs.verify_only }}
         run: |
           # Keep tags as the version ledger, including after release cleanup.
           # Keep only last 5 nightly releases
