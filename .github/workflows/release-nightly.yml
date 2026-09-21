@@ -27,9 +27,11 @@ permissions:
 
 concurrency:
   group: nightly
-  cancel-in-progress: true
+  # Keep this group stable across workflow renames and branches.
+  cancel-in-progress: false
 
 env:
+  DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
   APP_NAME: "Make It Sound Natural Nightly"
   ARTIFACT_PREFIX: MakeItSoundNaturalNightly
   FEED_PATH: appcast-nightly.xml
@@ -68,14 +70,14 @@ jobs:
       - name: Generate nightly version
         id: version
         run: |
+          set -euo pipefail
+          bash scripts/read_nightly_history.sh
           BASE=$(awk '/^version:/ {print $2; exit}' pubspec.yaml | cut -d+ -f1)
-          DATE=$(date -u +%Y%m%d)
-          VERSION="${BASE}-nightly.${DATE}.${{ github.run_number }}"
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "bundle_version=${{ github.run_number }}" >> $GITHUB_OUTPUT
-          echo "short_version=$BASE" >> $GITHUB_OUTPUT
-          echo "Nightly version: $VERSION"
-          echo "Bundle version: ${{ github.run_number }}"
+          python3 tool/nightly_version.py generate \
+            --base "$BASE" --date "$(date -u +%Y%m%d)" \
+            --tags build/nightly-tags.txt \
+            --feed build/nightly-repository.xml \
+            --feed build/nightly-live.xml | tee -a "$GITHUB_OUTPUT"
 
       - name: Validate nightly version
         run: |
@@ -356,6 +358,20 @@ jobs:
           mkdir -p "build/macos/Build/Products/Release"
           ditto -x -k "$ZIP_PATH" "build/macos/Build/Products/Release/"
 
+      - name: Validate artifact against current nightly history
+        id: artifact_version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          bash scripts/read_nightly_history.sh
+          python3 tool/nightly_version.py check \
+            --version "$VERSION" \
+            --plist "build/macos/Build/Products/Release/$APP_NAME.app/Contents/Info.plist" \
+            --tags build/nightly-tags.txt \
+            --feed build/nightly-repository.xml \
+            --feed build/nightly-live.xml | tee -a "$GITHUB_OUTPUT"
+
       - name: Create browser download ZIP
         id: app_zip
         run: |
@@ -474,36 +490,36 @@ jobs:
         env:
           SPARKLE_SIGNATURE: ${{ steps.artifacts.outputs.sparkle_signature }}
         run: |
-          mkdir -p build
+          cp build/nightly-repository.xml "$FEED_PATH"
           printf '%s\n' 'Nightly build. Not for production use.' > build/release-notes.txt
           dart run tool/release_manager.dart update-appcast \
             --channel nightly \
             --version "${{ steps.version.outputs.version }}" \
-            --sparkle-version "${{ github.run_number }}" \
+            --sparkle-version "${{ steps.artifact_version.outputs.bundle_version }}" \
             --repo "${{ github.repository }}" \
             --update-base-url "${{ env.UPDATE_BASE_URL }}" \
             --dmg-size "${{ steps.artifacts.outputs.dmg_size }}" \
             --sparkle-signature "$SPARKLE_SIGNATURE" \
             --notes-file build/release-notes.txt
 
-      - name: Publish Sparkle update files
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          UPDATE_SSH_HOST: ${{ secrets.UPDATE_SSH_HOST }}
-          UPDATE_SSH_USER: ${{ secrets.UPDATE_SSH_USER }}
-          UPDATE_SSH_PRIVATE_KEY: ${{ secrets.UPDATE_SSH_PRIVATE_KEY }}
-          UPDATE_SSH_PATH: ${{ vars.UPDATE_SSH_PATH }}
-          UPDATE_SSH_PORT: ${{ vars.UPDATE_SSH_PORT }}
+      - name: Verify signed update over the live nightly
         run: |
-          bash scripts/publish_update_files.sh \
-            "${{ steps.artifacts.outputs.dmg_path }}" \
-            "${{ env.FEED_PATH }}"
+          set -euo pipefail
+          SIGN_UPDATE=$(bash scripts/prepare_sparkle_tools.sh)
+          SPARKLE_CLI="$(dirname "$(dirname "$SIGN_UPDATE")")/sparkle.app/Contents/MacOS/sparkle"
+          python3 tool/verify_nightly_update.py \
+            --dmg "${{ steps.artifacts.outputs.dmg_path }}" \
+            --candidate-feed "$FEED_PATH" \
+            --live-feed build/nightly-live.xml \
+            --sparkle "$SPARKLE_CLI"
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: v${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          fail_on_unmatched_files: true
+          overwrite_files: false
           files: |
             ${{ steps.app_zip.outputs.zip_path }}
             ${{ steps.artifacts.outputs.dmg_path }}
@@ -519,8 +535,27 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Publish Sparkle update files
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          UPDATE_SSH_HOST: ${{ secrets.UPDATE_SSH_HOST }}
+          UPDATE_SSH_USER: ${{ secrets.UPDATE_SSH_USER }}
+          UPDATE_SSH_PRIVATE_KEY: ${{ secrets.UPDATE_SSH_PRIVATE_KEY }}
+          UPDATE_SSH_PATH: ${{ vars.UPDATE_SSH_PATH }}
+          UPDATE_SSH_PORT: ${{ vars.UPDATE_SSH_PORT }}
+        run: |
+          bash scripts/publish_update_files.sh \
+            "${{ steps.artifacts.outputs.dmg_path }}" \
+            "${{ env.FEED_PATH }}"
+
       - name: Commit updated appcast
         run: |
+          cp "$FEED_PATH" "$RUNNER_TEMP/nightly-appcast.xml"
+          git fetch origin "$DEFAULT_BRANCH"
+          git restore -- "$FEED_PATH"
+          git checkout --detach FETCH_HEAD
+          cp "$RUNNER_TEMP/nightly-appcast.xml" "$FEED_PATH"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if git diff --quiet "${{ env.FEED_PATH }}"; then
@@ -533,11 +568,12 @@ jobs:
 
       - name: Delete old nightly releases
         run: |
+          # Keep tags as the version ledger, including after release cleanup.
           # Keep only last 5 nightly releases
           gh release list --limit 50 --json tagName,isPrerelease \
             -q '.[] | select(.isPrerelease and (.tagName | contains("nightly"))) | .tagName' \
             | tail -n +6 \
-            | xargs -I{} gh release delete {} --yes --cleanup-tag || true
+            | xargs -I{} gh release delete {} --yes || true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

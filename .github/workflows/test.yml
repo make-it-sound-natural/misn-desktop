@@ -46,6 +46,9 @@ jobs:
       - name: Verify formatting and analyze code
         run: make lint-flutter
 
+      - name: Test nightly release allocation
+        run: make test-release
+
       - name: Run Flutter tests
         run: make test-flutter
 
