@@ -114,6 +114,97 @@ final class ElectronAccessibilityEnablerTests: XCTestCase {
         XCTAssertTrue(reader.writes.isEmpty)
     }
 
+    // MARK: - Empty nearby walk
+
+    func testEmptyNearbyWalkInElectronAppSetsManualAccessibilityOnce() {
+        layOutComposer()
+
+        let first = capturer.capture(
+            request(processID: 42, mode: .fieldAndNearby)
+        )
+        let second = capturer.capture(
+            request(processID: 42, mode: .fieldAndNearby)
+        )
+
+        XCTAssertTrue(first.context.requestedManualAccessibility)
+        XCTAssertFalse(second.context.requestedManualAccessibility)
+        XCTAssertEqual(reader.writes.count, 1)
+        XCTAssertTrue(reader.writes.allSatisfy {
+            $0 == ("app", "AXManualAccessibility", true)
+        })
+        // This run still falls back to the screenshot.
+        XCTAssertEqual(
+            first.context.nearbyWalk,
+            NearbyTextWalk(nodesVisited: 1)
+        )
+        guard case .unusable(.noSurroundingText, let partial) =
+            first.resolve(copiedText: "Sounds good") else {
+            return XCTFail("Expected noSurroundingText")
+        }
+        XCTAssertTrue(partial.requestedManualAccessibility)
+    }
+
+    func testEmptyNearbyWalkInNonElectronAppIsNotEnabled() {
+        layOutComposer()
+
+        _ = capturer.capture(
+            request(processID: 42, mode: .fieldAndNearby, bundleURL: mail)
+        )
+
+        XCTAssertTrue(reader.writes.isEmpty)
+    }
+
+    func testNearbyWalkWithKeptTextIsNotEnabled() {
+        let container = layOutComposer()
+        let message = FakeAXNode(
+            "message",
+            role: kAXStaticTextRole,
+            frame: CGRect(x: 260, y: 600, width: 800, height: 20)
+        )
+        message.strings[kAXValueAttribute] = "Anna: ready for review?"
+        container.add(message)
+
+        let capture = capturer.capture(
+            request(processID: 42, mode: .fieldAndNearby)
+        )
+
+        XCTAssertEqual(capture.context.nearbyText, "Anna: ready for review?")
+        XCTAssertFalse(capture.context.requestedManualAccessibility)
+        XCTAssertTrue(reader.writes.isEmpty)
+    }
+
+    func testLargeNearbyWalkWithoutTextIsNotEnabled() {
+        let container = layOutComposer()
+        let limit = ElectronAccessibilityEnabler<FakeAXReader>
+            .emptyWalkNodeLimit
+        for index in 0..<limit {
+            container.add(FakeAXNode(
+                "spacer\(index)",
+                role: kAXGroupRole,
+                frame: CGRect(x: 260, y: 600, width: 800, height: 20)
+            ))
+        }
+
+        let capture = capturer.capture(
+            request(processID: 42, mode: .fieldAndNearby)
+        )
+
+        XCTAssertNil(capture.context.nearbyWalk?.cutoff)
+        XCTAssertTrue(reader.writes.isEmpty)
+    }
+
+    func testCutNearbyWalkIsNotEnabled() {
+        let container = layOutComposer()
+        container.children[0].errors[kAXRoleAttribute] = .timeout
+
+        let capture = capturer.capture(
+            request(processID: 42, mode: .fieldAndNearby)
+        )
+
+        XCTAssertEqual(capture.context.nearbyWalk?.cutoff, .readFailed)
+        XCTAssertTrue(reader.writes.isEmpty)
+    }
+
     func testDetectorLooksForElectronFrameworkInBundle() throws {
         let root = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString)
@@ -133,6 +224,39 @@ final class ElectronAccessibilityEnablerTests: XCTestCase {
 
         XCTAssertTrue(ElectronAppDetector.isElectronApp(electron))
         XCTAssertFalse(ElectronAppDetector.isElectronApp(native))
+    }
+
+    /// Slack with its tree off: the composer reads fine, and all the walk
+    /// finds beside it is one empty group.
+    @discardableResult
+    private func layOutComposer() -> FakeAXNode {
+        let window = FakeAXNode(
+            "window",
+            role: kAXWindowRole,
+            frame: CGRect(x: 0, y: 0, width: 1_200, height: 800)
+        )
+        let field = FakeAXNode.textArea(
+            "Sounds good",
+            selection: NSRange(location: 0, length: 11)
+        )
+        field.frame = CGRect(x: 260, y: 710, width: 800, height: 40)
+        let container = FakeAXNode(
+            "container",
+            role: kAXGroupRole,
+            frame: CGRect(x: 260, y: 0, width: 800, height: 800)
+        )
+        container.add(
+            FakeAXNode(
+                "empty",
+                role: kAXGroupRole,
+                frame: CGRect(x: 260, y: 650, width: 800, height: 40)
+            ),
+            field
+        )
+        window.add(container)
+        reader.app.elements[kAXFocusedWindowAttribute] = window
+        reader.app.elements[kAXFocusedUIElementAttribute] = field
+        return container
     }
 
     private func request(

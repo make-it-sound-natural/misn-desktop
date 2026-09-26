@@ -133,6 +133,14 @@ private extension AccessibilityContextCapturer {
                 around: field
             )
             context.timings.nearby = milliseconds(since: stepStart)
+            if let walk = context.nearbyWalk {
+                context.requestedManualAccessibility = electronAccessibility
+                    .enableIfNeeded(
+                        afterNearbyWalk: walk,
+                        text: context.nearbyText,
+                        in: request
+                    )
+            }
         }
         return fieldExcerpt
     }

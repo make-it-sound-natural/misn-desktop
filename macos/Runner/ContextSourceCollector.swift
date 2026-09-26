@@ -149,15 +149,22 @@ final class ContextSourceCollector {
                 "beforeLength=\(context.textBeforeSelection.count), " +
                 "afterLength=\(context.textAfterSelection.count), " +
                 "nearbyLength=\(context.nearbyText.count)" +
-                describe(context.nearbyWalk, ms: context.timings.nearby)
+                describe(context.nearbyWalk, ms: context.timings.nearby) +
+                describeElectron(context)
         case .unusable(let reason, let partial):
-            let electron = partial.requestedManualAccessibility
-                ? ", requested AXManualAccessibility"
-                : ""
             return "AX context: \(format(partial.timings.total)) ms, " +
                 "unusable/\(reason.rawValue), mode=\(partial.mode.rawValue)" +
-                electron
+                describe(partial.nearbyWalk, ms: partial.timings.nearby) +
+                describeElectron(partial)
         }
+    }
+
+    private static func describeElectron(
+        _ context: AccessibilityContext
+    ) -> String {
+        context.requestedManualAccessibility
+            ? ", requested AXManualAccessibility"
+            : ""
     }
 
     private static func describe(_ walk: NearbyTextWalk?, ms: Double) -> String {

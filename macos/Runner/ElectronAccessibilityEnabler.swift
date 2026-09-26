@@ -3,13 +3,20 @@ import Foundation
 /// Electron apps (Slack, Discord, Notion, …) build no Accessibility tree
 /// until a client sets `AXManualAccessibility` on the app element. The tree
 /// then builds asynchronously and stays on until the app quits, so this is
-/// done once per process, after a read found nothing usable there. That run
-/// still falls back to the screenshot; later runs get the tree.
+/// done once per process, after a read found nothing usable there or a
+/// nearby walk found an empty tree. That run still falls back to the
+/// screenshot; later runs get the tree.
 ///
 /// Never sets `AXEnhancedUserInterface`: it breaks window animations and
 /// window managers.
 final class ElectronAccessibilityEnabler<Reader: AXElementReading> {
     static var attribute: String { "AXManualAccessibility" }
+
+    /// A nearby walk that covered fewer nodes than this and kept no text
+    /// found a tree that is off. Slack exposes its composer even then, and
+    /// the walk around it visits 2 nodes; with the tree on it visits
+    /// hundreds.
+    static var emptyWalkNodeLimit: Int { 10 }
 
     private let reader: Reader
     private let messagingTimeout: Float
@@ -32,8 +39,20 @@ final class ElectronAccessibilityEnabler<Reader: AXElementReading> {
         after reason: AccessibilityContext.UnusableReason,
         in request: AccessibilityContextRequest
     ) -> Bool {
-        guard Self.treeMayBeOff(reason),
-              let bundleURL = request.bundleURL,
+        Self.treeMayBeOff(reason) && enable(in: request)
+    }
+
+    /// Returns whether this call set the attribute.
+    func enableIfNeeded(
+        afterNearbyWalk walk: NearbyTextWalk,
+        text: String,
+        in request: AccessibilityContextRequest
+    ) -> Bool {
+        Self.treeMayBeOff(walk, text: text) && enable(in: request)
+    }
+
+    private func enable(in request: AccessibilityContextRequest) -> Bool {
+        guard let bundleURL = request.bundleURL,
               isElectronApp(bundleURL),
               markAttempted(request.processID) else {
             return false
@@ -56,6 +75,16 @@ final class ElectronAccessibilityEnabler<Reader: AXElementReading> {
         default:
             return false
         }
+    }
+
+    /// A walk that was cut short did not see the whole tree, so its size
+    /// says nothing.
+    private static func treeMayBeOff(
+        _ walk: NearbyTextWalk,
+        text: String
+    ) -> Bool {
+        walk.cutoff == nil && text.isEmpty
+            && walk.nodesVisited < emptyWalkNodeLimit
     }
 
     /// Once per pid whatever the outcome, so an app that rejects the
