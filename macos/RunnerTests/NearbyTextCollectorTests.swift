@@ -232,6 +232,47 @@ final class NearbyTextCollectorTests: XCTestCase {
         XCTAssertEqual(context.nearbyText, "Anna: ready?")
     }
 
+    /// Chat composers often end with a newline the copy does not include.
+    func testNearbyTextSurvivesWhitespaceOnlyFieldText() {
+        field = FakeAXNode.textArea("Hi, looks good\n", selection: NSRange(
+            location: 0,
+            length: 14
+        ))
+        field.frame = CGRect(x: 260, y: 710, width: 800, height: 40)
+        reader.app.elements[kAXFocusedUIElementAttribute] = field
+        layout(staticText("Anna: ready?", y: 600))
+
+        let result = capture().resolve(copiedText: "Hi, looks good")
+
+        guard case .usable(let context) = result else {
+            return XCTFail("Expected usable, got \(result)")
+        }
+        XCTAssertEqual(context.nearbyText, "Anna: ready?")
+        XCTAssertEqual(context.textBeforeSelection, "")
+        XCTAssertEqual(context.textAfterSelection, "")
+    }
+
+    func testNearbyTextIsSentWithoutPlaceholderFieldText() {
+        let placeholders = String(repeating: "\u{FFFC}", count: 10)
+        let value = placeholders + " ok " + placeholders
+        field = FakeAXNode.textArea(
+            value,
+            selection: (value as NSString).range(of: "ok")
+        )
+        field.frame = CGRect(x: 260, y: 710, width: 800, height: 40)
+        reader.app.elements[kAXFocusedUIElementAttribute] = field
+        layout(staticText("Anna: ready?", y: 600))
+
+        let result = capture().resolve(copiedText: "ok")
+
+        guard case .usable(let context) = result else {
+            return XCTFail("Expected usable, got \(result)")
+        }
+        XCTAssertEqual(context.nearbyText, "Anna: ready?")
+        XCTAssertEqual(context.textBeforeSelection, "")
+        XCTAssertEqual(context.textAfterSelection, "")
+    }
+
     // MARK: - Tree builders
 
     /// A Slack-like window: navigation bar, sidebar, toolbar, channel

@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** January 2026
+**Last updated:** September 2026
 
 ## Overview
 
@@ -13,8 +13,9 @@ Make It Sound Natural ("the App") is a macOS application that helps you rewrite 
 When you use the App to rewrite text:
 
 1. **Selected Text**: The text you select and submit for rewriting is sent to your configured AI provider (OpenAI or OpenRouter) for processing.
-2. **Processing**: The AI provider processes your text to generate rewritten variants.
-3. **No Storage by App**: The App does not store your submitted text or the AI-generated responses on any server. All processing happens in real-time.
+2. **App context**: Unless you turn it off in Settings, the App also reads text from the app where you press the shortcut and sends it with the selected text. Depending on the mode, this is the app name, window title, field label, the text around your selection, and the text shown above the field, which can include other people's messages. Each part has a length cap. Nothing is read from password fields, from any app while a password field is focused, or from code editors and terminals.
+3. **Processing**: The AI provider processes your text to generate rewritten variants.
+4. **No Storage by App**: The App does not store your submitted text or the AI-generated responses on any server. All processing happens in real-time.
 
 ### API Keys
 
@@ -76,6 +77,8 @@ When using OpenRouter as your AI provider:
 The App requests accessibility permissions to:
 
 - Read selected text from any application
+- Read App context: text around the selection and, if you choose it, nearby text in the same window
+- Ask Electron apps (Slack, Discord, Notion, and similar) to expose their text to Accessibility when App context finds none
 - Paste corrected text back into the original application
 - Register global keyboard shortcuts
 

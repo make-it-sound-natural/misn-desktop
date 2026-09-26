@@ -690,7 +690,8 @@ extension MethodChannelHandler {
 
     func getScreenshotContextMode() -> ScreenshotContextMode {
         screenshotContextMode
-    }}
+    }
+}
 
 extension MethodChannelHandler {
     func sendStatus(_ status: String) { messageSender.sendStatus(status) }

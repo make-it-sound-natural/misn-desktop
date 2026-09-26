@@ -103,16 +103,22 @@ struct AccessibilityContextCapture: Equatable {
         let hasSurroundingText = !surrounding
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .isEmpty
-        guard hasSurroundingText || !context.nearbyText.isEmpty else {
-            return .unusable(.noSurroundingText, partial: context)
-        }
-        guard !Self.isMostlyPlaceholder(surrounding) else {
-            return .unusable(.mostlyPlaceholderText, partial: context)
+        let fieldTextUsable = hasSurroundingText
+            && !Self.isMostlyPlaceholder(surrounding)
+        // Nearby text is worth sending on its own, so field text that is
+        // only a trailing newline or embeds does not discard it.
+        guard fieldTextUsable || !context.nearbyText.isEmpty else {
+            return .unusable(
+                hasSurroundingText ? .mostlyPlaceholderText : .noSurroundingText,
+                partial: context
+            )
         }
 
         var resolved = context
-        resolved.textBeforeSelection = Self.withoutPlaceholders(parts.before)
-        resolved.textAfterSelection = Self.withoutPlaceholders(parts.after)
+        if fieldTextUsable {
+            resolved.textBeforeSelection = Self.withoutPlaceholders(parts.before)
+            resolved.textAfterSelection = Self.withoutPlaceholders(parts.after)
+        }
         return .usable(resolved)
     }
 
