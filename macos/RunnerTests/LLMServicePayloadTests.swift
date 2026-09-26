@@ -11,7 +11,8 @@ final class LLMServicePayloadTests: XCTestCase {
                 customProviderApiKey: "custom-key",
                 customProviderBaseUrl: "https://example.test/v1",
                 model: "test-model", customPrompt: nil, context: nil,
-                targetProfileInstruction: nil, screenshotAttachment: nil
+                targetProfileInstruction: nil, screenshotAttachment: nil,
+                accessibilityContext: nil
             )
             XCTAssertEqual(config.reasoningEffort, .low)
             for effort in ReasoningEffort.allCases {
@@ -46,7 +47,8 @@ final class LLMServicePayloadTests: XCTestCase {
             customPrompt: nil,
             context: "Slack thread about pnpm and axios security",
             targetProfileInstruction: nil,
-            screenshotAttachment: attachment
+            screenshotAttachment: attachment,
+            accessibilityContext: nil
         )
 
         let lines = service.debugRequestContextLines(config: config)
@@ -84,7 +86,8 @@ final class LLMServicePayloadTests: XCTestCase {
             customPrompt: nil,
             context: "private context",
             targetProfileInstruction: nil,
-            screenshotAttachment: nil
+            screenshotAttachment: nil,
+            accessibilityContext: nil
         )
 
         let lines = service.debugRequestContextLines(config: config)
@@ -105,7 +108,8 @@ final class LLMServicePayloadTests: XCTestCase {
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: nil,
-            screenshotAttachment: nil
+            screenshotAttachment: nil,
+            accessibilityContext: nil
         )
 
         let payload = service.buildPayloadForTesting(
@@ -135,7 +139,8 @@ final class LLMServicePayloadTests: XCTestCase {
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: nil,
-            screenshotAttachment: attachment
+            screenshotAttachment: attachment,
+            accessibilityContext: nil
         )
 
         let payload = service.buildPayloadForTesting(
@@ -173,7 +178,8 @@ final class LLMServicePayloadTests: XCTestCase {
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: nil,
-            screenshotAttachment: attachment
+            screenshotAttachment: attachment,
+            accessibilityContext: nil
         )
 
         let payload = service.buildPayloadForTesting(
@@ -205,7 +211,8 @@ final class LLMServicePayloadTests: XCTestCase {
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: nil,
-            screenshotAttachment: nil
+            screenshotAttachment: nil,
+            accessibilityContext: nil
         )
 
         let request = try XCTUnwrap(service.buildRequestForTesting(
@@ -238,7 +245,8 @@ final class LLMServicePayloadTests: XCTestCase {
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: nil,
-            screenshotAttachment: nil
+            screenshotAttachment: nil,
+            accessibilityContext: nil
         )
 
         let request = try XCTUnwrap(service.buildRequestForTesting(
@@ -265,7 +273,8 @@ final class LLMServicePayloadTests: XCTestCase {
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: nil,
-            screenshotAttachment: nil
+            screenshotAttachment: nil,
+            accessibilityContext: nil
         )
 
         let payload = service.buildPayloadForTesting(
@@ -277,5 +286,123 @@ final class LLMServicePayloadTests: XCTestCase {
 
         XCTAssertNil(payload["response_format"])
         XCTAssertEqual(payload["model"] as? String, "deepseek-v4-flash")
+    }
+
+    // MARK: - App context
+
+    func testTextOnlyPayloadWithAppContextKeepsUserContentString() throws {
+        let service = LLMService()
+        let config = makeConfiguration(accessibilityContext: .slackFixture())
+
+        let payload = service.buildPayloadForTesting(
+            text: "hello",
+            config: config,
+            systemInstructions: service.buildFinalSystemInstructions(
+                text: "hello",
+                config: config
+            )
+        )
+
+        let messages = try XCTUnwrap(payload["messages"] as? [[String: Any]])
+        let system = try XCTUnwrap(messages[0]["content"] as? String)
+        XCTAssertTrue(system.contains("<app_context>"))
+        XCTAssertTrue(system.contains("review the mockups?"))
+        XCTAssertEqual(messages[1]["content"] as? String, "hello")
+    }
+
+    func testImagePayloadWithAppContextKeepsRawSelectionAndBothContexts()
+        throws {
+        let service = LLMService()
+        let config = makeConfiguration(
+            screenshot: .init(mimeType: "image/jpeg", base64Data: "abc123"),
+            accessibilityContext: .slackFixture()
+        )
+
+        let payload = service.buildPayloadForTesting(
+            text: "hello",
+            config: config,
+            systemInstructions: service.buildFinalSystemInstructions(
+                text: "hello",
+                config: config
+            )
+        )
+
+        let messages = try XCTUnwrap(payload["messages"] as? [[String: Any]])
+        let system = try XCTUnwrap(messages[0]["content"] as? String)
+        XCTAssertTrue(system.contains("<app_context>"))
+        XCTAssertTrue(system.contains("Screenshot context:"))
+        let content = try XCTUnwrap(messages[1]["content"] as? [[String: Any]])
+        XCTAssertEqual(content.count, 2)
+        XCTAssertEqual(content[0]["text"] as? String, "hello")
+        XCTAssertEqual(content[1]["type"] as? String, "image_url")
+    }
+
+    func testDebugRequestContextLinesReportAppContextLengthsOnly() {
+        let service = LLMService()
+        let config = makeConfiguration(accessibilityContext: .slackFixture())
+
+        let lines = service.debugRequestContextLines(config: config)
+            .filter { $0.hasPrefix("App context") }
+
+        XCTAssertEqual(lines, [
+            "App context attached to LLM request: yes, mode=fieldAndNearby, " +
+            "windowLength=17, fieldLength=15, beforeLength=9, " +
+            "afterLength=8, nearbyLength=37",
+            "App context full: hidden. Set MISN_LOG_FULL_LLM_CONTEXT=1"
+        ])
+    }
+
+    func testDebugRequestContextLinesCanShowFullAppContext() throws {
+        let service = LLMService(
+            environment: ["MISN_LOG_FULL_LLM_CONTEXT": "1"]
+        )
+        let context = AccessibilityContext.slackFixture()
+        let config = makeConfiguration(accessibilityContext: context)
+
+        let lines = service.debugRequestContextLines(config: config)
+
+        let section = try XCTUnwrap(PromptTemplates.appContextSection(context))
+        XCTAssertTrue(lines.contains("App context full:\n\(section)"))
+    }
+
+    func testDebugRequestContextLinesReportMissingAppContextAndFallbackReason() {
+        let service = LLMService()
+        var config = makeConfiguration()
+
+        XCTAssertEqual(
+            service.debugRequestContextLines(config: config)
+                .filter { $0.hasPrefix("App context") },
+            ["App context attached to LLM request: no"]
+        )
+
+        config.accessibilityFallbackReason = .codeEditor
+
+        XCTAssertEqual(
+            service.debugRequestContextLines(config: config)
+                .filter { $0.hasPrefix("App context") },
+            [
+                "App context attached to LLM request: no",
+                "App context fallback reason: codeEditor"
+            ]
+        )
+    }
+
+    private func makeConfiguration(
+        screenshot: LLMService.ScreenshotAttachment? = nil,
+        accessibilityContext: AccessibilityContext? = nil
+    ) -> LLMService.Configuration {
+        LLMService.Configuration(
+            provider: "openai",
+            apiKey: "key",
+            openRouterApiKey: "",
+            customProviderApiKey: "",
+            customProviderBaseUrl: nil,
+            model: "gpt-5.4-mini",
+            customPrompt: nil,
+            context: nil,
+            targetProfileInstruction: nil,
+            screenshotAttachment: screenshot,
+            accessibilityContext: accessibilityContext
+        )
     }
 }

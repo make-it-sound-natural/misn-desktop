@@ -112,6 +112,7 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 context: self.methodChannelHandler?.getContext(),
                 targetProfileInstruction: self.methodChannelHandler?.getTargetProfileInstruction(),
                 screenshotAttachment: nil,
+                accessibilityContext: nil,
                 reasoningEffort: self.methodChannelHandler?.getReasoningEffort()
                     ?? AppDefaults.reasoningEffort
             )
@@ -338,6 +339,7 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                         context: self.methodChannelHandler?.getContext(),
                         targetProfileInstruction: self.methodChannelHandler?.getTargetProfileInstruction(),
                         screenshotAttachment: screenshotAttachment,
+                        accessibilityContext: nil,
                         reasoningEffort: self.methodChannelHandler?
                             .getReasoningEffort() ?? AppDefaults.reasoningEffort
                     )

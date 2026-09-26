@@ -78,6 +78,7 @@
 		SRPERMISS01 /* ScreenRecordingPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRPERMISS02 /* ScreenRecordingPermission.swift */; };
 		SRGUIDECTL1 /* ScreenRecordingPermissionGuideController.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRGUIDECTL2 /* ScreenRecordingPermissionGuideController.swift */; };
 		LLMPAYTEST01 /* LLMServicePayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMPAYTEST02 /* LLMServicePayloadTests.swift */; };
+		LLMPROMPTTEST01 /* LLMServicePromptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMPROMPTTEST02 /* LLMServicePromptTests.swift */; };
 		LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */; };
 		SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */; };
 		SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */; };
@@ -203,6 +204,7 @@
 		SRPERMISS02 /* ScreenRecordingPermission.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenRecordingPermission.swift; sourceTree = "<group>"; };
 		SRGUIDECTL2 /* ScreenRecordingPermissionGuideController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenRecordingPermissionGuideController.swift; sourceTree = "<group>"; };
 		LLMPAYTEST02 /* LLMServicePayloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServicePayloadTests.swift; sourceTree = "<group>"; };
+		LLMPROMPTTEST02 /* LLMServicePromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServicePromptTests.swift; sourceTree = "<group>"; };
 		LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceCompatibilityTests.swift; sourceTree = "<group>"; };
 		ACCTXMODE02 /* AccessibilityContextMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextMode.swift; sourceTree = "<group>"; };
 		ACCTXMODEL02 /* AccessibilityContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContext.swift; sourceTree = "<group>"; };
@@ -263,6 +265,7 @@
 				VARTEST002 /* ShortcutHandlerVariantCompletionTests.swift */,
 				PROMPTTEST02 /* PromptTemplatesTests.swift */,
 				LLMPAYTEST02 /* LLMServicePayloadTests.swift */,
+				LLMPROMPTTEST02 /* LLMServicePromptTests.swift */,
 				LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */,
 				SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */,
 				SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */,
@@ -632,6 +635,7 @@
 				VARTEST001 /* ShortcutHandlerVariantCompletionTests.swift in Sources */,
 				PROMPTTEST01 /* PromptTemplatesTests.swift in Sources */,
 				LLMPAYTEST01 /* LLMServicePayloadTests.swift in Sources */,
+				LLMPROMPTTEST01 /* LLMServicePromptTests.swift in Sources */,
 				LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */,
 				SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */,
 				SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */,
