@@ -334,7 +334,7 @@
   "variantsEyebrow": "Variantes",
   "aiProviderSectionDescription": "Añade proveedores, da a cada uno su clave y modelos, y elige el modelo de reescritura en una sola lista.",
   "appearanceSectionDescription": "Tema y tamaño del texto.",
-  "writingSectionDescription": "Variante predeterminada y contexto con captura.",
+  "writingSectionDescription": "Variante predeterminada, contexto con captura y contexto de la app.",
   "languageSectionDescription": "El perfil de destino guía la redacción y el idioma de todas las variantes.",
   "shortcutsSectionDescription": "Los atajos globales funcionan mientras la app se ejecuta en segundo plano.",
   "permissionsSectionDescription": "macOS gestiona estos permisos en Ajustes del Sistema.",

@@ -334,7 +334,7 @@
   "variantsEyebrow": "الصياغات",
   "aiProviderSectionDescription": "أضف المزوّدين، وامنح كلًا منهم مفتاحه ونماذجه، ثم اختر نموذج إعادة الصياغة من قائمة واحدة.",
   "appearanceSectionDescription": "المظهر وحجم النص.",
-  "writingSectionDescription": "الصياغة الافتراضية وسياق لقطة الشاشة.",
+  "writingSectionDescription": "الصياغة الافتراضية وسياق لقطة الشاشة وسياق التطبيق.",
   "languageSectionDescription": "يوجّه الملف المستهدف الصياغة واللغة في جميع البدائل.",
   "shortcutsSectionDescription": "تعمل الاختصارات العامة ما دام التطبيق يعمل في الخلفية.",
   "permissionsSectionDescription": "يدير macOS هذه الأذونات من إعدادات النظام.",

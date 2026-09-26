@@ -954,7 +954,7 @@
   "@appearanceSectionDescription": {
     "description": "Description under the settings section header"
   },
-  "writingSectionDescription": "Default variant and screenshot context.",
+  "writingSectionDescription": "Default variant, screenshot context, and App context.",
   "@writingSectionDescription": {
     "description": "Description under the settings section header"
   },

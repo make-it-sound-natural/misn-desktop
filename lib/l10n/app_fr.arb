@@ -334,7 +334,7 @@
   "variantsEyebrow": "Variantes",
   "aiProviderSectionDescription": "Ajoutez des fournisseurs, donnez à chacun sa clé et ses modèles, puis choisissez le modèle de réécriture dans une liste.",
   "appearanceSectionDescription": "Thème et taille du texte.",
-  "writingSectionDescription": "Variante par défaut et contexte par capture d'écran.",
+  "writingSectionDescription": "Variante par défaut, contexte par capture d'écran et contexte de l’app.",
   "languageSectionDescription": "Le profil cible oriente la formulation et la langue de toutes les variantes.",
   "shortcutsSectionDescription": "Les raccourcis globaux fonctionnent tant que l'app tourne en arrière-plan.",
   "permissionsSectionDescription": "macOS gère ces autorisations dans Réglages Système.",

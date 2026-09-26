@@ -334,7 +334,7 @@
   "variantsEyebrow": "Варианты",
   "aiProviderSectionDescription": "Добавьте провайдеров, задайте каждому ключ и модели, затем выберите модель для переписывания из общего списка.",
   "appearanceSectionDescription": "Тема и размер текста.",
-  "writingSectionDescription": "Вариант по умолчанию и контекст со скриншотом.",
+  "writingSectionDescription": "Вариант по умолчанию, контекст со скриншотом и контекст приложения.",
   "languageSectionDescription": "Целевой профиль задаёт формулировки и язык для всех вариантов.",
   "shortcutsSectionDescription": "Глобальные сочетания работают, пока приложение запущено в фоне.",
   "permissionsSectionDescription": "Этими разрешениями управляет macOS в Системных настройках.",

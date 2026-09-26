@@ -334,7 +334,7 @@
   "variantsEyebrow": "候補",
   "aiProviderSectionDescription": "プロバイダーを追加し、それぞれにキーとモデルを設定して、書き換えに使うモデルを1 つのリストから選びます。",
   "appearanceSectionDescription": "テーマと文字サイズ。",
-  "writingSectionDescription": "既定の候補とスクリーンショットのコンテキスト。",
+  "writingSectionDescription": "既定の候補、スクリーンショットのコンテキスト、アプリのコンテキスト。",
   "languageSectionDescription": "ターゲットプロファイルは、すべての候補の言い回しと言語を決めます。",
   "shortcutsSectionDescription": "グローバルショートカットは、アプリがバックグラウンドで動作している間に使えます。",
   "permissionsSectionDescription": "これらの権限は macOS の「システム設定」で管理します。",

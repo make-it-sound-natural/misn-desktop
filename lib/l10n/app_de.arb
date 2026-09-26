@@ -334,7 +334,7 @@
   "variantsEyebrow": "Varianten",
   "aiProviderSectionDescription": "Füge Anbieter hinzu, gib jedem Schlüssel und Modelle und wähle das Modell für Umformulierungen aus einer Liste.",
   "appearanceSectionDescription": "Design und Textgröße.",
-  "writingSectionDescription": "Standardvariante und Screenshot-Kontext.",
+  "writingSectionDescription": "Standardvariante, Screenshot-Kontext und App-Kontext.",
   "languageSectionDescription": "Das Zielprofil steuert Wortwahl und Sprache aller Varianten.",
   "shortcutsSectionDescription": "Globale Kurzbefehle funktionieren, solange die App im Hintergrund läuft.",
   "permissionsSectionDescription": "macOS verwaltet diese Berechtigungen in den Systemeinstellungen.",

@@ -334,7 +334,7 @@
   "variantsEyebrow": "改写选项",
   "aiProviderSectionDescription": "添加提供商，为每个配置密钥和模型，然后在同一个列表中选择改写所用的模型。",
   "appearanceSectionDescription": "主题与文字大小。",
-  "writingSectionDescription": "默认改写风格与截图上下文。",
+  "writingSectionDescription": "默认改写风格、截图上下文与应用上下文。",
   "languageSectionDescription": "目标配置决定所有改写选项的措辞与语言。",
   "shortcutsSectionDescription": "全局快捷键在应用后台运行时依然有效。",
   "permissionsSectionDescription": "这些权限由 macOS 在「系统设置」中管理。",
