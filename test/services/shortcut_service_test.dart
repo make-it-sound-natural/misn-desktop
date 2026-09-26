@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/constants/shortcut_status.dart';
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
@@ -548,6 +549,91 @@ void main() {
       expect(calls, hasLength(1));
       expect(calls.single.arguments, 'activeApplication');
     });
+
+    test('loadAndSyncSettings sends accessibility context mode', () async {
+      await SettingsService().setAccessibilityContextMode(
+        AccessibilityContextMode.fieldAndNearby,
+      );
+
+      await ShortcutService().loadAndSyncSettings();
+
+      final calls = methodCalls
+          .where(
+            (call) =>
+                call.method == MethodChannelMethods.setAccessibilityContextMode,
+          )
+          .toList();
+      expect(calls, hasLength(1));
+      expect(calls.single.arguments, 'fieldAndNearby');
+    });
+
+    test(
+      'loadAndSyncSettings sends off when accessibility context was never set',
+      () async {
+        await ShortcutService().loadAndSyncSettings();
+
+        final call = methodCalls.singleWhere(
+          (call) =>
+              call.method == MethodChannelMethods.setAccessibilityContextMode,
+        );
+        expect(call.arguments, 'off');
+      },
+    );
+
+    test(
+      'loadAndSyncSettings keeps accessibility context when screenshot '
+      'permission is missing',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'screenshot_context_mode': 'fullScreen',
+          'accessibility_context_mode': 'field',
+        });
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+              const MethodChannel(MethodChannelMethods.channelName),
+              (call) async {
+                methodCalls.add(call);
+                if (call.method ==
+                    MethodChannelMethods.checkScreenRecordingPermission) {
+                  return {'status': 'manualGrantRequired'};
+                }
+                return null;
+              },
+            );
+
+        await ShortcutService().loadAndSyncSettings();
+
+        final screenshotCall = methodCalls.singleWhere(
+          (call) =>
+              call.method == MethodChannelMethods.setScreenshotContextMode,
+        );
+        final accessibilityCall = methodCalls.singleWhere(
+          (call) =>
+              call.method == MethodChannelMethods.setAccessibilityContextMode,
+        );
+        expect(screenshotCall.arguments, 'off');
+        expect(accessibilityCall.arguments, 'field');
+      },
+    );
+
+    test(
+      'setAccessibilityContextMode sends persisted value to native',
+      () async {
+        await ShortcutService().setAccessibilityContextMode(
+          AccessibilityContextMode.field,
+        );
+
+        final calls = methodCalls
+            .where(
+              (call) =>
+                  call.method ==
+                  MethodChannelMethods.setAccessibilityContextMode,
+            )
+            .toList();
+        expect(calls, hasLength(1));
+        expect(calls.single.arguments, 'field');
+      },
+    );
 
     test('requestScreenRecordingPermission sends mode to native', () async {
       final status = await ShortcutService().requestScreenRecordingPermission(

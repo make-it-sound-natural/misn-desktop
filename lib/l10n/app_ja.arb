@@ -161,6 +161,14 @@
   "screenshotContextEnableTitle": "スクリーンショットのコンテキストを送信しますか？",
   "screenshotContextEnableMessage": "スクリーンショットは選択した AI プロバイダーに送信され、表示中の機密情報が含まれる場合があります。",
   "screenshotContextEnableConfirm": "有効にする",
+  "accessibilityContext": "アプリのコンテキスト",
+  "accessibilityContextHelper": "ショートカットでの書き換え時に、入力中のアプリのテキストを送信します。機密情報が含まれる場合があります。",
+  "accessibilityContextOff": "オフ",
+  "accessibilityContextField": "入力欄のテキスト",
+  "accessibilityContextFieldAndNearby": "入力欄と周辺のテキスト",
+  "accessibilityContextEnableTitle": "アプリのコンテキストを送信しますか？",
+  "accessibilityContextEnableMessage": "編集中の入力欄のテキストと、ウィンドウ内の周辺のテキスト（他の人のメッセージなど）が選択した AI プロバイダーに送信され、機密情報が含まれる場合があります。",
+  "accessibilityContextEnableConfirm": "有効にする",
   "screenRecordingPermissionUnsupported": "スクリーンショットのコンテキストには macOS 14 以降が必要です。",
   "screenRecordingPermissionGuideTitle": "画面収録の許可が必要です",
   "screenRecordingPermissionGuideMessage": "画面収録で Make It Sound Natural を有効にしてから、もう一度確認してください。",
@@ -269,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "スクリーンショットのコンテキスト",
+  "onboardingScreenshotTitle": "アプリとスクリーンショットのコンテキスト",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "任意のスクリーンショットコンテキストは書き換えを改善できますが、機密性の高い表示内容を含む場合があります。",
+  "onboardingScreenshotDescription": "アプリのコンテキストは、選択範囲の前後のテキストを選択した AI プロバイダーに送信し、会話に合った書き換えにします。パスワード欄からは何も読み取らず、設定でオフにできます。任意のスクリーンショットコンテキストはさらに役立ちますが、表示中の機密情報が含まれる場合があります。",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "周辺のテキストを含める",
+  "onboardingNearbyTextDescription": "入力欄の近くにあるテキスト（上のメッセージなど）も読み取ります。他の人のメッセージや機密情報が含まれる場合があります。",
   "onboardingScreenshotModeLabel": "スクリーンショットコンテキストモード",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
@@ -324,7 +334,7 @@
   "variantsEyebrow": "候補",
   "aiProviderSectionDescription": "プロバイダーを追加し、それぞれにキーとモデルを設定して、書き換えに使うモデルを1 つのリストから選びます。",
   "appearanceSectionDescription": "テーマと文字サイズ。",
-  "writingSectionDescription": "既定の候補とスクリーンショットのコンテキスト。",
+  "writingSectionDescription": "既定の候補、スクリーンショットのコンテキスト、アプリのコンテキスト。",
   "languageSectionDescription": "ターゲットプロファイルは、すべての候補の言い回しと言語を決めます。",
   "shortcutsSectionDescription": "グローバルショートカットは、アプリがバックグラウンドで動作している間に使えます。",
   "permissionsSectionDescription": "これらの権限は macOS の「システム設定」で管理します。",

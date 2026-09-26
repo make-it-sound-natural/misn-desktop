@@ -142,6 +142,8 @@ Debug-only environment variables:
 | `MISN_LOG_FULL_LLM_CONTEXT=1` | Logs full LLM text context instead of hiding it in debug logs. |
 | `MISN_SAVE_SCREENSHOT_CONTEXT=1` | Saves screenshot-context images for local debugging. |
 | `MISN_SCREENSHOT_CONTEXT_DIR` | Overrides the debug screenshot-context output directory. |
+| `MISN_SAVE_ACCESSIBILITY_CONTEXT=1` | Saves one JSON per shortcut run with the App context read and the screenshot decision. |
+| `MISN_ACCESSIBILITY_CONTEXT_DIR` | Overrides the debug App context output directory. |
 
 ## Error reporting
 

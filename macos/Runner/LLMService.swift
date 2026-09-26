@@ -23,7 +23,11 @@ class LLMService {
         let context: String?
         let targetProfileInstruction: String?
         let screenshotAttachment: ScreenshotAttachment?
+        let accessibilityContext: AccessibilityContext?
         var reasoningEffort: ReasoningEffort = AppDefaults.reasoningEffort
+        /// Why the Accessibility read could not serve as context. Only
+        /// reported in debug logs; it never reaches the prompt.
+        var accessibilityFallbackReason: AccessibilityContext.UnusableReason?
     }
 
     private let logger = OSLog(
@@ -81,31 +85,47 @@ class LLMService {
         debugLog("═══════════════════════════════════════════")
         #endif
 
-        let systemInstructions = buildSystemPrompt(
-            customPrompt: config.customPrompt,
-            targetProfileInstruction: config.targetProfileInstruction
-        )
-        let finalInstructions = appendContextIfNeeded(
-            systemInstructions: systemInstructions,
-            userText: text,
-            context: config.context ?? "",
-            model: model
-        )
-        let finalInstructionsWithScreenshot = appendScreenshotInstructionIfNeeded(
-            systemInstructions: finalInstructions,
-            hasScreenshot: config.screenshotAttachment != nil
+        let finalInstructions = buildFinalSystemInstructions(
+            text: text,
+            config: config
         )
 
         #if DEBUG
-        debugLog("System prompt length: \(finalInstructionsWithScreenshot.count)")
+        debugLog("System prompt length: \(finalInstructions.count)")
         debugLog("═══════════════════════════════════════════")
         #endif
 
         executeRequest(
             text: text,
             config: config,
-            systemInstructions: finalInstructionsWithScreenshot,
+            systemInstructions: finalInstructions,
             completion: completion
+        )
+    }
+
+    /// The editable prompt and fixed rules, then the manual `Context:`, the
+    /// `<app_context>` section and the screenshot note, in that order.
+    func buildFinalSystemInstructions(
+        text: String,
+        config: Configuration
+    ) -> String {
+        let systemInstructions = buildSystemPrompt(
+            customPrompt: config.customPrompt,
+            targetProfileInstruction: config.targetProfileInstruction
+        )
+        let withContext = appendContextIfNeeded(
+            systemInstructions: systemInstructions,
+            userText: text,
+            context: config.context ?? "",
+            model: config.model
+        )
+        let withAppContext = appendAppContextIfNeeded(
+            systemInstructions: withContext,
+            context: config.accessibilityContext
+        )
+        return appendScreenshotInstructionIfNeeded(
+            systemInstructions: withAppContext,
+            hasScreenshot: config.screenshotAttachment != nil
         )
     }
 
@@ -386,6 +406,17 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
                 ]
             ]
         ]
+    }
+
+    private func appendAppContextIfNeeded(
+        systemInstructions: String,
+        context: AccessibilityContext?
+    ) -> String {
+        guard let context = context,
+              let section = PromptTemplates.appContextSection(context) else {
+            return systemInstructions
+        }
+        return systemInstructions + "\n\n" + section
     }
 
     private func appendScreenshotInstructionIfNeeded(

@@ -161,6 +161,14 @@
   "screenshotContextEnableTitle": "Отправлять контекст скриншота?",
   "screenshotContextEnableMessage": "Скриншоты отправляются выбранному AI-провайдеру и могут содержать видимые чувствительные данные.",
   "screenshotContextEnableConfirm": "Включить",
+  "accessibilityContext": "Контекст приложения",
+  "accessibilityContextHelper": "Отправлять текст из приложения, в котором вы печатаете, при исправлении через сочетание. Может содержать чувствительные данные.",
+  "accessibilityContextOff": "Выкл.",
+  "accessibilityContextField": "Текст поля",
+  "accessibilityContextFieldAndNearby": "Поле и текст рядом",
+  "accessibilityContextEnableTitle": "Отправлять контекст приложения?",
+  "accessibilityContextEnableMessage": "Текст редактируемого поля и соседний текст в окне, например сообщения других людей, отправляются выбранному AI-провайдеру и могут содержать чувствительные данные.",
+  "accessibilityContextEnableConfirm": "Включить",
   "screenRecordingPermissionUnsupported": "Контекст скриншота требует macOS 14 или новее.",
   "screenRecordingPermissionGuideTitle": "Требуется разрешение на запись экрана",
   "screenRecordingPermissionGuideMessage": "Включите Make It Sound Natural в записи экрана, затем проверьте снова.",
@@ -269,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "Контекст скриншота",
+  "onboardingScreenshotTitle": "Контекст приложения и скриншота",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "Необязательный контекст скриншота может улучшить переписывание, но скриншоты могут содержать видимые конфиденциальные данные.",
+  "onboardingScreenshotDescription": "Контекст приложения отправляет текст вокруг выделения выбранному AI-провайдеру, чтобы результат подходил к разговору. Текст из полей паролей не читается, а отключить это можно в настройках. Необязательный контекст скриншота может помочь ещё больше, но скриншоты могут содержать видимые чувствительные данные.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "Включать текст рядом",
+  "onboardingNearbyTextDescription": "Также читать текст рядом с полем, например сообщения выше. Может включать сообщения других людей и чувствительные данные.",
   "onboardingScreenshotModeLabel": "Режим контекста скриншота",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
@@ -324,7 +334,7 @@
   "variantsEyebrow": "Варианты",
   "aiProviderSectionDescription": "Добавьте провайдеров, задайте каждому ключ и модели, затем выберите модель для переписывания из общего списка.",
   "appearanceSectionDescription": "Тема и размер текста.",
-  "writingSectionDescription": "Вариант по умолчанию и контекст со скриншотом.",
+  "writingSectionDescription": "Вариант по умолчанию, контекст со скриншотом и контекст приложения.",
   "languageSectionDescription": "Целевой профиль задаёт формулировки и язык для всех вариантов.",
   "shortcutsSectionDescription": "Глобальные сочетания работают, пока приложение запущено в фоне.",
   "permissionsSectionDescription": "Этими разрешениями управляет macOS в Системных настройках.",

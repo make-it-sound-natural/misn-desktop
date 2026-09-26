@@ -161,6 +161,14 @@
   "screenshotContextEnableTitle": "Enviar contexto de captura?",
   "screenshotContextEnableMessage": "Capturas são enviadas ao provedor de IA selecionado e podem incluir conteúdo visível sensível.",
   "screenshotContextEnableConfirm": "Ativar",
+  "accessibilityContext": "Contexto do app",
+  "accessibilityContextHelper": "Envia texto do app em que você está digitando com as reescritas por atalho. Pode incluir conteúdo sensível.",
+  "accessibilityContextOff": "Desativado",
+  "accessibilityContextField": "Texto do campo",
+  "accessibilityContextFieldAndNearby": "Campo e texto próximo",
+  "accessibilityContextEnableTitle": "Enviar contexto do app?",
+  "accessibilityContextEnableMessage": "O texto do campo que você está editando e o texto próximo na janela, como mensagens de outras pessoas, são enviados ao provedor de IA selecionado e podem incluir conteúdo sensível.",
+  "accessibilityContextEnableConfirm": "Ativar",
   "screenRecordingPermissionUnsupported": "O contexto de captura requer macOS 14 ou posterior.",
   "screenRecordingPermissionGuideTitle": "Permissão de gravação de tela necessária",
   "screenRecordingPermissionGuideMessage": "Ative Make It Sound Natural em Gravação de Tela e verifique novamente.",
@@ -269,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "Contexto de captura",
+  "onboardingScreenshotTitle": "Contexto do app e de captura",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "O contexto de captura opcional pode melhorar reescritas, mas capturas podem incluir conteúdo visível sensível.",
+  "onboardingScreenshotDescription": "O contexto do app envia o texto ao redor da sua seleção ao provedor de IA selecionado para que as reescritas combinem com a conversa. Nada é lido de campos de senha, e você pode desativá-lo em Ajustes. O contexto de captura opcional pode ajudar mais, mas capturas podem incluir conteúdo visível sensível.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "Incluir texto próximo",
+  "onboardingNearbyTextDescription": "Também lê o texto perto do campo, como as mensagens acima. Pode incluir mensagens de outras pessoas e conteúdo sensível.",
   "onboardingScreenshotModeLabel": "Modo de contexto de captura",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
@@ -324,7 +334,7 @@
   "variantsEyebrow": "Variantes",
   "aiProviderSectionDescription": "Adicione provedores, dê a cada um a sua chave e modelos e escolha o modelo de reescrita numa única lista.",
   "appearanceSectionDescription": "Tema e tamanho do texto.",
-  "writingSectionDescription": "Variante predefinida e contexto por captura de ecrã.",
+  "writingSectionDescription": "Variante predefinida, contexto por captura de ecrã e contexto do app.",
   "languageSectionDescription": "O perfil de destino orienta a redação e o idioma de todas as variantes.",
   "shortcutsSectionDescription": "Os atalhos globais funcionam enquanto a app corre em segundo plano.",
   "permissionsSectionDescription": "O macOS gere estas permissões nas Definições do Sistema.",

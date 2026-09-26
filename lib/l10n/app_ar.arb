@@ -161,6 +161,14 @@
   "screenshotContextEnableTitle": "إرسال سياق لقطة الشاشة؟",
   "screenshotContextEnableMessage": "يتم إرسال لقطات الشاشة إلى مزود الذكاء الاصطناعي المحدد وقد تحتوي على محتوى حساس ظاهر.",
   "screenshotContextEnableConfirm": "تفعيل",
+  "accessibilityContext": "سياق التطبيق",
+  "accessibilityContextHelper": "إرسال نص من التطبيق الذي تكتب فيه مع إعادة الصياغة عبر الاختصار. قد يحتوي على محتوى حساس.",
+  "accessibilityContextOff": "إيقاف",
+  "accessibilityContextField": "نص الحقل",
+  "accessibilityContextFieldAndNearby": "الحقل والنص المجاور",
+  "accessibilityContextEnableTitle": "إرسال سياق التطبيق؟",
+  "accessibilityContextEnableMessage": "يتم إرسال نص الحقل الذي تحرره والنص المجاور في النافذة، مثل رسائل الآخرين، إلى مزود الذكاء الاصطناعي المحدد وقد يحتوي على محتوى حساس.",
+  "accessibilityContextEnableConfirm": "تفعيل",
   "screenRecordingPermissionUnsupported": "يتطلب سياق لقطة الشاشة macOS 14 أو أحدث.",
   "screenRecordingPermissionGuideTitle": "مطلوب إذن تسجيل الشاشة",
   "screenRecordingPermissionGuideMessage": "فعّل Make It Sound Natural في تسجيل الشاشة، ثم تحقق مرة أخرى.",
@@ -269,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "سياق لقطة الشاشة",
+  "onboardingScreenshotTitle": "سياق التطبيق ولقطة الشاشة",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "يمكن لسياق لقطة الشاشة الاختياري تحسين إعادة الكتابة، لكن اللقطات قد تتضمن محتوى مرئيًا حساسًا.",
+  "onboardingScreenshotDescription": "يرسل سياق التطبيق النص المحيط بتحديدك إلى مزود الذكاء الاصطناعي المحدد كي تناسب إعادة الصياغة المحادثة. لا تتم قراءة أي شيء من حقول كلمات المرور، ويمكنك إيقافه من الإعدادات. قد يساعد سياق لقطة الشاشة الاختياري أكثر، لكن اللقطات قد تتضمن محتوى مرئيًا حساسًا.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "تضمين النص المجاور",
+  "onboardingNearbyTextDescription": "يقرأ أيضًا النص القريب من الحقل، مثل الرسائل التي فوقه. قد يتضمن رسائل أشخاص آخرين ومحتوى حساسًا.",
   "onboardingScreenshotModeLabel": "وضع سياق لقطة الشاشة",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
@@ -324,7 +334,7 @@
   "variantsEyebrow": "الصياغات",
   "aiProviderSectionDescription": "أضف المزوّدين، وامنح كلًا منهم مفتاحه ونماذجه، ثم اختر نموذج إعادة الصياغة من قائمة واحدة.",
   "appearanceSectionDescription": "المظهر وحجم النص.",
-  "writingSectionDescription": "الصياغة الافتراضية وسياق لقطة الشاشة.",
+  "writingSectionDescription": "الصياغة الافتراضية وسياق لقطة الشاشة وسياق التطبيق.",
   "languageSectionDescription": "يوجّه الملف المستهدف الصياغة واللغة في جميع البدائل.",
   "shortcutsSectionDescription": "تعمل الاختصارات العامة ما دام التطبيق يعمل في الخلفية.",
   "permissionsSectionDescription": "يدير macOS هذه الأذونات من إعدادات النظام.",

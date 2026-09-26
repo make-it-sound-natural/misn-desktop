@@ -161,6 +161,14 @@
   "screenshotContextEnableTitle": "发送截图上下文？",
   "screenshotContextEnableMessage": "截图会发送给所选 AI 提供商，可能包含可见的敏感内容。",
   "screenshotContextEnableConfirm": "启用",
+  "accessibilityContext": "应用上下文",
+  "accessibilityContextHelper": "使用快捷键改写时发送你正在输入的 App 中的文本。可能包含敏感内容。",
+  "accessibilityContextOff": "关闭",
+  "accessibilityContextField": "输入框文本",
+  "accessibilityContextFieldAndNearby": "输入框及附近文本",
+  "accessibilityContextEnableTitle": "发送应用上下文？",
+  "accessibilityContextEnableMessage": "正在编辑的输入框文本以及窗口中的附近文本（如他人的消息）会发送给所选 AI 提供商，可能包含敏感内容。",
+  "accessibilityContextEnableConfirm": "启用",
   "screenRecordingPermissionUnsupported": "截图上下文需要 macOS 14 或更高版本。",
   "screenRecordingPermissionGuideTitle": "需要屏幕录制权限",
   "screenRecordingPermissionGuideMessage": "在屏幕录制中启用 Make It Sound Natural，然后再次检查。",
@@ -269,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "截图上下文",
+  "onboardingScreenshotTitle": "应用与截图上下文",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "可选的截图上下文可改进改写效果，但截图可能包含敏感的可见内容。",
+  "onboardingScreenshotDescription": "应用上下文会把所选内容周围的文本发送给所选 AI 提供商，让改写更贴合对话。不会读取密码框中的内容，你可以在设置中关闭。可选的截图上下文能进一步帮助改写，但截图可能包含可见的敏感内容。",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "包含附近文本",
+  "onboardingNearbyTextDescription": "同时读取输入框附近的文本，例如上方的消息。可能包含他人的消息和敏感内容。",
   "onboardingScreenshotModeLabel": "截图上下文模式",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
@@ -324,7 +334,7 @@
   "variantsEyebrow": "改写选项",
   "aiProviderSectionDescription": "添加提供商，为每个配置密钥和模型，然后在同一个列表中选择改写所用的模型。",
   "appearanceSectionDescription": "主题与文字大小。",
-  "writingSectionDescription": "默认改写风格与截图上下文。",
+  "writingSectionDescription": "默认改写风格、截图上下文与应用上下文。",
   "languageSectionDescription": "目标配置决定所有改写选项的措辞与语言。",
   "shortcutsSectionDescription": "全局快捷键在应用后台运行时依然有效。",
   "permissionsSectionDescription": "这些权限由 macOS 在「系统设置」中管理。",

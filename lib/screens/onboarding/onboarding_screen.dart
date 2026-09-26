@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/onboarding_setup_state.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
+import 'package:make_it_sound_natural/screens/onboarding/onboarding_nearby_text_option.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/widgets/app_panel.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
@@ -23,6 +25,7 @@ class OnboardingScreen extends StatefulWidget {
     required this.checkAccessibility,
     required this.requestAccessibility,
     required this.onScreenshotContextSelected,
+    required this.onAccessibilityContextSelected,
     super.key,
   });
 
@@ -47,6 +50,13 @@ class OnboardingScreen extends StatefulWidget {
   )
   onScreenshotContextSelected;
 
+  /// Saves the App context mode after the user opts into nearby text.
+  ///
+  /// New installs already start with the field text mode, so this is only
+  /// called to raise it.
+  final Future<void> Function(AccessibilityContextMode mode)
+  onAccessibilityContextSelected;
+
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
@@ -67,6 +77,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ScreenshotContextMode _selectedScreenshotContextMode =
       ScreenshotContextMode.off;
   ScreenRecordingPermissionStatus? _screenshotPermissionStatus;
+  var _includeNearbyText = false;
 
   @override
   void initState() {
@@ -90,6 +101,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _continueScreenshotContext() async {
+    if (_includeNearbyText) {
+      await widget.onAccessibilityContextSelected(
+        AccessibilityContextMode.fieldAndNearby,
+      );
+      if (!mounted) return;
+    }
+
     if (_selectedScreenshotContextMode == ScreenshotContextMode.off) {
       _skipOptional();
       return;
@@ -210,7 +228,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                               if (_state.lastStep ==
                                   OnboardingStep.screenshotContext)
-                                _buildScreenshotContextChoices(l10n),
+                                _buildContextChoices(l10n),
                             ],
                           ),
                         ),
@@ -318,10 +336,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     };
   }
 
-  Widget _buildScreenshotContextChoices(AppLocalizations l10n) {
+  Widget _buildContextChoices(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: AppSpacing.md),
+        OnboardingNearbyTextOption(
+          title: l10n.onboardingNearbyTextTitle,
+          description: l10n.onboardingNearbyTextDescription,
+          value: _includeNearbyText,
+          onChanged: (value) => setState(() => _includeNearbyText = value),
+        ),
         const SizedBox(height: AppSpacing.md),
         Semantics(
           label: l10n.onboardingScreenshotModeLabel,

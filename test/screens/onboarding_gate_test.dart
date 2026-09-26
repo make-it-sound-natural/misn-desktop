@@ -4,6 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/onboarding_setup_state.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/screens/home_screen.dart';
@@ -42,6 +43,13 @@ void main() {
   });
 
   Future<void> pumpGate(WidgetTester tester) async {
+    // The Ahem test font is much wider than the system font. Use a tall
+    // window so the App context step keeps its buttons on screen.
+    tester.view
+      ..physicalSize = const Size(1180, 1000)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(
       const MaterialApp(
         localizationsDelegates: [
@@ -126,6 +134,65 @@ void main() {
     expect(
       nativeMethods,
       isNot(contains(MethodChannelMethods.requestScreenRecordingPermission)),
+    );
+  });
+
+  testWidgets('nearby text opt-in saves App context and syncs native', (
+    tester,
+  ) async {
+    setScreenshotOnboardingState();
+    final nativeCalls = <MethodCall>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          nativeCalls.add(call);
+          return null;
+        });
+
+    await pumpGate(tester);
+    await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getString('accessibility_context_mode'),
+      AccessibilityContextMode.fieldAndNearby.value,
+    );
+    final syncCalls = nativeCalls.where(
+      (call) => call.method == MethodChannelMethods.setAccessibilityContextMode,
+    );
+    expect(syncCalls.map((call) => call.arguments), [
+      AccessibilityContextMode.fieldAndNearby.value,
+    ]);
+    // Nearby text alone never asks for Screen Recording.
+    expect(
+      nativeCalls.map((call) => call.method),
+      isNot(contains(MethodChannelMethods.requestScreenRecordingPermission)),
+    );
+    expect(find.byKey(const Key('onboarding-complete')), findsOneWidget);
+  });
+
+  testWidgets('Continue without the opt-in keeps the migrated App context', (
+    tester,
+  ) async {
+    setScreenshotOnboardingState();
+    final nativeMethods = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          nativeMethods.add(call.method);
+          return null;
+        });
+
+    await pumpGate(tester);
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('accessibility_context_mode'), isNull);
+    expect(
+      nativeMethods,
+      isNot(contains(MethodChannelMethods.setAccessibilityContextMode)),
     );
   });
 

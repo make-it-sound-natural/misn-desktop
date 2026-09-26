@@ -161,6 +161,14 @@
   "screenshotContextEnableTitle": "Envoyer le contexte de capture ?",
   "screenshotContextEnableMessage": "Les captures sont envoyées au fournisseur IA sélectionné et peuvent inclure du contenu visible sensible.",
   "screenshotContextEnableConfirm": "Activer",
+  "accessibilityContext": "Contexte de l’app",
+  "accessibilityContextHelper": "Envoie le texte de l’app où vous écrivez avec les réécritures par raccourci. Peut inclure du contenu sensible.",
+  "accessibilityContextOff": "Désactivé",
+  "accessibilityContextField": "Texte du champ",
+  "accessibilityContextFieldAndNearby": "Champ et texte voisin",
+  "accessibilityContextEnableTitle": "Envoyer le contexte de l’app ?",
+  "accessibilityContextEnableMessage": "Le texte du champ modifié et le texte voisin dans la fenêtre, comme les messages d’autres personnes, sont envoyés au fournisseur IA sélectionné et peuvent inclure du contenu sensible.",
+  "accessibilityContextEnableConfirm": "Activer",
   "screenRecordingPermissionUnsupported": "Le contexte de capture nécessite macOS 14 ou version ultérieure.",
   "screenRecordingPermissionGuideTitle": "Autorisation d'enregistrement de l'écran requise",
   "screenRecordingPermissionGuideMessage": "Activez Make It Sound Natural dans Enregistrement de l’écran, puis vérifiez à nouveau.",
@@ -269,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "Contexte de capture",
+  "onboardingScreenshotTitle": "Contexte de l’app et de capture",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "Le contexte de capture facultatif peut améliorer les réécritures, mais les captures peuvent inclure du contenu visible sensible.",
+  "onboardingScreenshotDescription": "Le contexte de l’app envoie le texte autour de votre sélection au fournisseur IA sélectionné pour que les réécritures collent à la conversation. Rien n’est lu dans les champs de mot de passe, et vous pouvez le désactiver dans les réglages. Le contexte de capture facultatif peut aider davantage, mais les captures peuvent inclure du contenu visible sensible.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "Inclure le texte voisin",
+  "onboardingNearbyTextDescription": "Lit aussi le texte près du champ, comme les messages au-dessus. Peut inclure les messages d’autres personnes et du contenu sensible.",
   "onboardingScreenshotModeLabel": "Mode de contexte de capture",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
@@ -324,7 +334,7 @@
   "variantsEyebrow": "Variantes",
   "aiProviderSectionDescription": "Ajoutez des fournisseurs, donnez à chacun sa clé et ses modèles, puis choisissez le modèle de réécriture dans une liste.",
   "appearanceSectionDescription": "Thème et taille du texte.",
-  "writingSectionDescription": "Variante par défaut et contexte par capture d'écran.",
+  "writingSectionDescription": "Variante par défaut, contexte par capture d'écran et contexte de l’app.",
   "languageSectionDescription": "Le profil cible oriente la formulation et la langue de toutes les variantes.",
   "shortcutsSectionDescription": "Les raccourcis globaux fonctionnent tant que l'app tourne en arrière-plan.",
   "permissionsSectionDescription": "macOS gère ces autorisations dans Réglages Système.",

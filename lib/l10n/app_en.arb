@@ -672,6 +672,38 @@
   "@screenshotContextEnableConfirm": {
     "description": "Confirmation action for enabling screenshot context"
   },
+  "accessibilityContext": "App context",
+  "@accessibilityContext": {
+    "description": "Setting title for App context, the text read from the active app through Accessibility"
+  },
+  "accessibilityContextHelper": "Send text from the app you're typing in with shortcut rewrites. May include sensitive content.",
+  "@accessibilityContextHelper": {
+    "description": "Privacy helper for App context setting"
+  },
+  "accessibilityContextOff": "Off",
+  "@accessibilityContextOff": {
+    "description": "App context off option"
+  },
+  "accessibilityContextField": "Field text",
+  "@accessibilityContextField": {
+    "description": "App context option that reads only the text of the field being edited"
+  },
+  "accessibilityContextFieldAndNearby": "Field and nearby text",
+  "@accessibilityContextFieldAndNearby": {
+    "description": "App context option that also reads nearby text in the window"
+  },
+  "accessibilityContextEnableTitle": "Send app context?",
+  "@accessibilityContextEnableTitle": {
+    "description": "Confirmation dialog title for enabling nearby App context"
+  },
+  "accessibilityContextEnableMessage": "Text from the field you're editing and nearby text in the window, such as other people's messages, is sent to your selected AI provider. It may include sensitive content.",
+  "@accessibilityContextEnableMessage": {
+    "description": "Confirmation dialog message for enabling nearby App context"
+  },
+  "accessibilityContextEnableConfirm": "Enable",
+  "@accessibilityContextEnableConfirm": {
+    "description": "Confirmation action for enabling nearby App context"
+  },
   "screenRecordingPermissionUnsupported": "Screenshot context requires macOS 14 or later.",
   "@screenRecordingPermissionUnsupported": {
     "description": "Message shown when screenshot context is unsupported"
@@ -804,13 +836,21 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "Screenshot context",
+  "onboardingScreenshotTitle": "App and screenshot context",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "Optional screenshot context can improve rewrites, but screenshots may include sensitive visible content.",
+  "onboardingScreenshotDescription": "App context sends the text around your selection to your AI provider so rewrites fit the conversation. Nothing is read from password fields, and you can turn it off in Settings. Optional screenshot context can help more, but screenshots may include sensitive visible content.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
+  },
+  "onboardingNearbyTextTitle": "Include nearby text",
+  "@onboardingNearbyTextTitle": {
+    "description": "Onboarding switch title to also read nearby window text as App context"
+  },
+  "onboardingNearbyTextDescription": "Also read text near the field, such as the messages above it. May include other people's messages and sensitive content.",
+  "@onboardingNearbyTextDescription": {
+    "description": "Onboarding privacy note for the nearby text switch"
   },
   "onboardingScreenshotModeLabel": "Screenshot context mode",
   "@onboardingScreenshotModeLabel": {
@@ -914,7 +954,7 @@
   "@appearanceSectionDescription": {
     "description": "Description under the settings section header"
   },
-  "writingSectionDescription": "Default variant and screenshot context.",
+  "writingSectionDescription": "Default variant, screenshot context, and App context.",
   "@writingSectionDescription": {
     "description": "Description under the settings section header"
   },

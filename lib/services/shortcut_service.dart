@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/constants/shortcut_status.dart';
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
@@ -151,6 +152,11 @@ class ShortcutService {
     // Load, restore, and sync screenshot context mode.
     final screenshotContextMode = await _restoreScreenshotContextMode(settings);
     await setScreenshotContextMode(screenshotContextMode);
+
+    // Native keeps App context off until this sync.
+    await setAccessibilityContextMode(
+      await settings.getAccessibilityContextMode(),
+    );
 
     // Load and sync custom prompt
     final customPrompt = await settings.getCustomPrompt();
@@ -385,6 +391,21 @@ class ShortcutService {
       );
     } on PlatformException catch (e) {
       _log.warning('Failed to set screenshot context mode: ${e.message}');
+    }
+  }
+
+  /// Sets App context (Accessibility) mode in the native layer.
+  Future<void> setAccessibilityContextMode(
+    AccessibilityContextMode mode,
+  ) async {
+    try {
+      _log.info('Sending setAccessibilityContextMode to native: ${mode.value}');
+      await _channel.invokeMethod(
+        MethodChannelMethods.setAccessibilityContextMode,
+        mode.value,
+      );
+    } on PlatformException catch (e) {
+      _log.warning('Failed to set accessibility context mode: ${e.message}');
     }
   }
 

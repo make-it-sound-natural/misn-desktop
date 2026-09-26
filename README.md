@@ -71,11 +71,35 @@ the selection alone. Examples:
 - product names, terminology, or constraints
 - surrounding conversation or document context
 
+### Use App context
+
+App context gives a rewrite the surrounding conversation or document without
+typing it. It reads text from the app where you press the shortcut, through the
+Accessibility permission the shortcut already needs. Choose the level in
+Settings:
+
+- **Off**: nothing is read.
+- **Field text**: the text around your selection in the field you edit, plus
+  the app name, window title, and field label. New installs start here.
+- **Field and nearby text**: also the text shown above the field, such as the
+  messages in a chat thread. Installs that already used screenshot context
+  start here.
+
+When nearby text is found, the screenshot is skipped, even if screenshot context
+is on. Some apps do not expose their text through Accessibility. There App
+context adds nothing and the screenshot is used, if it is on.
+
+Electron apps such as Slack, Discord, and Notion expose no text until asked.
+When a rewrite finds no readable text there, the app turns on that app's
+accessibility tree. It stays on until the app quits and can raise that app's CPU
+and memory use. That rewrite uses the screenshot, if it is on; later ones can
+use App context.
+
 ### Configure variants and profiles
 
 Use Settings to change the default variant, provider, model, shortcuts,
-appearance, screenshot context behavior, and target profiles. Settings are
-stored locally on the Mac.
+appearance, App context, screenshot context behavior, and target profiles.
+Settings are stored locally on the Mac.
 
 ### Window behavior
 
@@ -91,6 +115,14 @@ context, and target profile settings are stored locally with app preferences.
 Selected text and optional context are sent directly from the app to the chosen
 provider. The app does not run a server and does not store user text in a remote
 database.
+
+App context is read from the app you rewrite in for each shortcut use. Depending
+on the mode, it includes the app name, window title, field label, the text
+around your selection and, in *Field and nearby text* mode, the text above the
+field, which can be other people's messages. Each part has a length cap. It
+goes only to the chosen provider, together with the selected text, and release
+builds do not save it. Nothing is read from password fields or from any app
+while a password field is focused.
 
 See [Privacy Policy](PRIVACY_POLICY.md) for details.
 

@@ -28,6 +28,38 @@ extension LLMService {
         } else {
             lines.append("Screenshot context attached to LLM request: no")
         }
+        lines.append(contentsOf: appContextDebugLines(config: config))
+        return lines
+    }
+
+    /// Lengths only. The text itself is logged only when
+    /// `MISN_LOG_FULL_LLM_CONTEXT=1`, like the manual context.
+    private func appContextDebugLines(config: Configuration) -> [String] {
+        var lines: [String] = []
+        if let context = config.accessibilityContext,
+           let section = PromptTemplates.appContextSection(context) {
+            lines.append(
+                "App context attached to LLM request: yes, " +
+                "mode=\(context.mode.rawValue), " +
+                "windowLength=\(context.windowTitle?.count ?? 0), " +
+                "fieldLength=\(context.fieldLabel?.count ?? 0), " +
+                "beforeLength=\(context.textBeforeSelection.count), " +
+                "afterLength=\(context.textAfterSelection.count), " +
+                "nearbyLength=\(context.nearbyText.count)"
+            )
+            if environment["MISN_LOG_FULL_LLM_CONTEXT"] == "1" {
+                lines.append("App context full:\n\(section)")
+            } else {
+                lines.append(
+                    "App context full: hidden. Set MISN_LOG_FULL_LLM_CONTEXT=1"
+                )
+            }
+        } else {
+            lines.append("App context attached to LLM request: no")
+        }
+        if let reason = config.accessibilityFallbackReason {
+            lines.append("App context fallback reason: \(reason.rawValue)")
+        }
         return lines
     }
 

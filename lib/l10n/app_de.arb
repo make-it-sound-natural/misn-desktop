@@ -161,6 +161,14 @@
   "screenshotContextEnableTitle": "Screenshot-Kontext senden?",
   "screenshotContextEnableMessage": "Screenshots werden an den gewählten KI-Anbieter gesendet und können sichtbare vertrauliche Inhalte enthalten.",
   "screenshotContextEnableConfirm": "Aktivieren",
+  "accessibilityContext": "App-Kontext",
+  "accessibilityContextHelper": "Sendet bei Shortcut-Umschreibungen Text aus der App, in der Sie tippen. Kann vertrauliche Inhalte enthalten.",
+  "accessibilityContextOff": "Aus",
+  "accessibilityContextField": "Feldtext",
+  "accessibilityContextFieldAndNearby": "Feld- und Umgebungstext",
+  "accessibilityContextEnableTitle": "App-Kontext senden?",
+  "accessibilityContextEnableMessage": "Text aus dem bearbeiteten Feld und Text in der Nähe im Fenster, z. B. Nachrichten anderer, wird an den gewählten KI-Anbieter gesendet und kann vertrauliche Inhalte enthalten.",
+  "accessibilityContextEnableConfirm": "Aktivieren",
   "screenRecordingPermissionUnsupported": "Screenshot-Kontext erfordert macOS 14 oder neuer.",
   "screenRecordingPermissionGuideTitle": "Bildschirmaufnahme-Berechtigung erforderlich",
   "screenRecordingPermissionGuideMessage": "Aktivieren Sie Make It Sound Natural in der Bildschirmaufnahme und prüfen Sie dann erneut.",
@@ -269,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "Screenshot-Kontext",
+  "onboardingScreenshotTitle": "App- und Screenshot-Kontext",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "Optionaler Screenshot-Kontext kann Umschreibungen verbessern, aber Screenshots können sichtbare vertrauliche Inhalte enthalten.",
+  "onboardingScreenshotDescription": "Der App-Kontext sendet den Text um deine Auswahl an den gewählten KI-Anbieter, damit Umschreibungen zur Unterhaltung passen. Aus Passwortfeldern wird nichts gelesen, und in den Einstellungen lässt sich das ausschalten. Optionaler Screenshot-Kontext kann zusätzlich helfen, aber Screenshots können sichtbare vertrauliche Inhalte enthalten.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "Umgebungstext einbeziehen",
+  "onboardingNearbyTextDescription": "Liest zusätzlich Text in der Nähe des Felds, z. B. die Nachrichten darüber. Kann Nachrichten anderer und vertrauliche Inhalte enthalten.",
   "onboardingScreenshotModeLabel": "Screenshot-Kontextmodus",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
@@ -324,7 +334,7 @@
   "variantsEyebrow": "Varianten",
   "aiProviderSectionDescription": "Füge Anbieter hinzu, gib jedem Schlüssel und Modelle und wähle das Modell für Umformulierungen aus einer Liste.",
   "appearanceSectionDescription": "Design und Textgröße.",
-  "writingSectionDescription": "Standardvariante und Screenshot-Kontext.",
+  "writingSectionDescription": "Standardvariante, Screenshot-Kontext und App-Kontext.",
   "languageSectionDescription": "Das Zielprofil steuert Wortwahl und Sprache aller Varianten.",
   "shortcutsSectionDescription": "Globale Kurzbefehle funktionieren, solange die App im Hintergrund läuft.",
   "permissionsSectionDescription": "macOS verwaltet diese Berechtigungen in den Systemeinstellungen.",

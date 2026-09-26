@@ -78,9 +78,29 @@
 		SRPERMISS01 /* ScreenRecordingPermission.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRPERMISS02 /* ScreenRecordingPermission.swift */; };
 		SRGUIDECTL1 /* ScreenRecordingPermissionGuideController.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRGUIDECTL2 /* ScreenRecordingPermissionGuideController.swift */; };
 		LLMPAYTEST01 /* LLMServicePayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMPAYTEST02 /* LLMServicePayloadTests.swift */; };
+		LLMPROMPTTEST01 /* LLMServicePromptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMPROMPTTEST02 /* LLMServicePromptTests.swift */; };
 		LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */; };
 		SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */; };
 		SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */; };
+		ACCTXMODE01 /* AccessibilityContextMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXMODE02 /* AccessibilityContextMode.swift */; };
+		ACCTXMODEL01 /* AccessibilityContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXMODEL02 /* AccessibilityContext.swift */; };
+		ACCTXEXCP01 /* AccessibilityFieldExcerpt.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */; };
+		ACCTXCAPT01 /* AccessibilityContextCapturer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXCAPT02 /* AccessibilityContextCapturer.swift */; };
+		NEARBYTXT01 /* NearbyTextCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEARBYTXT02 /* NearbyTextCollector.swift */; };
+		ELECAXEN01 /* ElectronAccessibilityEnabler.swift in Sources */ = {isa = PBXBuildFile; fileRef = ELECAXEN02 /* ElectronAccessibilityEnabler.swift */; };
+		NEARBYTEST01 /* NearbyTextCollectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEARBYTEST02 /* NearbyTextCollectorTests.swift */; };
+		ELECAXTEST01 /* ElectronAccessibilityEnablerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ELECAXTEST02 /* ElectronAccessibilityEnablerTests.swift */; };
+		AXREADER01 /* AXElementReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = AXREADER02 /* AXElementReading.swift */; };
+		ACCTXCAPTEST01 /* AccessibilityContextCapturerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */; };
+		DBGSTORE01 /* DebugArtifactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBGSTORE02 /* DebugArtifactStore.swift */; };
+		ACCTXDBGSV01 /* AccessibilityContextDebugSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXDBGSV02 /* AccessibilityContextDebugSaver.swift */; };
+		ACCTXDBGTEST01 /* AccessibilityContextDebugSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXDBGTEST02 /* AccessibilityContextDebugSaverTests.swift */; };
+		CTXSRCPOL01 /* ContextSourcePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCPOL02 /* ContextSourcePolicy.swift */; };
+		PENDAXCAP01 /* PendingAccessibilityContextCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = PENDAXCAP02 /* PendingAccessibilityContextCapture.swift */; };
+		CTXSRCCOL01 /* ContextSourceCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCCOL02 /* ContextSourceCollector.swift */; };
+		MCHAXCTX01 /* MethodChannelHandler+AccessibilityContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = MCHAXCTX02 /* MethodChannelHandler+AccessibilityContext.swift */; };
+		CTXSRCPOLTEST01 /* ContextSourcePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCPOLTEST02 /* ContextSourcePolicyTests.swift */; };
+		CTXSRCCOLTEST01 /* ContextSourceCollectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCCOLTEST02 /* ContextSourceCollectorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -197,9 +217,29 @@
 		SRPERMISS02 /* ScreenRecordingPermission.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenRecordingPermission.swift; sourceTree = "<group>"; };
 		SRGUIDECTL2 /* ScreenRecordingPermissionGuideController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenRecordingPermissionGuideController.swift; sourceTree = "<group>"; };
 		LLMPAYTEST02 /* LLMServicePayloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServicePayloadTests.swift; sourceTree = "<group>"; };
+		LLMPROMPTTEST02 /* LLMServicePromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServicePromptTests.swift; sourceTree = "<group>"; };
 		LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceCompatibilityTests.swift; sourceTree = "<group>"; };
+		ACCTXMODE02 /* AccessibilityContextMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextMode.swift; sourceTree = "<group>"; };
+		ACCTXMODEL02 /* AccessibilityContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContext.swift; sourceTree = "<group>"; };
+		ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityFieldExcerpt.swift; sourceTree = "<group>"; };
+		ACCTXCAPT02 /* AccessibilityContextCapturer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextCapturer.swift; sourceTree = "<group>"; };
+		NEARBYTXT02 /* NearbyTextCollector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NearbyTextCollector.swift; sourceTree = "<group>"; };
+		ELECAXEN02 /* ElectronAccessibilityEnabler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ElectronAccessibilityEnabler.swift; sourceTree = "<group>"; };
+		NEARBYTEST02 /* NearbyTextCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyTextCollectorTests.swift; sourceTree = "<group>"; };
+		ELECAXTEST02 /* ElectronAccessibilityEnablerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElectronAccessibilityEnablerTests.swift; sourceTree = "<group>"; };
+		AXREADER02 /* AXElementReading.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AXElementReading.swift; sourceTree = "<group>"; };
+		ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityContextCapturerTests.swift; sourceTree = "<group>"; };
 		SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCapturerTests.swift; sourceTree = "<group>"; };
 		SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDebugSaverTests.swift; sourceTree = "<group>"; };
+		DBGSTORE02 /* DebugArtifactStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DebugArtifactStore.swift; sourceTree = "<group>"; };
+		ACCTXDBGSV02 /* AccessibilityContextDebugSaver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextDebugSaver.swift; sourceTree = "<group>"; };
+		ACCTXDBGTEST02 /* AccessibilityContextDebugSaverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityContextDebugSaverTests.swift; sourceTree = "<group>"; };
+		CTXSRCPOL02 /* ContextSourcePolicy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContextSourcePolicy.swift; sourceTree = "<group>"; };
+		PENDAXCAP02 /* PendingAccessibilityContextCapture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PendingAccessibilityContextCapture.swift; sourceTree = "<group>"; };
+		CTXSRCCOL02 /* ContextSourceCollector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContextSourceCollector.swift; sourceTree = "<group>"; };
+		MCHAXCTX02 /* MethodChannelHandler+AccessibilityContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "MethodChannelHandler+AccessibilityContext.swift"; sourceTree = "<group>"; };
+		CTXSRCPOLTEST02 /* ContextSourcePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextSourcePolicyTests.swift; sourceTree = "<group>"; };
+		CTXSRCCOLTEST02 /* ContextSourceCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextSourceCollectorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -251,9 +291,16 @@
 				VARTEST002 /* ShortcutHandlerVariantCompletionTests.swift */,
 				PROMPTTEST02 /* PromptTemplatesTests.swift */,
 				LLMPAYTEST02 /* LLMServicePayloadTests.swift */,
+				LLMPROMPTTEST02 /* LLMServicePromptTests.swift */,
 				LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */,
 				SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */,
 				SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */,
+				ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */,
+				NEARBYTEST02 /* NearbyTextCollectorTests.swift */,
+				ELECAXTEST02 /* ElectronAccessibilityEnablerTests.swift */,
+				ACCTXDBGTEST02 /* AccessibilityContextDebugSaverTests.swift */,
+				CTXSRCPOLTEST02 /* ContextSourcePolicyTests.swift */,
+				CTXSRCCOLTEST02 /* ContextSourceCollectorTests.swift */,
 			);
 			path = RunnerTests;
 			sourceTree = "<group>";
@@ -359,6 +406,19 @@
 				SHOTDBGSV02 /* ScreenshotDebugSaver.swift */,
 				SRPERMISS02 /* ScreenRecordingPermission.swift */,
 				SRGUIDECTL2 /* ScreenRecordingPermissionGuideController.swift */,
+				ACCTXMODE02 /* AccessibilityContextMode.swift */,
+				ACCTXMODEL02 /* AccessibilityContext.swift */,
+				ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */,
+				ACCTXCAPT02 /* AccessibilityContextCapturer.swift */,
+				NEARBYTXT02 /* NearbyTextCollector.swift */,
+				ELECAXEN02 /* ElectronAccessibilityEnabler.swift */,
+				AXREADER02 /* AXElementReading.swift */,
+				DBGSTORE02 /* DebugArtifactStore.swift */,
+				ACCTXDBGSV02 /* AccessibilityContextDebugSaver.swift */,
+				CTXSRCPOL02 /* ContextSourcePolicy.swift */,
+				PENDAXCAP02 /* PendingAccessibilityContextCapture.swift */,
+				CTXSRCCOL02 /* ContextSourceCollector.swift */,
+				MCHAXCTX02 /* MethodChannelHandler+AccessibilityContext.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -614,9 +674,16 @@
 				VARTEST001 /* ShortcutHandlerVariantCompletionTests.swift in Sources */,
 				PROMPTTEST01 /* PromptTemplatesTests.swift in Sources */,
 				LLMPAYTEST01 /* LLMServicePayloadTests.swift in Sources */,
+				LLMPROMPTTEST01 /* LLMServicePromptTests.swift in Sources */,
 				LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */,
 				SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */,
 				SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */,
+				ACCTXCAPTEST01 /* AccessibilityContextCapturerTests.swift in Sources */,
+				NEARBYTEST01 /* NearbyTextCollectorTests.swift in Sources */,
+				ELECAXTEST01 /* ElectronAccessibilityEnablerTests.swift in Sources */,
+				ACCTXDBGTEST01 /* AccessibilityContextDebugSaverTests.swift in Sources */,
+				CTXSRCPOLTEST01 /* ContextSourcePolicyTests.swift in Sources */,
+				CTXSRCCOLTEST01 /* ContextSourceCollectorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -664,6 +731,19 @@
 				SHOTDBGSV01 /* ScreenshotDebugSaver.swift in Sources */,
 				SRPERMISS01 /* ScreenRecordingPermission.swift in Sources */,
 				SRGUIDECTL1 /* ScreenRecordingPermissionGuideController.swift in Sources */,
+				ACCTXMODE01 /* AccessibilityContextMode.swift in Sources */,
+				ACCTXMODEL01 /* AccessibilityContext.swift in Sources */,
+				ACCTXEXCP01 /* AccessibilityFieldExcerpt.swift in Sources */,
+				ACCTXCAPT01 /* AccessibilityContextCapturer.swift in Sources */,
+				NEARBYTXT01 /* NearbyTextCollector.swift in Sources */,
+				ELECAXEN01 /* ElectronAccessibilityEnabler.swift in Sources */,
+				AXREADER01 /* AXElementReading.swift in Sources */,
+				DBGSTORE01 /* DebugArtifactStore.swift in Sources */,
+				ACCTXDBGSV01 /* AccessibilityContextDebugSaver.swift in Sources */,
+				CTXSRCPOL01 /* ContextSourcePolicy.swift in Sources */,
+				PENDAXCAP01 /* PendingAccessibilityContextCapture.swift in Sources */,
+				CTXSRCCOL01 /* ContextSourceCollector.swift in Sources */,
+				MCHAXCTX01 /* MethodChannelHandler+AccessibilityContext.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

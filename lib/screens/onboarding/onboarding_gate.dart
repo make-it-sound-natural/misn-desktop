@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/onboarding_setup_state.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
@@ -98,6 +99,13 @@ class _OnboardingGateState extends State<OnboardingGate> {
     return status;
   }
 
+  Future<void> _chooseAccessibilityContextMode(
+    AccessibilityContextMode mode,
+  ) async {
+    await _settingsService.setAccessibilityContextMode(mode);
+    await _shortcutService.setAccessibilityContextMode(mode);
+  }
+
   @override
   Widget build(BuildContext context) {
     if (!_loaded) {
@@ -115,6 +123,7 @@ class _OnboardingGateState extends State<OnboardingGate> {
       checkAccessibility: _shortcutService.checkAccessibilityPermissions,
       requestAccessibility: _shortcutService.requestAccessibilityPermission,
       onScreenshotContextSelected: _chooseScreenshotContextMode,
+      onAccessibilityContextSelected: _chooseAccessibilityContextMode,
     );
   }
 }
