@@ -81,6 +81,12 @@
 		LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */; };
 		SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */; };
 		SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */; };
+		ACCTXMODE01 /* AccessibilityContextMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXMODE02 /* AccessibilityContextMode.swift */; };
+		ACCTXMODEL01 /* AccessibilityContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXMODEL02 /* AccessibilityContext.swift */; };
+		ACCTXEXCP01 /* AccessibilityFieldExcerpt.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */; };
+		ACCTXCAPT01 /* AccessibilityContextCapturer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXCAPT02 /* AccessibilityContextCapturer.swift */; };
+		AXREADER01 /* AXElementReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = AXREADER02 /* AXElementReading.swift */; };
+		ACCTXCAPTEST01 /* AccessibilityContextCapturerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -198,6 +204,12 @@
 		SRGUIDECTL2 /* ScreenRecordingPermissionGuideController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScreenRecordingPermissionGuideController.swift; sourceTree = "<group>"; };
 		LLMPAYTEST02 /* LLMServicePayloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServicePayloadTests.swift; sourceTree = "<group>"; };
 		LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceCompatibilityTests.swift; sourceTree = "<group>"; };
+		ACCTXMODE02 /* AccessibilityContextMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextMode.swift; sourceTree = "<group>"; };
+		ACCTXMODEL02 /* AccessibilityContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContext.swift; sourceTree = "<group>"; };
+		ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityFieldExcerpt.swift; sourceTree = "<group>"; };
+		ACCTXCAPT02 /* AccessibilityContextCapturer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextCapturer.swift; sourceTree = "<group>"; };
+		AXREADER02 /* AXElementReading.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AXElementReading.swift; sourceTree = "<group>"; };
+		ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityContextCapturerTests.swift; sourceTree = "<group>"; };
 		SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCapturerTests.swift; sourceTree = "<group>"; };
 		SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotDebugSaverTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -254,6 +266,7 @@
 				LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */,
 				SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */,
 				SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */,
+				ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */,
 			);
 			path = RunnerTests;
 			sourceTree = "<group>";
@@ -359,6 +372,11 @@
 				SHOTDBGSV02 /* ScreenshotDebugSaver.swift */,
 				SRPERMISS02 /* ScreenRecordingPermission.swift */,
 				SRGUIDECTL2 /* ScreenRecordingPermissionGuideController.swift */,
+				ACCTXMODE02 /* AccessibilityContextMode.swift */,
+				ACCTXMODEL02 /* AccessibilityContext.swift */,
+				ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */,
+				ACCTXCAPT02 /* AccessibilityContextCapturer.swift */,
+				AXREADER02 /* AXElementReading.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -617,6 +635,7 @@
 				LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */,
 				SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */,
 				SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */,
+				ACCTXCAPTEST01 /* AccessibilityContextCapturerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -664,6 +683,11 @@
 				SHOTDBGSV01 /* ScreenshotDebugSaver.swift in Sources */,
 				SRPERMISS01 /* ScreenRecordingPermission.swift in Sources */,
 				SRGUIDECTL1 /* ScreenRecordingPermissionGuideController.swift in Sources */,
+				ACCTXMODE01 /* AccessibilityContextMode.swift in Sources */,
+				ACCTXMODEL01 /* AccessibilityContext.swift in Sources */,
+				ACCTXEXCP01 /* AccessibilityFieldExcerpt.swift in Sources */,
+				ACCTXCAPT01 /* AccessibilityContextCapturer.swift in Sources */,
+				AXREADER01 /* AXElementReading.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
