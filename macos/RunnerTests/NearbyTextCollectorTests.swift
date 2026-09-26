@@ -58,7 +58,7 @@ final class NearbyTextCollectorTests: XCTestCase {
         _ = usableContext()
 
         // Skipped by role or subrole: their children are never listed.
-        for name in ["toolbar", "nav", "react"] {
+        for name in ["toolbar", "react"] {
             XCTAssertFalse(
                 reader.readAttributes(of: name).contains(kAXChildrenAttribute),
                 name
@@ -66,10 +66,8 @@ final class NearbyTextCollectorTests: XCTestCase {
         }
         XCTAssertTrue(reader.readAttributes(of: "toolbarText").isEmpty)
         XCTAssertTrue(reader.readAttributes(of: "reactText").isEmpty)
-        // Beside the field: pruned by frame without reading its children.
-        XCTAssertFalse(
-            reader.readAttributes(of: "sidebar").contains(kAXChildrenAttribute)
-        )
+        // The content holds the thread, so the climb stops below the split.
+        XCTAssertTrue(reader.readAttributes(of: "split").isEmpty)
         // The focused field is never walked.
         XCTAssertFalse(
             reader.readAttributes(of: "field").contains(kAXChildrenAttribute)
@@ -123,6 +121,151 @@ final class NearbyTextCollectorTests: XCTestCase {
         XCTAssertEqual(usableContext().nearbyText, "Project update")
     }
 
+    // MARK: - Climb
+
+    /// Slack nests its composer under six wrapper groups that hold no text;
+    /// the thread is beside the seventh.
+    func testClimbPassesEmptyWrappersToReachTheThread() {
+        var levels: [[FakeAXNode]] = Array(repeating: [], count: 7)
+        let nav = FakeAXNode(
+            "nav",
+            role: kAXGroupRole,
+            frame: CGRect(x: 0, y: 0, width: 1_200, height: 40)
+        ).add(staticText("Home DMs Activity", x: 0, y: 0, width: 1_200))
+        nav.strings[kAXSubroleAttribute] = "AXLandmarkNavigation"
+        let sidebar = FakeAXNode(
+            "sidebar",
+            role: kAXGroupRole,
+            frame: CGRect(x: 0, y: 40, width: 250, height: 760)
+        ).add(staticText("general", x: 10, y: 100, width: 200))
+        levels[2] = [nav, sidebar]
+        levels[6] = [list([
+            staticText("Anna: can someone review the mockups?", y: 140),
+            staticText("Bob: I will take a look after lunch.", y: 200)
+        ])]
+        nest(levels)
+
+        let context = usableContext()
+
+        XCTAssertEqual(
+            context.nearbyText,
+            [
+                "Anna: can someone review the mockups?",
+                "Bob: I will take a look after lunch."
+            ].joined(separator: "\n")
+        )
+        XCTAssertNil(context.nearbyWalk?.cutoff)
+        // Skipped by subrole, and beside the field: pruned without reading
+        // their children.
+        for name in ["nav", "sidebar"] {
+            XCTAssertFalse(
+                reader.readAttributes(of: name).contains(kAXChildrenAttribute),
+                name
+            )
+        }
+    }
+
+    func testClimbStopsAtTheFirstAncestorWithText() {
+        nest([
+            [],
+            [staticText("close", y: 600)],
+            [staticText("far", name: "far", y: 300)]
+        ])
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "close")
+        XCTAssertNil(context.nearbyWalk?.cutoff)
+        XCTAssertTrue(reader.readAttributes(of: "wrapper3").isEmpty)
+        XCTAssertTrue(reader.readAttributes(of: "far").isEmpty)
+    }
+
+    /// An Electron app with its tree off: the whole climb must stay small
+    /// and uncut, or the tree is never turned on.
+    func testEmptyTreeClimbsToTheWindowWithoutCutoff() {
+        var levels: [[FakeAXNode]] = Array(repeating: [], count: 20)
+        levels[0] = [
+            FakeAXNode(
+                "send",
+                role: kAXButtonRole,
+                frame: CGRect(x: 1_070, y: 710, width: 100, height: 40)
+            ),
+            staticText("Press Enter to send", y: 760, height: 20)
+        ]
+        nest(levels)
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "")
+        XCTAssertEqual(context.nearbyWalk, NearbyTextWalk(nodesVisited: 2))
+        XCTAssertLessThan(
+            context.nearbyWalk?.nodesVisited ?? .max,
+            ElectronAccessibilityEnabler<FakeAXReader>.emptyWalkNodeLimit
+        )
+        XCTAssertTrue(
+            reader.readAttributes(of: "wrapper20")
+                .contains(kAXChildrenAttribute)
+        )
+        XCTAssertFalse(
+            reader.readAttributes(of: "window").contains(kAXChildrenAttribute)
+        )
+    }
+
+    func testClimbStopsAtTheWebArea() {
+        let browser = FakeAXNode(
+            "browser",
+            role: kAXGroupRole,
+            frame: CGRect(x: 0, y: 0, width: 1_200, height: 800)
+        ).add(staticText("Address bar", name: "chrome", y: 0))
+        window.add(browser)
+        nest([[], []], in: browser)
+            .strings[kAXRoleAttribute] = "AXWebArea"
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "")
+        XCTAssertNil(context.nearbyWalk?.cutoff)
+        XCTAssertTrue(reader.readAttributes(of: "browser").isEmpty)
+        XCTAssertTrue(reader.readAttributes(of: "chrome").isEmpty)
+    }
+
+    func testNodeBudgetCutsTheClimb() {
+        let levels = (0..<10).map { level in
+            (0..<60).map { index in
+                FakeAXNode(
+                    "spacer\(level)-\(index)",
+                    role: kAXGroupRole,
+                    frame: CGRect(x: 260, y: 100, width: 800, height: 40)
+                )
+            }
+        }
+        nest(levels)
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyWalk?.cutoff, .nodeBudget)
+        XCTAssertEqual(
+            context.nearbyWalk?.nodesVisited,
+            NearbyTextLimits.nodeBudget
+        )
+        XCTAssertTrue(reader.readAttributes(of: "wrapper10").isEmpty)
+    }
+
+    func testDeadlineCutsAClimbThroughEmptyWrappers() {
+        nest(Array(repeating: [], count: 30))
+        var clock: TimeInterval = 0
+        let capturer = AccessibilityContextCapturer(reader: reader) {
+            clock += 0.01
+            return clock
+        }
+
+        let context = usableContext(capturer.capture(request()))
+
+        XCTAssertEqual(context.nearbyWalk?.cutoff, .deadline)
+        XCTAssertEqual(context.nearbyWalk?.nodesVisited, 0)
+        XCTAssertTrue(reader.readAttributes(of: "wrapper30").isEmpty)
+    }
+
     // MARK: - Budgets
 
     func testNodeBudgetKeepsTheLinesClosestToTheField() {
@@ -141,8 +284,9 @@ final class NearbyTextCollectorTests: XCTestCase {
         )
         XCTAssertEqual(kept.last, "l999")
         XCTAssertFalse(kept.contains("l0"))
+        // Plus the branch the climb came from.
         XCTAssertTrue(reader.childrenRequests.allSatisfy {
-            $0 <= NearbyTextLimits.nodeBudget
+            $0 <= NearbyTextLimits.nodeBudget + 1
         })
     }
 
@@ -320,6 +464,28 @@ final class NearbyTextCollectorTests: XCTestCase {
         )
         window.add(split)
         split.add(nav, sidebar, content([toolbar, heading, messages]))
+    }
+
+    /// Nests the field in one wrapper group per entry of `levels`, innermost
+    /// first, with that entry's nodes before the level below. Adds the
+    /// outermost wrapper to `parent`, the window by default, and returns it.
+    @discardableResult
+    private func nest(
+        _ levels: [[FakeAXNode]],
+        in parent: FakeAXNode? = nil
+    ) -> FakeAXNode {
+        var inner: FakeAXNode = field
+        for (index, nodes) in levels.enumerated() {
+            let wrapper = FakeAXNode(
+                "wrapper\(index + 1)",
+                role: kAXGroupRole,
+                frame: CGRect(x: 250, y: 40, width: 950, height: 760)
+            )
+            for node in nodes + [inner] { wrapper.add(node) }
+            inner = wrapper
+        }
+        (parent ?? window).add(inner)
+        return inner
     }
 
     /// `window > content > [nodes…, composer > [field, send, hint]]`.

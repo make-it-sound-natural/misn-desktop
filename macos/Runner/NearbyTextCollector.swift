@@ -2,9 +2,9 @@ import ApplicationServices
 import Foundation
 
 enum NearbyTextLimits {
-    /// How many ancestors of the field the walk starts from.
-    static let ancestors = 4
-    static let nodeBudget = 300
+    /// Shared by every ancestor the walk climbs. Slack's message pane alone
+    /// is about 290 nodes, and the empty levels below it cost a few dozen.
+    static let nodeBudget = 500
     static let deadline: TimeInterval = 0.15
     static let textLength = 3_000
 }
@@ -40,7 +40,7 @@ private enum NearbyTextRoles {
 
 /// How a nearby text walk went, for the debug saver and logs.
 struct NearbyTextWalk: Equatable {
-    /// What stopped the walk before it covered every ancestor.
+    /// What stopped the walk before it found text or reached the window.
     enum Cutoff: String, Equatable {
         case nodeBudget
         case deadline
@@ -57,9 +57,12 @@ struct NearbyTextWalk: Equatable {
 }
 
 /// Collects text shown above the focused field, such as the thread above a
-/// chat composer. Walks the subtrees of the field's nearest ancestors within
-/// a node budget and a deadline, and keeps static text, headings and other
-/// text areas that sit above the field and overlap it horizontally.
+/// chat composer. Climbs the field's ancestors one at a time, walking each
+/// one's subtree within a shared node budget and deadline, and keeps static
+/// text, headings and other text areas that sit above the field and overlap
+/// it horizontally. The climb stops at the first ancestor that adds text:
+/// web apps nest a composer under many empty wrapper groups, so no fixed
+/// depth reaches the thread everywhere.
 final class NearbyTextCollector<Reader: AXElementReading> {
     private typealias Limits = NearbyTextLimits
 
@@ -91,15 +94,25 @@ final class NearbyTextCollector<Reader: AXElementReading> {
             deadline: now() + Limits.deadline
         )
         var walked = field
-        for _ in 0..<Limits.ancestors {
+        while walk.stats.cutoff == nil, walk.candidates.isEmpty,
+              walk.stats.nodesVisited < Limits.nodeBudget {
+            // A level that adds no nodes never reaches the check in the
+            // subtree walk.
+            if now() >= walk.deadline {
+                walk.stats.cutoff = .deadline
+                break
+            }
             guard case .success(let ancestor) = reader.element(
                 kAXParentAttribute,
                 of: walked
-            ), !isWindowOrApplication(ancestor) else {
+            ) else {
                 break
             }
+            let role = self.role(of: ancestor)
+            if role == kAXWindowRole || role == kAXApplicationRole { break }
             walkDescendants(of: ancestor, skipping: walked, into: &walk)
-            guard walk.stats.cutoff == nil else { break }
+            // Above the page are only the browser's tabs and toolbars.
+            if role == Self.webAreaRole { break }
             walked = ancestor
         }
         // Children are fetched only up to the budget, so a walk that spent
@@ -134,15 +147,12 @@ private extension NearbyTextCollector {
         case keep(String, CGRect)
     }
 
-    func isWindowOrApplication(_ element: Reader.Element) -> Bool {
+    static var webAreaRole: String { "AXWebArea" }
+
+    /// An ancestor whose role cannot be read is walked like any other.
+    func role(of element: Reader.Element) -> String? {
         touch(element)
-        guard case .success(let role) = reader.string(
-            kAXRoleAttribute,
-            of: element
-        ) else {
-            return false
-        }
-        return role == kAXWindowRole || role == kAXApplicationRole
+        return try? reader.string(kAXRoleAttribute, of: element).get()
     }
 
     /// Depth first, last child first: the end of a thread is what sits
@@ -152,7 +162,8 @@ private extension NearbyTextCollector {
         skipping walked: Reader.Element,
         into walk: inout Walk
     ) {
-        var stack = children(of: ancestor, walk: &walk)
+        // One more than the budget: the walked branch may be among them.
+        var stack = children(of: ancestor, walk: &walk, extra: 1)
             .filter { $0 != walked }
         while walk.stats.cutoff == nil, let node = stack.popLast() {
             if now() >= walk.deadline {
@@ -265,11 +276,12 @@ private extension NearbyTextCollector {
     /// with the other nodes.
     func children(
         of node: Reader.Element,
-        walk: inout Walk
+        walk: inout Walk,
+        extra: Int = 0
     ) -> [Reader.Element] {
         let remaining = Limits.nodeBudget - walk.stats.nodesVisited
         guard remaining > 0 else { return [] }
-        switch reader.lastChildren(remaining, of: node) {
+        switch reader.lastChildren(remaining + extra, of: node) {
         case .success(let children):
             return children
         case .failure(.unavailable):
