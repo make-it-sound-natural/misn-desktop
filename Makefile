@@ -39,7 +39,7 @@ pub-get:
 # Note: "Failed to foreground app; open returned 1" is a harmless Flutter message
 # for LSUIElement (agent) apps when `open` cannot foreground the bundle.
 start: pub-get
-	@MISN_SAVE_SCREENSHOT_CONTEXT=1 $(FLUTTER) run -d macos --no-pub
+	@MISN_SAVE_SCREENSHOT_CONTEXT=1 MISN_SAVE_ACCESSIBILITY_CONTEXT=1 $(FLUTTER) run -d macos --no-pub
 
 build: pub-get
 	@$(FLUTTER) build macos --no-pub

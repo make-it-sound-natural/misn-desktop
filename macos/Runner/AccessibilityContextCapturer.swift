@@ -20,6 +20,10 @@ protocol AccessibilityContextCapturing {
 enum AccessibilityContextLimits {
     /// Per element, so a hung app costs 100 ms instead of the ~6 s default.
     static let messagingTimeout: Float = 0.1
+    /// How long the shortcut waits for the read, counted from the moment it
+    /// started before Cmd+C. The copy itself takes at least 50 ms, so most
+    /// of this is already spent by the time the clipboard arrives.
+    static let captureDeadline: TimeInterval = 0.3
     static let windowTitleLength = 200
     static let fieldLabelLength = 200
     static let textBeforeSelectionLength = 1_500

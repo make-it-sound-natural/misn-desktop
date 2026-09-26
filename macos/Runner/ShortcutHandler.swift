@@ -13,8 +13,7 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
     private var dispatcher = ShortcutDispatcher()
 
     private let statusBubble: StatusBubbleControlling
-    private let screenshotCapturer: ScreenshotCapturing
-    private let screenshotDebugSaver: ScreenshotDebugSaver
+    private let contextCollector: ContextSourceCollector
 
     private var lastActiveAppBundleId: String?
 
@@ -52,16 +51,15 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
     /// - Parameters:
     ///   - methodChannelHandler: Flutter bridge; `nil` only for unit tests.
     ///   - statusBubble: Injected bubble; default is `StatusBubble.shared`.
+    ///   - contextCollector: App context and screenshot capture.
     init(
         methodChannelHandler: MethodChannelHandler? = nil,
         statusBubble: StatusBubbleControlling = StatusBubble.shared,
-        screenshotCapturer: ScreenshotCapturing = ScreenshotCapturer(),
-        screenshotDebugSaver: ScreenshotDebugSaver = ScreenshotDebugSaver()
+        contextCollector: ContextSourceCollector = ContextSourceCollector()
     ) {
         self.methodChannelHandler = methodChannelHandler
         self.statusBubble = statusBubble
-        self.screenshotCapturer = screenshotCapturer
-        self.screenshotDebugSaver = screenshotDebugSaver
+        self.contextCollector = contextCollector
         self.llmService = LLMService()
         self.contextCapturer = ContextCapturer()
         self.variantHandler = VariantHandler()
@@ -204,8 +202,27 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
 
     private func captureAndProcessText() {
         guard validateEditability() else { return }
+        // Started before Cmd+C so the read overlaps the clipboard poll.
+        let accessibilityCapture = startAccessibilityContextCapture()
         trackActiveApplication()
-        performTextCaptureAndProcess()
+        performTextCaptureAndProcess(accessibilityCapture: accessibilityCapture)
+    }
+
+    private func startAccessibilityContextCapture()
+        -> PendingAccessibilityContextCapture? {
+        guard let app = NSWorkspace.shared.frontmostApplication else {
+            return nil
+        }
+        let mode = methodChannelHandler?.getAccessibilityContextMode() ?? .off
+        log("App context mode: \(mode.rawValue)")
+        return contextCollector.startAccessibilityCapture(
+            AccessibilityContextRequest(
+                mode: mode,
+                processID: app.processIdentifier,
+                appName: app.localizedName,
+                bundleId: app.bundleIdentifier
+            )
+        )
     }
 
     private func validateEditability() -> Bool {
@@ -246,7 +263,9 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
         }
     }
 
-    private func performTextCaptureAndProcess() {
+    private func performTextCaptureAndProcess(
+        accessibilityCapture: PendingAccessibilityContextCapture?
+    ) {
         log("Starting text capture sequence")
 
         ClipboardService.captureSelectedText(
@@ -287,40 +306,22 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                     let screenshotMode = self.methodChannelHandler?
                         .getScreenshotContextMode() ?? .off
                     self.log("Screenshot context mode: \(screenshotMode.rawValue)")
-                    let screenshotResult: ScreenshotCaptureResult
-                    if screenshotMode == .off {
-                        screenshotResult = ScreenshotCaptureResult(
-                            attachment: nil,
-                            warning: nil
-                        )
-                    } else {
-                        screenshotResult = await self.screenshotCapturer.capture(
-                            mode: screenshotMode,
-                            activeBundleId: self.lastActiveAppBundleId,
-                            activeWindowID: self.lastActiveWindowID,
+                    let collected = await self.contextCollector.collect(
+                        accessibility: accessibilityCapture,
+                        copiedText: selectedText,
+                        screenshotMode: screenshotMode,
+                        screenshotTarget: ScreenshotTarget(
+                            bundleId: self.lastActiveAppBundleId,
+                            windowID: self.lastActiveWindowID,
                             cursorLocation: self.lastCursorPosition
                         )
-                        let captured = screenshotResult.attachment == nil
-                            ? "no"
-                            : "yes"
-                        self.log("Screenshot context captured: \(captured)")
-                    }
-
-                    if let warning = screenshotResult.warning {
-                        self.log("Screenshot context warning: \(warning)")
+                    )
+                    if let warning = collected.screenshot.warning {
                         self.methodChannelHandler?.sendError(warning)
-                    }
-
-                    if let attachment = screenshotResult.attachment {
-                        _ = self.screenshotDebugSaver.saveIfEnabled(
-                            attachment: attachment,
-                            mode: screenshotMode
-                        )
                     }
 
                     let provider = self.methodChannelHandler?
                         .getProvider() ?? AppDefaults.apiProvider
-                    let screenshotAttachment = screenshotResult.attachment
 
                     let defaultVariant = self.methodChannelHandler?
                         .getDefaultVariant() ?? AppDefaults.variant
@@ -338,10 +339,12 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                         customPrompt: self.methodChannelHandler?.getCustomPrompt(),
                         context: self.methodChannelHandler?.getContext(),
                         targetProfileInstruction: self.methodChannelHandler?.getTargetProfileInstruction(),
-                        screenshotAttachment: screenshotAttachment,
-                        accessibilityContext: nil,
+                        screenshotAttachment: collected.screenshot.attachment,
+                        accessibilityContext: collected.accessibilityContext,
                         reasoningEffort: self.methodChannelHandler?
-                            .getReasoningEffort() ?? AppDefaults.reasoningEffort
+                            .getReasoningEffort() ?? AppDefaults.reasoningEffort,
+                        accessibilityFallbackReason:
+                            collected.accessibilityFallbackReason
                     )
 
                     self.startLlmProcessing(

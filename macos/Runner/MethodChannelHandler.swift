@@ -39,6 +39,7 @@ class MethodChannelHandler {
     private var targetProfileInstruction: String = "Rewrite in natural American English."
     private var targetProfileSelectionRequired: Bool = true
     private var screenshotContextMode: ScreenshotContextMode = .off
+    var accessibilityContextMode: AccessibilityContextMode = .off
     private let keychain = KeychainService.shared
 
     // Delegate or callback to ShortcutHandler
@@ -101,6 +102,7 @@ class MethodChannelHandler {
         "setCustomPrompt": handleSetCustomPrompt,
         "setTargetProfile": handleSetTargetProfile,
         "setScreenshotContextMode": handleSetScreenshotContextMode,
+        "setAccessibilityContextMode": handleSetAccessibilityContextMode,
         "checkScreenRecordingPermission":
             handleCheckScreenRecordingPermission,
         "requestScreenRecordingPermission":
@@ -688,8 +690,7 @@ extension MethodChannelHandler {
 
     func getScreenshotContextMode() -> ScreenshotContextMode {
         screenshotContextMode
-    }
-}
+    }}
 
 extension MethodChannelHandler {
     func sendStatus(_ status: String) { messageSender.sendStatus(status) }

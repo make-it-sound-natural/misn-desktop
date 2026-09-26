@@ -83,6 +83,10 @@ abstract class MethodChannelMethods {
   /// Sets screenshot context capture mode for shortcut rewrites.
   static const String setScreenshotContextMode = 'setScreenshotContextMode';
 
+  /// Sets the App context (Accessibility) capture mode for shortcut rewrites.
+  static const String setAccessibilityContextMode =
+      'setAccessibilityContextMode';
+
   /// Checks Screen Recording permission without showing a prompt.
   static const String checkScreenRecordingPermission =
       'checkScreenRecordingPermission';

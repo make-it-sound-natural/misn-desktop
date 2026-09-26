@@ -91,6 +91,12 @@
 		DBGSTORE01 /* DebugArtifactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBGSTORE02 /* DebugArtifactStore.swift */; };
 		ACCTXDBGSV01 /* AccessibilityContextDebugSaver.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXDBGSV02 /* AccessibilityContextDebugSaver.swift */; };
 		ACCTXDBGTEST01 /* AccessibilityContextDebugSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXDBGTEST02 /* AccessibilityContextDebugSaverTests.swift */; };
+		CTXSRCPOL01 /* ContextSourcePolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCPOL02 /* ContextSourcePolicy.swift */; };
+		PENDAXCAP01 /* PendingAccessibilityContextCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = PENDAXCAP02 /* PendingAccessibilityContextCapture.swift */; };
+		CTXSRCCOL01 /* ContextSourceCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCCOL02 /* ContextSourceCollector.swift */; };
+		MCHAXCTX01 /* MethodChannelHandler+AccessibilityContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = MCHAXCTX02 /* MethodChannelHandler+AccessibilityContext.swift */; };
+		CTXSRCPOLTEST01 /* ContextSourcePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCPOLTEST02 /* ContextSourcePolicyTests.swift */; };
+		CTXSRCCOLTEST01 /* ContextSourceCollectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCCOLTEST02 /* ContextSourceCollectorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -220,6 +226,12 @@
 		DBGSTORE02 /* DebugArtifactStore.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DebugArtifactStore.swift; sourceTree = "<group>"; };
 		ACCTXDBGSV02 /* AccessibilityContextDebugSaver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextDebugSaver.swift; sourceTree = "<group>"; };
 		ACCTXDBGTEST02 /* AccessibilityContextDebugSaverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityContextDebugSaverTests.swift; sourceTree = "<group>"; };
+		CTXSRCPOL02 /* ContextSourcePolicy.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContextSourcePolicy.swift; sourceTree = "<group>"; };
+		PENDAXCAP02 /* PendingAccessibilityContextCapture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PendingAccessibilityContextCapture.swift; sourceTree = "<group>"; };
+		CTXSRCCOL02 /* ContextSourceCollector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContextSourceCollector.swift; sourceTree = "<group>"; };
+		MCHAXCTX02 /* MethodChannelHandler+AccessibilityContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "MethodChannelHandler+AccessibilityContext.swift"; sourceTree = "<group>"; };
+		CTXSRCPOLTEST02 /* ContextSourcePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextSourcePolicyTests.swift; sourceTree = "<group>"; };
+		CTXSRCCOLTEST02 /* ContextSourceCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextSourceCollectorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -277,6 +289,8 @@
 				SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */,
 				ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */,
 				ACCTXDBGTEST02 /* AccessibilityContextDebugSaverTests.swift */,
+				CTXSRCPOLTEST02 /* ContextSourcePolicyTests.swift */,
+				CTXSRCCOLTEST02 /* ContextSourceCollectorTests.swift */,
 			);
 			path = RunnerTests;
 			sourceTree = "<group>";
@@ -389,6 +403,10 @@
 				AXREADER02 /* AXElementReading.swift */,
 				DBGSTORE02 /* DebugArtifactStore.swift */,
 				ACCTXDBGSV02 /* AccessibilityContextDebugSaver.swift */,
+				CTXSRCPOL02 /* ContextSourcePolicy.swift */,
+				PENDAXCAP02 /* PendingAccessibilityContextCapture.swift */,
+				CTXSRCCOL02 /* ContextSourceCollector.swift */,
+				MCHAXCTX02 /* MethodChannelHandler+AccessibilityContext.swift */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -650,6 +668,8 @@
 				SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */,
 				ACCTXCAPTEST01 /* AccessibilityContextCapturerTests.swift in Sources */,
 				ACCTXDBGTEST01 /* AccessibilityContextDebugSaverTests.swift in Sources */,
+				CTXSRCPOLTEST01 /* ContextSourcePolicyTests.swift in Sources */,
+				CTXSRCCOLTEST01 /* ContextSourceCollectorTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -704,6 +724,10 @@
 				AXREADER01 /* AXElementReading.swift in Sources */,
 				DBGSTORE01 /* DebugArtifactStore.swift in Sources */,
 				ACCTXDBGSV01 /* AccessibilityContextDebugSaver.swift in Sources */,
+				CTXSRCPOL01 /* ContextSourcePolicy.swift in Sources */,
+				PENDAXCAP01 /* PendingAccessibilityContextCapture.swift in Sources */,
+				CTXSRCCOL01 /* ContextSourceCollector.swift in Sources */,
+				MCHAXCTX01 /* MethodChannelHandler+AccessibilityContext.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
