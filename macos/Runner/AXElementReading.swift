@@ -15,7 +15,9 @@ enum AXReadError: Error, Equatable {
 /// Seam over `AXUIElementCopy*` so the context capture logic can run
 /// against a fake element tree in tests.
 protocol AXElementReading {
-    associatedtype Element
+    /// Hashable so a tree walk can tell elements apart; `AXUIElement`
+    /// compares with `CFEqual`.
+    associatedtype Element: Hashable
 
     func isProcessTrusted() -> Bool
     func isSecureEventInputEnabled() -> Bool
@@ -43,6 +45,20 @@ protocol AXElementReading {
         for range: CFRange,
         of element: Element
     ) -> Result<String, AXReadError>
+    /// Reads at most the last `maxCount` children, so a huge list costs no
+    /// more than the walk can use.
+    func lastChildren(
+        _ maxCount: Int,
+        of element: Element
+    ) -> Result<[Element], AXReadError>
+    /// Position and size in screen coordinates, origin at the top left.
+    func frame(of element: Element) -> Result<CGRect, AXReadError>
+    /// The one write: `AXManualAccessibility` on an Electron app element.
+    func setBoolean(
+        _ value: Bool,
+        _ attribute: String,
+        of element: Element
+    ) -> Result<Void, AXReadError>
 }
 
 struct LiveAXElementReader: AXElementReading {
@@ -103,17 +119,11 @@ struct LiveAXElementReader: AXElementReading {
         _ attribute: String,
         of element: AXUIElement
     ) -> Result<CFRange, AXReadError> {
-        copyValue(attribute, of: element).flatMap { value in
-            guard CFGetTypeID(value) == AXValueGetTypeID() else {
-                return .failure(.unavailable)
-            }
-            let axValue = unsafeBitCast(value, to: AXValue.self)
+        axValue(attribute, .cfRange, of: element).flatMap { value in
             var range = CFRange()
-            guard AXValueGetType(axValue) == .cfRange,
-                  AXValueGetValue(axValue, .cfRange, &range) else {
-                return .failure(.unavailable)
-            }
-            return .success(range)
+            return AXValueGetValue(value, .cfRange, &range)
+                ? .success(range)
+                : .failure(.unavailable)
         }
     }
 
@@ -140,6 +150,86 @@ struct LiveAXElementReader: AXElementReading {
         }
     }
 
+    func lastChildren(
+        _ maxCount: Int,
+        of element: AXUIElement
+    ) -> Result<[AXUIElement], AXReadError> {
+        var count: CFIndex = 0
+        let countError = AXUIElementGetAttributeValueCount(
+            element,
+            kAXChildrenAttribute as CFString,
+            &count
+        )
+        guard countError == .success else {
+            return .failure(Self.readError(countError))
+        }
+        let length = min(count, maxCount)
+        guard length > 0 else { return .success([]) }
+        var values: CFArray?
+        let error = AXUIElementCopyAttributeValues(
+            element,
+            kAXChildrenAttribute as CFString,
+            count - length,
+            length,
+            &values
+        )
+        return Self.result(error, values).flatMap { values in
+            guard let children = values as? [AXUIElement] else {
+                return .failure(.unavailable)
+            }
+            return .success(children)
+        }
+    }
+
+    func frame(of element: AXUIElement) -> Result<CGRect, AXReadError> {
+        axValue(kAXPositionAttribute, .cgPoint, of: element).flatMap { position in
+            axValue(kAXSizeAttribute, .cgSize, of: element).flatMap { size in
+                var origin = CGPoint.zero
+                var extent = CGSize.zero
+                guard AXValueGetValue(position, .cgPoint, &origin),
+                      AXValueGetValue(size, .cgSize, &extent) else {
+                    return .failure(.unavailable)
+                }
+                return .success(CGRect(origin: origin, size: extent))
+            }
+        }
+    }
+
+    func setBoolean(
+        _ value: Bool,
+        _ attribute: String,
+        of element: AXUIElement
+    ) -> Result<Void, AXReadError> {
+        let error = AXUIElementSetAttributeValue(
+            element,
+            attribute as CFString,
+            (value ? kCFBooleanTrue : kCFBooleanFalse) as CFTypeRef
+        )
+        guard error == .success else {
+            return .failure(Self.readError(error))
+        }
+        return .success(())
+    }
+
+    /// Copies an `AXValue` attribute holding `type`; the caller unpacks it
+    /// into the matching concrete struct.
+    private func axValue(
+        _ attribute: String,
+        _ type: AXValueType,
+        of element: AXUIElement
+    ) -> Result<AXValue, AXReadError> {
+        copyValue(attribute, of: element).flatMap { value in
+            guard CFGetTypeID(value) == AXValueGetTypeID() else {
+                return .failure(.unavailable)
+            }
+            let axValue = unsafeBitCast(value, to: AXValue.self)
+            guard AXValueGetType(axValue) == type else {
+                return .failure(.unavailable)
+            }
+            return .success(axValue)
+        }
+    }
+
     private func copyValue(
         _ attribute: String,
         of element: AXUIElement
@@ -157,17 +247,20 @@ struct LiveAXElementReader: AXElementReading {
         _ error: AXError,
         _ value: CFTypeRef?
     ) -> Result<CFTypeRef, AXReadError> {
+        guard error == .success else { return .failure(readError(error)) }
+        guard let value = value else { return .failure(.unavailable) }
+        return .success(value)
+    }
+
+    private static func readError(_ error: AXError) -> AXReadError {
         switch error {
-        case .success:
-            guard let value = value else { return .failure(.unavailable) }
-            return .success(value)
         case .apiDisabled:
-            return .failure(.apiDisabled)
+            return .apiDisabled
         case .cannotComplete:
             // What a messaging timeout or an unresponsive app reports.
-            return .failure(.timeout)
+            return .timeout
         default:
-            return .failure(.unavailable)
+            return .unavailable
         }
     }
 }

@@ -86,6 +86,10 @@
 		ACCTXMODEL01 /* AccessibilityContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXMODEL02 /* AccessibilityContext.swift */; };
 		ACCTXEXCP01 /* AccessibilityFieldExcerpt.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */; };
 		ACCTXCAPT01 /* AccessibilityContextCapturer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXCAPT02 /* AccessibilityContextCapturer.swift */; };
+		NEARBYTXT01 /* NearbyTextCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEARBYTXT02 /* NearbyTextCollector.swift */; };
+		ELECAXEN01 /* ElectronAccessibilityEnabler.swift in Sources */ = {isa = PBXBuildFile; fileRef = ELECAXEN02 /* ElectronAccessibilityEnabler.swift */; };
+		NEARBYTEST01 /* NearbyTextCollectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEARBYTEST02 /* NearbyTextCollectorTests.swift */; };
+		ELECAXTEST01 /* ElectronAccessibilityEnablerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ELECAXTEST02 /* ElectronAccessibilityEnablerTests.swift */; };
 		AXREADER01 /* AXElementReading.swift in Sources */ = {isa = PBXBuildFile; fileRef = AXREADER02 /* AXElementReading.swift */; };
 		ACCTXCAPTEST01 /* AccessibilityContextCapturerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */; };
 		DBGSTORE01 /* DebugArtifactStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBGSTORE02 /* DebugArtifactStore.swift */; };
@@ -219,6 +223,10 @@
 		ACCTXMODEL02 /* AccessibilityContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContext.swift; sourceTree = "<group>"; };
 		ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityFieldExcerpt.swift; sourceTree = "<group>"; };
 		ACCTXCAPT02 /* AccessibilityContextCapturer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextCapturer.swift; sourceTree = "<group>"; };
+		NEARBYTXT02 /* NearbyTextCollector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NearbyTextCollector.swift; sourceTree = "<group>"; };
+		ELECAXEN02 /* ElectronAccessibilityEnabler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ElectronAccessibilityEnabler.swift; sourceTree = "<group>"; };
+		NEARBYTEST02 /* NearbyTextCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyTextCollectorTests.swift; sourceTree = "<group>"; };
+		ELECAXTEST02 /* ElectronAccessibilityEnablerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElectronAccessibilityEnablerTests.swift; sourceTree = "<group>"; };
 		AXREADER02 /* AXElementReading.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AXElementReading.swift; sourceTree = "<group>"; };
 		ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityContextCapturerTests.swift; sourceTree = "<group>"; };
 		SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCapturerTests.swift; sourceTree = "<group>"; };
@@ -288,6 +296,8 @@
 				SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */,
 				SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */,
 				ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */,
+				NEARBYTEST02 /* NearbyTextCollectorTests.swift */,
+				ELECAXTEST02 /* ElectronAccessibilityEnablerTests.swift */,
 				ACCTXDBGTEST02 /* AccessibilityContextDebugSaverTests.swift */,
 				CTXSRCPOLTEST02 /* ContextSourcePolicyTests.swift */,
 				CTXSRCCOLTEST02 /* ContextSourceCollectorTests.swift */,
@@ -400,6 +410,8 @@
 				ACCTXMODEL02 /* AccessibilityContext.swift */,
 				ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */,
 				ACCTXCAPT02 /* AccessibilityContextCapturer.swift */,
+				NEARBYTXT02 /* NearbyTextCollector.swift */,
+				ELECAXEN02 /* ElectronAccessibilityEnabler.swift */,
 				AXREADER02 /* AXElementReading.swift */,
 				DBGSTORE02 /* DebugArtifactStore.swift */,
 				ACCTXDBGSV02 /* AccessibilityContextDebugSaver.swift */,
@@ -667,6 +679,8 @@
 				SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */,
 				SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */,
 				ACCTXCAPTEST01 /* AccessibilityContextCapturerTests.swift in Sources */,
+				NEARBYTEST01 /* NearbyTextCollectorTests.swift in Sources */,
+				ELECAXTEST01 /* ElectronAccessibilityEnablerTests.swift in Sources */,
 				ACCTXDBGTEST01 /* AccessibilityContextDebugSaverTests.swift in Sources */,
 				CTXSRCPOLTEST01 /* ContextSourcePolicyTests.swift in Sources */,
 				CTXSRCCOLTEST01 /* ContextSourceCollectorTests.swift in Sources */,
@@ -721,6 +735,8 @@
 				ACCTXMODEL01 /* AccessibilityContext.swift in Sources */,
 				ACCTXEXCP01 /* AccessibilityFieldExcerpt.swift in Sources */,
 				ACCTXCAPT01 /* AccessibilityContextCapturer.swift in Sources */,
+				NEARBYTXT01 /* NearbyTextCollector.swift in Sources */,
+				ELECAXEN01 /* ElectronAccessibilityEnabler.swift in Sources */,
 				AXREADER01 /* AXElementReading.swift in Sources */,
 				DBGSTORE01 /* DebugArtifactStore.swift in Sources */,
 				ACCTXDBGSV01 /* AccessibilityContextDebugSaver.swift in Sources */,

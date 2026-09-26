@@ -33,11 +33,13 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         context.textBeforeSelection = "Hi team, "
         context.textAfterSelection = " Thanks!"
         context.nearbyText = "Anna: is the draft ready?"
+        context.nearbyWalk = NearbyTextWalk(nodesVisited: 12, cutoff: nil)
         context.timings = AccessibilityContext.Timings(
             focusedElement: 1.5,
             metadata: 2.5,
             excerpt: 3.5,
-            total: 8
+            nearby: 4.5,
+            total: 12.5
         )
         return context
     }
@@ -98,9 +100,15 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
                 "focusedElement": 1.5,
                 "metadata": 2.5,
                 "excerpt": 3.5,
-                "total": 8
+                "nearby": 4.5,
+                "total": 12.5
             ]
         )
+        let nearby = try XCTUnwrap(entry["nearby"] as? [String: Any])
+        XCTAssertEqual(nearby["textLength"] as? Int, 25)
+        XCTAssertEqual(nearby["nodesVisited"] as? Int, 12)
+        XCTAssertNil(nearby["cutoff"])
+        XCTAssertEqual(entry["requestedManualAccessibility"] as? Bool, false)
         let screenshot = try XCTUnwrap(entry["screenshot"] as? [String: Any])
         XCTAssertEqual(screenshot["taken"] as? Bool, false)
         XCTAssertEqual(screenshot["reason"] as? String, "ax_nearby_text")
@@ -121,6 +129,7 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
             bundleId: "com.microsoft.VSCode"
         )
         partial.role = "AXWindow"
+        partial.requestedManualAccessibility = true
         let saver = AccessibilityContextDebugSaver(
             environment: enabled,
             outputDirectory: makeDirectory()
@@ -139,6 +148,8 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         XCTAssertEqual(entry["role"] as? String, "AXWindow")
         XCTAssertNil(entry["subrole"])
         XCTAssertNil(entry["appContext"])
+        XCTAssertNil(entry["nearby"])
+        XCTAssertEqual(entry["requestedManualAccessibility"] as? Bool, true)
         let screenshot = try XCTUnwrap(entry["screenshot"] as? [String: Any])
         XCTAssertEqual(screenshot["taken"] as? Bool, true)
         XCTAssertEqual(screenshot["reason"] as? String, "ax_unusable")

@@ -84,6 +84,7 @@ private struct AccessibilityContextDebugEntry: Encodable {
         let focusedElement: Double
         let metadata: Double
         let excerpt: Double
+        let nearby: Double
         let total: Double
     }
 
@@ -93,6 +94,12 @@ private struct AccessibilityContextDebugEntry: Encodable {
         let textBeforeSelection: String
         let textAfterSelection: String
         let nearbyText: String
+    }
+
+    struct Nearby: Encodable {
+        let textLength: Int
+        let nodesVisited: Int
+        let cutoff: String?
     }
 
     struct Screenshot: Encodable {
@@ -108,6 +115,10 @@ private struct AccessibilityContextDebugEntry: Encodable {
     let timingsMs: Timings
     let usable: Bool
     let unusableReason: String?
+    /// Absent when the nearby walk did not run.
+    let nearby: Nearby?
+    /// Whether this run asked an Electron app to build its tree.
+    let requestedManualAccessibility: Bool
     let screenshot: Screenshot
     let parts: Parts
     /// The exact `<app_context>` block sent to the LLM. Absent when the read
@@ -142,8 +153,17 @@ private struct AccessibilityContextDebugEntry: Encodable {
             focusedElement: context.timings.focusedElement,
             metadata: context.timings.metadata,
             excerpt: context.timings.excerpt,
+            nearby: context.timings.nearby,
             total: context.timings.total
         )
+        nearby = context.nearbyWalk.map { walk in
+            Nearby(
+                textLength: context.nearbyText.count,
+                nodesVisited: walk.nodesVisited,
+                cutoff: walk.cutoff?.rawValue
+            )
+        }
+        requestedManualAccessibility = context.requestedManualAccessibility
         screenshot = Screenshot(taken: screenshotTaken, reason: screenshotReason)
         parts = Parts(
             windowTitle: context.windowTitle,

@@ -220,7 +220,8 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 mode: mode,
                 processID: app.processIdentifier,
                 appName: app.localizedName,
-                bundleId: app.bundleIdentifier
+                bundleId: app.bundleIdentifier,
+                bundleURL: app.bundleURL
             )
         )
     }

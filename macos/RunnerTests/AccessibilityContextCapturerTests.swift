@@ -2,22 +2,46 @@ import ApplicationServices
 import XCTest
 @testable import Make_It_Sound_Natural
 
-/// One element of the fake AX tree.
-final class FakeAXNode {
+/// One element of the fake AX tree. Compares by identity, like distinct
+/// `AXUIElement`s.
+final class FakeAXNode: Hashable {
     let name: String
     var strings: [String: String] = [:]
     var elements: [String: FakeAXNode] = [:]
     var integers: [String: Int] = [:]
     var ranges: [String: CFRange] = [:]
     var errors: [String: AXReadError] = [:]
+    /// Read as `kAXChildrenAttribute`; errors under that key too.
+    private(set) var children: [FakeAXNode] = []
+    /// Read as `kAXParentAttribute`; weak so a tree does not leak.
+    private(set) weak var parent: FakeAXNode?
+    /// Read by `frame(of:)`; errors under `kAXPositionAttribute`.
+    var frame: CGRect?
     /// Backs `kAXStringForRangeParameterizedAttribute`.
     var text: String?
     /// Simulates apps whose returned text drifts from the reported offsets.
     var textForRangeOverride: String?
 
-    init(_ name: String, role: String? = nil) {
+    init(_ name: String, role: String? = nil, frame: CGRect? = nil) {
         self.name = name
+        self.frame = frame
         strings[kAXRoleAttribute] = role
+    }
+
+    static func == (lhs: FakeAXNode, rhs: FakeAXNode) -> Bool { lhs === rhs }
+
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(ObjectIdentifier(self))
+    }
+
+    /// Appends `nodes` as children, in on-screen order.
+    @discardableResult
+    func add(_ nodes: FakeAXNode...) -> FakeAXNode {
+        for node in nodes {
+            node.parent = self
+            children.append(node)
+        }
+        return self
     }
 
     /// A text area whose value and selection are given in UTF-16 offsets.
@@ -41,10 +65,17 @@ final class FakeAXReader: AXElementReading {
     private(set) var reads: [(node: String, attribute: String)] = []
     private(set) var rangeReads: [CFRange] = []
     private(set) var timeouts: [String: Float] = [:]
+    private(set) var childrenRequests: [Int] = []
+    private(set) var writes: [(node: String, attribute: String, value: Bool)] = []
+    private(set) var applicationProcessIDs: [pid_t] = []
+    var writeError: AXReadError?
 
     func isProcessTrusted() -> Bool { trusted }
     func isSecureEventInputEnabled() -> Bool { secureInput }
-    func applicationElement(processID: pid_t) -> FakeAXNode { app }
+    func applicationElement(processID: pid_t) -> FakeAXNode {
+        applicationProcessIDs.append(processID)
+        return app
+    }
 
     func setMessagingTimeout(_ seconds: Float, for element: FakeAXNode) {
         timeouts[element.name] = seconds
@@ -54,7 +85,10 @@ final class FakeAXReader: AXElementReading {
         _ attribute: String,
         of element: FakeAXNode
     ) -> Result<FakeAXNode, AXReadError> {
-        read(attribute, of: element, from: element.elements)
+        if attribute == kAXParentAttribute, let parent = element.parent {
+            return read(attribute, of: element, from: [attribute: parent])
+        }
+        return read(attribute, of: element, from: element.elements)
     }
 
     func string(
@@ -92,6 +126,35 @@ final class FakeAXReader: AXElementReading {
         guard let text = element.text else { return .failure(.unavailable) }
         let nsRange = NSRange(location: range.location, length: range.length)
         return .success((text as NSString).substring(with: nsRange))
+    }
+
+    func lastChildren(
+        _ maxCount: Int,
+        of element: FakeAXNode
+    ) -> Result<[FakeAXNode], AXReadError> {
+        childrenRequests.append(maxCount)
+        return read(
+            kAXChildrenAttribute,
+            of: element,
+            from: [kAXChildrenAttribute: Array(element.children.suffix(maxCount))]
+        )
+    }
+
+    func frame(of element: FakeAXNode) -> Result<CGRect, AXReadError> {
+        read(
+            kAXPositionAttribute,
+            of: element,
+            from: element.frame.map { [kAXPositionAttribute: $0] } ?? [:]
+        )
+    }
+
+    func setBoolean(
+        _ value: Bool,
+        _ attribute: String,
+        of element: FakeAXNode
+    ) -> Result<Void, AXReadError> {
+        writes.append((element.name, attribute, value))
+        return writeError.map { .failure($0) } ?? .success(())
     }
 
     func readAttributes(of node: String) -> [String] {
@@ -473,7 +536,8 @@ final class AccessibilityContextCapturerTests: XCTestCase {
             mode: mode,
             processID: 42,
             appName: "Slack",
-            bundleId: bundleId
+            bundleId: bundleId,
+            bundleURL: nil
         )
     }
 

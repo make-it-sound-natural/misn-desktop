@@ -7,6 +7,8 @@ struct AccessibilityContextRequest {
     let processID: pid_t
     let appName: String?
     let bundleId: String?
+    /// Where the app is installed; tells Electron apps apart.
+    let bundleURL: URL?
 }
 
 protocol AccessibilityContextCapturing {
@@ -38,10 +40,13 @@ final class AccessibilityContextCapturer<Reader: AXElementReading>:
     private let reader: Reader
     private let codeEditors: Set<String>
     private let now: () -> TimeInterval
+    private let nearbyText: NearbyTextCollector<Reader>
+    private let electronAccessibility: ElectronAccessibilityEnabler<Reader>
 
     init(
         reader: Reader,
         codeEditors: Set<String> = AccessibilityHelper.knownCodeEditors,
+        isElectronApp: @escaping (URL) -> Bool = ElectronAppDetector.isElectronApp,
         now: @escaping () -> TimeInterval = {
             ProcessInfo.processInfo.systemUptime
         }
@@ -49,6 +54,16 @@ final class AccessibilityContextCapturer<Reader: AXElementReading>:
         self.reader = reader
         self.codeEditors = codeEditors
         self.now = now
+        self.nearbyText = NearbyTextCollector(
+            reader: reader,
+            messagingTimeout: Limits.messagingTimeout,
+            now: now
+        )
+        self.electronAccessibility = ElectronAccessibilityEnabler(
+            reader: reader,
+            messagingTimeout: Limits.messagingTimeout,
+            isElectronApp: isElectronApp
+        )
     }
 
     func capture(
@@ -65,7 +80,10 @@ final class AccessibilityContextCapturer<Reader: AXElementReading>:
             field = .excerpt(try readField(request, into: &context))
         } catch {
             // readField throws nothing but UnusableReason.
-            field = .unusable(error as? Reason ?? .noFocusedElement)
+            let reason = error as? Reason ?? .noFocusedElement
+            field = .unusable(reason)
+            context.requestedManualAccessibility = electronAccessibility
+                .enableIfNeeded(after: reason, in: request)
         }
         context.timings.total = milliseconds(since: start)
         return AccessibilityContextCapture(context: context, field: field)
@@ -103,8 +121,20 @@ private extension AccessibilityContextCapturer {
         context.timings.metadata = milliseconds(since: stepStart)
 
         stepStart = now()
-        defer { context.timings.excerpt = milliseconds(since: stepStart) }
-        return try excerpt(of: field)
+        let fieldExcerpt: AccessibilityFieldExcerpt
+        do {
+            defer { context.timings.excerpt = milliseconds(since: stepStart) }
+            fieldExcerpt = try excerpt(of: field)
+        }
+
+        if request.mode == .fieldAndNearby {
+            stepStart = now()
+            (context.nearbyText, context.nearbyWalk) = nearbyText.collect(
+                around: field
+            )
+            context.timings.nearby = milliseconds(since: stepStart)
+        }
+        return fieldExcerpt
     }
 
     func focusedField(

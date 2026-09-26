@@ -84,7 +84,8 @@ final class ContextSourceCollectorTests: XCTestCase {
             mode: mode,
             processID: 123,
             appName: "Mail",
-            bundleId: "com.apple.mail"
+            bundleId: "com.apple.mail",
+            bundleURL: nil
         )
     }
 

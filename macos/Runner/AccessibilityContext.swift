@@ -32,6 +32,7 @@ struct AccessibilityContext: Equatable {
         var focusedElement: Double = 0
         var metadata: Double = 0
         var excerpt: Double = 0
+        var nearby: Double = 0
         var total: Double = 0
     }
 
@@ -45,8 +46,13 @@ struct AccessibilityContext: Equatable {
     var fieldLabel: String?
     var textBeforeSelection = ""
     var textAfterSelection = ""
-    /// Text shown near the field; stays empty until nearby capture exists.
+    /// Text shown above the field, `fieldAndNearby` mode only.
     var nearbyText = ""
+    /// How the nearby text walk went; nil when it did not run.
+    var nearbyWalk: NearbyTextWalk?
+    /// Whether this run asked an Electron app to build its Accessibility
+    /// tree (`AXManualAccessibility`).
+    var requestedManualAccessibility = false
     var timings = Timings()
 
     init(mode: AccessibilityContextMode, appName: String?, bundleId: String?) {

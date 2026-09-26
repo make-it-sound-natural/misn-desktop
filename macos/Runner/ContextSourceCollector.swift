@@ -148,11 +148,22 @@ final class ContextSourceCollector {
                 "mode=\(context.mode.rawValue), " +
                 "beforeLength=\(context.textBeforeSelection.count), " +
                 "afterLength=\(context.textAfterSelection.count), " +
-                "nearbyLength=\(context.nearbyText.count)"
+                "nearbyLength=\(context.nearbyText.count)" +
+                describe(context.nearbyWalk, ms: context.timings.nearby)
         case .unusable(let reason, let partial):
+            let electron = partial.requestedManualAccessibility
+                ? ", requested AXManualAccessibility"
+                : ""
             return "AX context: \(format(partial.timings.total)) ms, " +
-                "unusable/\(reason.rawValue), mode=\(partial.mode.rawValue)"
+                "unusable/\(reason.rawValue), mode=\(partial.mode.rawValue)" +
+                electron
         }
+    }
+
+    private static func describe(_ walk: NearbyTextWalk?, ms: Double) -> String {
+        guard let walk = walk else { return "" }
+        return ", nearby: \(format(ms)) ms, nodes=\(walk.nodesVisited), " +
+            "cutoff=\(walk.cutoff?.rawValue ?? "none")"
     }
 
     private static func format(_ milliseconds: Double) -> String {
