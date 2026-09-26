@@ -266,6 +266,158 @@ final class NearbyTextCollectorTests: XCTestCase {
         XCTAssertTrue(reader.readAttributes(of: "wrapper30").isEmpty)
     }
 
+    // MARK: - Frames
+
+    /// Slack's virtualized message list: the list reports a 1×1 px frame
+    /// beside the field and every row sits on one line, so geometry can
+    /// neither find the rows nor order them.
+    func testVirtualListWithDegenerateFramesKeepsDocumentOrder() {
+        field.frame = CGRect(x: 601, y: 924, width: 1_102, height: 38)
+        let rows = [
+            ["Anna", "can someone review the mockups?"],
+            ["Bob", "replied to a thread:", "I will take a look after lunch."],
+            ["Anna", "thanks, the draft is in Figma."]
+        ].map(messageRow)
+        let list = FakeAXNode(
+            "list",
+            role: kAXListRole,
+            frame: CGRect(x: 580, y: 892, width: 1, height: 1)
+        )
+        list.strings[kAXSubroleAttribute] = "AXContentList"
+        for row in rows { list.add(row) }
+        let scroller = FakeAXNode(
+            "scroller",
+            role: kAXGroupRole,
+            frame: CGRect(x: 580, y: 152, width: 1_144, height: 741)
+        ).add(
+            FakeAXNode(
+                "empty",
+                role: kAXGroupRole,
+                frame: CGRect(x: 1_152, y: 166, width: 572, height: 727)
+            ),
+            list,
+            FakeAXNode(
+                "jump",
+                role: kAXGroupRole,
+                frame: CGRect(x: 1_712, y: 835, width: 8, height: 50)
+            )
+        )
+        let pane = FakeAXNode(
+            "pane",
+            role: kAXGroupRole,
+            frame: CGRect(x: 580, y: 160, width: 1_144, height: 733)
+        ).add(scroller)
+        let toolbar = FakeAXNode(
+            "toolbar",
+            role: kAXToolbarRole,
+            frame: CGRect(x: 601, y: 900, width: 300, height: 20)
+        ).add(staticText(
+            "Bold",
+            name: "toolbarText",
+            x: 601,
+            y: 900,
+            width: 40,
+            height: 20
+        ))
+        let composer = FakeAXNode(
+            "composer",
+            role: kAXGroupRole,
+            frame: CGRect(x: 580, y: 900, width: 1_144, height: 70)
+        ).add(toolbar, field)
+        window.add(FakeAXNode("messages", role: kAXGroupRole).add(
+            pane,
+            composer
+        ))
+
+        let context = usableContext()
+
+        XCTAssertEqual(
+            context.nearbyText,
+            [
+                "Anna",
+                "can someone review the mockups?",
+                "Bob",
+                "replied to a thread:",
+                "I will take a look after lunch.",
+                "Anna",
+                "thanks, the draft is in Figma."
+            ].joined(separator: "\n")
+        )
+        XCTAssertNil(context.nearbyWalk?.cutoff)
+        XCTAssertFalse(
+            reader.readAttributes(of: "toolbar").contains(kAXChildrenAttribute)
+        )
+        XCTAssertTrue(reader.readAttributes(of: "toolbarText").isEmpty)
+        XCTAssertFalse(
+            reader.readAttributes(of: "jump").contains(kAXChildrenAttribute)
+        )
+    }
+
+    /// Rows that share one line tie on distance; the text cap keeps the
+    /// end of the thread.
+    func testTextLengthCapKeepsTheEndOfASingleLineThread() {
+        let messages = (0..<5).map { index in
+            staticText(
+                "m\(index) " + String(repeating: "x ", count: 450),
+                y: 100,
+                height: 1
+            )
+        }
+        let list = FakeAXNode(
+            "list",
+            role: kAXListRole,
+            frame: CGRect(x: 0, y: 0, width: 1, height: 1)
+        )
+        for message in messages { list.add(message) }
+        layout(list)
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyWalk?.cutoff, .textLength)
+        let kept = context.nearbyText.split(separator: "\n")
+        XCTAssertEqual(
+            kept.suffix(3).map { $0.prefix(3) },
+            ["m2 ", "m3 ", "m4 "]
+        )
+        XCTAssertFalse(context.nearbyText.contains("m0 "))
+    }
+
+    func testContainerWithRealFrameBelowTheFieldIsSkipped() {
+        // Its child claims a place above the field; the container's frame
+        // decides.
+        let below = FakeAXNode(
+            "below",
+            role: kAXGroupRole,
+            frame: CGRect(x: 260, y: 710, width: 800, height: 80)
+        ).add(staticText("Suggested reply", name: "belowText", y: 600))
+        layout(staticText("Anna: ready?", y: 600), below)
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "Anna: ready?")
+        XCTAssertFalse(
+            reader.readAttributes(of: "below").contains(kAXChildrenAttribute)
+        )
+        XCTAssertTrue(reader.readAttributes(of: "belowText").isEmpty)
+    }
+
+    func testContainerWithRealFrameBesideTheFieldIsSkipped() {
+        let sidebar = FakeAXNode(
+            "sidebar",
+            role: kAXGroupRole,
+            frame: CGRect(x: 0, y: 40, width: 250, height: 760)
+        ).add(staticText("general", name: "sidebarText", y: 600))
+        layout(sidebar, staticText("Anna: ready?", y: 600))
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "Anna: ready?")
+        XCTAssertFalse(
+            reader.readAttributes(of: "sidebar").contains(kAXChildrenAttribute)
+        )
+        XCTAssertTrue(reader.readAttributes(of: "sidebarText").isEmpty)
+    }
+
     // MARK: - Budgets
 
     func testNodeBudgetKeepsTheLinesClosestToTheField() {
@@ -523,6 +675,34 @@ final class NearbyTextCollectorTests: XCTestCase {
         )
         for item in items { list.add(item) }
         return list
+    }
+
+    /// One Slack message: `AXGroup > AXGroup/AXDocument > AXGroup` holding
+    /// its texts side by side on one 1 px line, right to left, and a
+    /// timestamp link.
+    private func messageRow(_ texts: [String]) -> FakeAXNode {
+        let body = FakeAXNode("body", role: kAXGroupRole)
+        for (index, text) in texts.enumerated() {
+            body.add(staticText(
+                text,
+                x: 1_300 - CGFloat(index) * 300,
+                y: 152,
+                width: 200,
+                height: 1
+            ))
+        }
+        body.add(FakeAXNode(
+            "timestamp",
+            role: "AXLink",
+            frame: CGRect(x: 777, y: 152, width: 31, height: 1)
+        ))
+        let document = FakeAXNode("document", role: kAXGroupRole).add(body)
+        document.strings[kAXSubroleAttribute] = "AXDocument"
+        return FakeAXNode(
+            "row",
+            role: kAXGroupRole,
+            frame: CGRect(x: 580, y: 152, width: 1_144, height: 9)
+        ).add(document)
     }
 
     private var textCount = 0

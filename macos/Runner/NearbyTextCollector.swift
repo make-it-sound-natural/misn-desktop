@@ -63,6 +63,10 @@ struct NearbyTextWalk: Equatable {
 /// it horizontally. The climb stops at the first ancestor that adds text:
 /// web apps nest a composer under many empty wrapper groups, so no fixed
 /// depth reaches the thread everywhere.
+///
+/// Geometry only prunes and ranks: virtualized lists, like Slack's, report
+/// a 1 px frame for the list and the same line for every row, so the text
+/// is assembled in document order.
 final class NearbyTextCollector<Reader: AXElementReading> {
     private typealias Limits = NearbyTextLimits
 
@@ -80,8 +84,8 @@ final class NearbyTextCollector<Reader: AXElementReading> {
         self.now = now
     }
 
-    /// Returns the kept text top to bottom, one element per line. When more
-    /// is found than fits, the text closest to the field wins.
+    /// Returns the kept text in document order, one element per line. When
+    /// more is found than fits, the text closest to the field wins.
     func collect(
         around field: Reader.Element
     ) -> (text: String, walk: NearbyTextWalk) {
@@ -128,9 +132,10 @@ final class NearbyTextCollector<Reader: AXElementReading> {
 private extension NearbyTextCollector {
     struct Candidate {
         let text: String
-        let frame: CGRect
         /// Vertical gap to the field.
         let distance: CGFloat
+        /// Visit order. The walk goes last child first, so this is reverse
+        /// document order.
         let order: Int
     }
 
@@ -144,7 +149,7 @@ private extension NearbyTextCollector {
     enum Visit {
         case descend
         case skip
-        case keep(String, CGRect)
+        case keep(String, distance: CGFloat)
     }
 
     static var webAreaRole: String { "AXWebArea" }
@@ -182,11 +187,10 @@ private extension NearbyTextCollector {
                     continue
                 case .descend:
                     stack.append(contentsOf: children(of: node, walk: &walk))
-                case let .keep(text, frame):
+                case let .keep(text, distance):
                     walk.candidates.append(Candidate(
                         text: text,
-                        frame: frame,
-                        distance: walk.field.minY - frame.maxY,
+                        distance: distance,
                         order: walk.candidates.count
                     ))
                 }
@@ -204,26 +208,28 @@ private extension NearbyTextCollector {
             return .skip
         }
         let frame = try optional(reader.frame(of: node))
-            .flatMap { $0.isEmpty ? nil : $0 }
-        if let frame = frame, !Self.overlapsHorizontally(frame, field) {
-            return .skip
-        }
 
         switch role {
         case kAXStaticTextRole?, kAXHeadingRole?, kAXTextAreaRole?:
-            guard let frame = frame, frame.maxY <= field.minY else {
-                // Below the field, or nowhere to place it.
+            // A line of text may report no height; it still has a place.
+            guard let frame = frame,
+                  Self.overlapsHorizontally(frame, field),
+                  frame.maxY <= field.minY else {
+                // Beside or below the field, or nowhere to place it.
                 return .skip
             }
             if let text = try text(of: node, role: role) {
-                return .keep(text, frame)
+                return .keep(text, distance: field.minY - frame.maxY)
             }
             // A web heading keeps its text in static text children.
             return role == kAXHeadingRole ? .descend : .skip
         default:
-            // A container that starts at or below the field holds nothing
-            // above it.
-            if let frame = frame, frame.minY >= field.minY {
+            // A container beside the field, or one that starts at or below
+            // it, holds nothing above it. A degenerate frame says nothing
+            // about where its children are.
+            if let frame = frame, !Self.isDegenerate(frame),
+               !Self.overlapsHorizontally(frame, field)
+                || frame.minY >= field.minY {
                 return .skip
             }
             return .descend
@@ -315,6 +321,14 @@ private extension NearbyTextCollector {
         frame.minX < field.maxX && frame.maxX > field.minX
     }
 
+    /// Slack's virtualized message list is 1 px square while its rows span
+    /// the whole pane.
+    static func isDegenerate(_ frame: CGRect) -> Bool {
+        frame.width <= 1 || frame.height <= 1
+    }
+
+    /// Trims closest first; at equal distance the end of the document
+    /// wins, so a thread whose rows share one line keeps its last messages.
     static func assemble(
         _ walk: inout Walk
     ) -> (text: String, walk: NearbyTextWalk) {
@@ -333,7 +347,6 @@ private extension NearbyTextCollector {
             }
             kept.append(Candidate(
                 text: text,
-                frame: candidate.frame,
                 distance: candidate.distance,
                 order: candidate.order
             ))
@@ -344,12 +357,9 @@ private extension NearbyTextCollector {
             }
         }
 
-        let topToBottom = kept.sorted {
-            ($0.frame.minY, $0.frame.minX, $0.order)
-                < ($1.frame.minY, $1.frame.minX, $1.order)
-        }
+        let documentOrder = kept.sorted { $0.order > $1.order }
         return (
-            topToBottom.map(\.text).joined(separator: "\n"),
+            documentOrder.map(\.text).joined(separator: "\n"),
             walk.stats
         )
     }
