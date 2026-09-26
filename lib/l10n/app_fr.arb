@@ -277,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "Contexte de capture",
+  "onboardingScreenshotTitle": "Contexte de l’app et de capture",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "Le contexte de capture facultatif peut améliorer les réécritures, mais les captures peuvent inclure du contenu visible sensible.",
+  "onboardingScreenshotDescription": "Le contexte de l’app envoie le texte autour de votre sélection au fournisseur IA sélectionné pour que les réécritures collent à la conversation. Rien n’est lu dans les champs de mot de passe, et vous pouvez le désactiver dans les réglages. Le contexte de capture facultatif peut aider davantage, mais les captures peuvent inclure du contenu visible sensible.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "Inclure le texte voisin",
+  "onboardingNearbyTextDescription": "Lit aussi le texte près du champ, comme les messages au-dessus. Peut inclure les messages d’autres personnes et du contenu sensible.",
   "onboardingScreenshotModeLabel": "Mode de contexte de capture",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"

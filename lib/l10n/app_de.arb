@@ -277,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "Screenshot-Kontext",
+  "onboardingScreenshotTitle": "App- und Screenshot-Kontext",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "Optionaler Screenshot-Kontext kann Umschreibungen verbessern, aber Screenshots können sichtbare vertrauliche Inhalte enthalten.",
+  "onboardingScreenshotDescription": "Der App-Kontext sendet den Text um deine Auswahl an den gewählten KI-Anbieter, damit Umschreibungen zur Unterhaltung passen. Aus Passwortfeldern wird nichts gelesen, und in den Einstellungen lässt sich das ausschalten. Optionaler Screenshot-Kontext kann zusätzlich helfen, aber Screenshots können sichtbare vertrauliche Inhalte enthalten.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "Umgebungstext einbeziehen",
+  "onboardingNearbyTextDescription": "Liest zusätzlich Text in der Nähe des Felds, z. B. die Nachrichten darüber. Kann Nachrichten anderer und vertrauliche Inhalte enthalten.",
   "onboardingScreenshotModeLabel": "Screenshot-Kontextmodus",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"

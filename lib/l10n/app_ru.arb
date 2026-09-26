@@ -277,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "Контекст скриншота",
+  "onboardingScreenshotTitle": "Контекст приложения и скриншота",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "Необязательный контекст скриншота может улучшить переписывание, но скриншоты могут содержать видимые конфиденциальные данные.",
+  "onboardingScreenshotDescription": "Контекст приложения отправляет текст вокруг выделения выбранному AI-провайдеру, чтобы результат подходил к разговору. Текст из полей паролей не читается, а отключить это можно в настройках. Необязательный контекст скриншота может помочь ещё больше, но скриншоты могут содержать видимые чувствительные данные.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "Включать текст рядом",
+  "onboardingNearbyTextDescription": "Также читать текст рядом с полем, например сообщения выше. Может включать сообщения других людей и чувствительные данные.",
   "onboardingScreenshotModeLabel": "Режим контекста скриншота",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"

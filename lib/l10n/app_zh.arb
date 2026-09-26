@@ -277,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "截图上下文",
+  "onboardingScreenshotTitle": "应用与截图上下文",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "可选的截图上下文可改进改写效果，但截图可能包含敏感的可见内容。",
+  "onboardingScreenshotDescription": "应用上下文会把所选内容周围的文本发送给所选 AI 提供商，让改写更贴合对话。不会读取密码框中的内容，你可以在设置中关闭。可选的截图上下文能进一步帮助改写，但截图可能包含可见的敏感内容。",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "包含附近文本",
+  "onboardingNearbyTextDescription": "同时读取输入框附近的文本，例如上方的消息。可能包含他人的消息和敏感内容。",
   "onboardingScreenshotModeLabel": "截图上下文模式",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"

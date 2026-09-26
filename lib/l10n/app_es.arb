@@ -277,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "Contexto de captura",
+  "onboardingScreenshotTitle": "Contexto de la app y de capturas",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "El contexto de captura opcional puede mejorar las reescrituras, pero las capturas pueden incluir contenido visible sensible.",
+  "onboardingScreenshotDescription": "El contexto de la app envía el texto que rodea tu selección al proveedor de IA seleccionado para que las reescrituras encajen con la conversación. No se lee nada de los campos de contraseña y puedes desactivarlo en Ajustes. El contexto de captura opcional puede ayudar más, pero las capturas pueden incluir contenido visible sensible.",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "Incluir texto cercano",
+  "onboardingNearbyTextDescription": "También lee el texto cercano al campo, como los mensajes de arriba. Puede incluir mensajes de otras personas y contenido sensible.",
   "onboardingScreenshotModeLabel": "Modo de contexto de captura",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"

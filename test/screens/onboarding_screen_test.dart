@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/onboarding_setup_state.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
@@ -19,7 +20,16 @@ void main() {
       ScreenshotContextMode mode,
     )?
     onScreenshotContextSelected,
+    Future<void> Function(AccessibilityContextMode mode)?
+    onAccessibilityContextSelected,
   }) async {
+    // The Ahem test font is much wider than the system font. Use a tall
+    // window so the App context step keeps its buttons on screen.
+    tester.view
+      ..physicalSize = const Size(1180, 1000)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(
       MaterialApp(
         localizationsDelegates: const [
@@ -38,11 +48,21 @@ void main() {
           onScreenshotContextSelected:
               onScreenshotContextSelected ??
               (_) async => ScreenRecordingPermissionStatus.granted,
+          onAccessibilityContextSelected:
+              onAccessibilityContextSelected ?? (_) async {},
         ),
       ),
     );
     await tester.pumpAndSettle();
   }
+
+  const screenshotStepState = OnboardingSetupState(
+    completed: false,
+    requiredSetupCompleted: true,
+    screenshotContextSkipped: false,
+    accessibilitySkipped: false,
+    lastStep: OnboardingStep.screenshotContext,
+  );
 
   testWidgets('starts at provider step', (tester) async {
     await pumpOnboarding(tester);
@@ -66,7 +86,7 @@ void main() {
     await tester.tap(find.byKey(const Key('onboarding-accessibility-skip')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Screenshot context'), findsOneWidget);
+    expect(find.text('App and screenshot context'), findsOneWidget);
     expect(states.last.requiredSetupCompleted, isTrue);
     expect(states.last.lastStep, OnboardingStep.screenshotContext);
   });
@@ -121,7 +141,7 @@ void main() {
     await tester.tap(find.byKey(const Key('onboarding-accessibility-grant')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Screenshot context'), findsOneWidget);
+    expect(find.text('App and screenshot context'), findsOneWidget);
     expect(states.last.requiredSetupCompleted, isTrue);
   });
 
@@ -192,7 +212,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Screenshot context'), findsOneWidget);
+    expect(find.text('App and screenshot context'), findsOneWidget);
     expect(
       find.textContaining('screenshots may include sensitive'),
       findsOneWidget,
@@ -337,5 +357,112 @@ void main() {
       find.textContaining('Screen Recording permission is still needed'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('explains App context and offers nearby text, off by default', (
+    tester,
+  ) async {
+    await pumpOnboarding(tester, initialState: screenshotStepState);
+
+    expect(
+      find.textContaining('Nothing is read from password fields'),
+      findsOneWidget,
+    );
+    expect(find.text('Include nearby text'), findsOneWidget);
+    expect(
+      find.textContaining("May include other people's messages"),
+      findsOneWidget,
+    );
+    final nearbySwitch = tester.widget<Switch>(
+      find.byKey(const Key('onboarding-nearby-text-switch')),
+    );
+    expect(nearbySwitch.value, isFalse);
+  });
+
+  testWidgets('Continue leaves App context alone without the opt-in', (
+    tester,
+  ) async {
+    final selectedModes = <AccessibilityContextMode>[];
+    await pumpOnboarding(
+      tester,
+      initialState: screenshotStepState,
+      onAccessibilityContextSelected: (mode) async => selectedModes.add(mode),
+    );
+
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+
+    expect(selectedModes, isEmpty);
+  });
+
+  testWidgets('nearby text opt-in is saved on Continue', (tester) async {
+    final states = <OnboardingSetupState>[];
+    final selectedModes = <AccessibilityContextMode>[];
+    final requestedScreenshotModes = <ScreenshotContextMode>[];
+    await pumpOnboarding(
+      tester,
+      initialState: screenshotStepState,
+      onStateChanged: states.add,
+      onAccessibilityContextSelected: (mode) async => selectedModes.add(mode),
+      onScreenshotContextSelected: (mode) async {
+        requestedScreenshotModes.add(mode);
+        return ScreenRecordingPermissionStatus.granted;
+      },
+    );
+
+    await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
+    await tester.pumpAndSettle();
+
+    // Flipping the switch alone saves nothing.
+    expect(selectedModes, isEmpty);
+
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+
+    expect(selectedModes, [AccessibilityContextMode.fieldAndNearby]);
+    expect(requestedScreenshotModes, isEmpty);
+    expect(states.last.lastStep, OnboardingStep.done);
+  });
+
+  testWidgets('nearby text opt-in and a screenshot mode are both applied', (
+    tester,
+  ) async {
+    final selectedModes = <AccessibilityContextMode>[];
+    final requestedScreenshotModes = <ScreenshotContextMode>[];
+    await pumpOnboarding(
+      tester,
+      initialState: screenshotStepState,
+      onAccessibilityContextSelected: (mode) async => selectedModes.add(mode),
+      onScreenshotContextSelected: (mode) async {
+        requestedScreenshotModes.add(mode);
+        return ScreenRecordingPermissionStatus.granted;
+      },
+    );
+
+    await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
+    await tester.tap(find.text('Application'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+
+    expect(selectedModes, [AccessibilityContextMode.fieldAndNearby]);
+    expect(requestedScreenshotModes, [ScreenshotContextMode.activeApplication]);
+  });
+
+  testWidgets('Skip optional drops the nearby text opt-in', (tester) async {
+    final selectedModes = <AccessibilityContextMode>[];
+    await pumpOnboarding(
+      tester,
+      initialState: screenshotStepState,
+      onAccessibilityContextSelected: (mode) async => selectedModes.add(mode),
+    );
+
+    await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-skip-optional')));
+    await tester.pumpAndSettle();
+
+    expect(selectedModes, isEmpty);
+    expect(find.text('Finish setup'), findsOneWidget);
   });
 }

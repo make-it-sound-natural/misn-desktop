@@ -277,14 +277,16 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "スクリーンショットのコンテキスト",
+  "onboardingScreenshotTitle": "アプリとスクリーンショットのコンテキスト",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
-  "onboardingScreenshotDescription": "任意のスクリーンショットコンテキストは書き換えを改善できますが、機密性の高い表示内容を含む場合があります。",
+  "onboardingScreenshotDescription": "アプリのコンテキストは、選択範囲の前後のテキストを選択した AI プロバイダーに送信し、会話に合った書き換えにします。パスワード欄からは何も読み取らず、設定でオフにできます。任意のスクリーンショットコンテキストはさらに役立ちますが、表示中の機密情報が含まれる場合があります。",
   "@onboardingScreenshotDescription": {
     "description": "Onboarding Screenshot context privacy explanation"
   },
+  "onboardingNearbyTextTitle": "周辺のテキストを含める",
+  "onboardingNearbyTextDescription": "入力欄の近くにあるテキスト（上のメッセージなど）も読み取ります。他の人のメッセージや機密情報が含まれる場合があります。",
   "onboardingScreenshotModeLabel": "スクリーンショットコンテキストモード",
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
