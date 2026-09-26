@@ -38,21 +38,18 @@ final class AccessibilityContextCapturer<Reader: AXElementReading>:
     private typealias Limits = AccessibilityContextLimits
 
     private let reader: Reader
-    private let codeEditors: Set<String>
     private let now: () -> TimeInterval
     private let nearbyText: NearbyTextCollector<Reader>
     private let electronAccessibility: ElectronAccessibilityEnabler<Reader>
 
     init(
         reader: Reader,
-        codeEditors: Set<String> = AccessibilityHelper.knownCodeEditors,
         isElectronApp: @escaping (URL) -> Bool = ElectronAppDetector.isElectronApp,
         now: @escaping () -> TimeInterval = {
             ProcessInfo.processInfo.systemUptime
         }
     ) {
         self.reader = reader
-        self.codeEditors = codeEditors
         self.now = now
         self.nearbyText = NearbyTextCollector(
             reader: reader,
@@ -105,9 +102,6 @@ private extension AccessibilityContextCapturer {
         guard reader.isProcessTrusted() else { throw Reason.notTrusted }
         guard !reader.isSecureEventInputEnabled() else {
             throw Reason.secureInput
-        }
-        if let bundleId = request.bundleId, codeEditors.contains(bundleId) {
-            throw Reason.codeEditor
         }
 
         var stepStart = now()

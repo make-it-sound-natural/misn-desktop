@@ -104,12 +104,8 @@ final class ElectronAccessibilityEnablerTests: XCTestCase {
         _ = capturer.capture(request(processID: 3))
         reader.secureInput = false
 
-        _ = capturer.capture(
-            request(processID: 4, bundleId: "com.microsoft.VSCode")
-        )
-
         reader.app.errors[kAXFocusedUIElementAttribute] = .timeout
-        _ = capturer.capture(request(processID: 5))
+        _ = capturer.capture(request(processID: 4))
 
         XCTAssertTrue(reader.writes.isEmpty)
     }
@@ -262,14 +258,13 @@ final class ElectronAccessibilityEnablerTests: XCTestCase {
     private func request(
         processID: pid_t,
         mode: AccessibilityContextMode = .field,
-        bundleId: String = "com.tinyspeck.slackmacgap",
         bundleURL: URL? = ElectronAccessibilityEnablerTests.slack
     ) -> AccessibilityContextRequest {
         AccessibilityContextRequest(
             mode: mode,
             processID: processID,
             appName: "Slack",
-            bundleId: bundleId,
+            bundleId: "com.tinyspeck.slackmacgap",
             bundleURL: bundleURL
         )
     }

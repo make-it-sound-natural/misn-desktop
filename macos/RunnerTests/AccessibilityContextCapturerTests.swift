@@ -224,6 +224,22 @@ final class AccessibilityContextCapturerTests: XCTestCase {
         XCTAssertEqual(context.mode, .field)
     }
 
+    func testKnownCodeEditorIsReadLikeAnyOtherApp() {
+        focus("let x = 1", "x")
+
+        for bundleId in AccessibilityHelper.knownCodeEditors {
+            let result = capture(bundleId: bundleId).resolve(copiedText: "x")
+
+            guard case .usable(let context) = result else {
+                XCTFail("\(bundleId) is unusable: \(result)")
+                continue
+            }
+            XCTAssertEqual(context.bundleId, bundleId)
+            XCTAssertEqual(context.textBeforeSelection, "let ")
+            XCTAssertEqual(context.textAfterSelection, " = 1")
+        }
+    }
+
     func testSelectionAtFieldStartHasNoTextBefore() {
         focus("Hello there, how are you?", "Hello")
 
@@ -411,16 +427,6 @@ final class AccessibilityContextCapturerTests: XCTestCase {
         let result = capture(mode: .off).resolve(copiedText: "there")
 
         XCTAssertEqual(reason(of: result), .disabled)
-        XCTAssertTrue(reader.reads.isEmpty)
-    }
-
-    func testKnownCodeEditorSkipsAllReads() {
-        focus("let x = 1", "x")
-
-        let result = capture(bundleId: "com.microsoft.VSCode")
-            .resolve(copiedText: "x")
-
-        XCTAssertEqual(reason(of: result), .codeEditor)
         XCTAssertTrue(reader.reads.isEmpty)
     }
 

@@ -121,8 +121,8 @@ on the mode, it includes the app name, window title, field label, the text
 around your selection and, in *Field and nearby text* mode, the text above the
 field, which can be other people's messages. Each part has a length cap. It
 goes only to the chosen provider, together with the selected text, and release
-builds do not save it. Nothing is read from password fields, from any app while
-a password field is focused, or from code editors.
+builds do not save it. Nothing is read from password fields or from any app
+while a password field is focused.
 
 See [Privacy Policy](PRIVACY_POLICY.md) for details.
 

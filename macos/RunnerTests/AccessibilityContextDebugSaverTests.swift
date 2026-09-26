@@ -136,14 +136,14 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         )
 
         let savedURL = saver.saveIfEnabled(
-            result: .unusable(.codeEditor, partial: partial),
+            result: .unusable(.windowOrApplicationRole, partial: partial),
             screenshotTaken: true,
             screenshotReason: "ax_unusable"
         )
 
         let entry = try json(at: XCTUnwrap(savedURL))
         XCTAssertEqual(entry["usable"] as? Bool, false)
-        XCTAssertEqual(entry["unusableReason"] as? String, "codeEditor")
+        XCTAssertEqual(entry["unusableReason"] as? String, "windowOrApplicationRole")
         XCTAssertEqual(entry["mode"] as? String, "field")
         XCTAssertEqual(entry["role"] as? String, "AXWindow")
         XCTAssertNil(entry["subrole"])

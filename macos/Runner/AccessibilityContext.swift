@@ -11,7 +11,6 @@ struct AccessibilityContext: Equatable {
         /// A password field is focused somewhere (`IsSecureEventInputEnabled`).
         case secureInput
         case secureField
-        case codeEditor
         case noFocusedElement
         case apiDisabled
         case timeout

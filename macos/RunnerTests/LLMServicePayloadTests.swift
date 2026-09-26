@@ -375,14 +375,14 @@ final class LLMServicePayloadTests: XCTestCase {
             ["App context attached to LLM request: no"]
         )
 
-        config.accessibilityFallbackReason = .codeEditor
+        config.accessibilityFallbackReason = .windowOrApplicationRole
 
         XCTAssertEqual(
             service.debugRequestContextLines(config: config)
                 .filter { $0.hasPrefix("App context") },
             [
                 "App context attached to LLM request: no",
-                "App context fallback reason: codeEditor"
+                "App context fallback reason: windowOrApplicationRole"
             ]
         )
     }
