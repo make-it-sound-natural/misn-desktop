@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/appearance_preferences.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
@@ -13,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Service for managing application settings persistence.
 class SettingsService {
   // Schema version for settings migration
-  static const int _currentSchemaVersion = 1;
+  static const int _currentSchemaVersion = 2;
   static const String _schemaVersionKey = 'settings_schema_version';
 
   static const String _apiKeyKey = 'openai_api_key';
@@ -31,6 +32,8 @@ class SettingsService {
   static const String _sourceEditorShareKey = 'rewrite_source_editor_share';
   static const String _pendingScreenshotContextModeKey =
       'pending_screenshot_context_mode';
+  static const String _accessibilityContextModeKey =
+      'accessibility_context_mode';
   static const String _appearancePreferencesKey =
       AppDefaults.appearancePreferencesKey;
   static const String _providerAuthFailurePrefix = 'provider_auth_failure_';
@@ -59,15 +62,25 @@ class SettingsService {
     // Migration v0 -> v1: Initial schema (no changes needed)
     // This establishes the baseline for future migrations.
 
-    // Example future migration (v1 -> v2):
-    // if (fromVersion < 2) {
-    //   // Rename a key
-    //   final oldValue = prefs.getString('old_key');
-    //   if (oldValue != null) {
-    //     await prefs.setString('new_key', oldValue);
-    //     await prefs.remove('old_key');
-    //   }
-    // }
+    // Migration v1 -> v2: seed the App context mode. Users who already sent
+    // screenshots consented to sharing visible screen content, so they get the
+    // nearby-text mode; everyone else, fresh installs included, starts with
+    // the field text only.
+    if (fromVersion < 2 && !prefs.containsKey(_accessibilityContextModeKey)) {
+      final screenshotMode = ScreenshotContextMode.fromValue(
+        prefs.getString(_screenshotContextModeKey),
+      );
+      final pendingScreenshotMode = ScreenshotContextMode.fromValue(
+        prefs.getString(_pendingScreenshotContextModeKey),
+      );
+      final usesScreenshotContext =
+          screenshotMode != ScreenshotContextMode.off ||
+          pendingScreenshotMode != ScreenshotContextMode.off;
+      final mode = usesScreenshotContext
+          ? AccessibilityContextMode.fieldAndNearby
+          : AccessibilityContextMode.field;
+      await prefs.setString(_accessibilityContextModeKey, mode.value);
+    }
 
     // Example future migration (v2 -> v3):
     // if (fromVersion < 3) {
@@ -377,6 +390,22 @@ class SettingsService {
   Future<void> setScreenshotContextMode(ScreenshotContextMode mode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_screenshotContextModeKey, mode.value);
+  }
+
+  /// Gets the App context (Accessibility) mode.
+  Future<AccessibilityContextMode> getAccessibilityContextMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return AccessibilityContextMode.fromValue(
+      prefs.getString(_accessibilityContextModeKey),
+    );
+  }
+
+  /// Saves the App context (Accessibility) mode.
+  Future<void> setAccessibilityContextMode(
+    AccessibilityContextMode mode,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_accessibilityContextModeKey, mode.value);
   }
 
   /// Gets the pending screenshot context mode, if non-off intent is saved.

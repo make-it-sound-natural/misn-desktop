@@ -672,6 +672,38 @@
   "@screenshotContextEnableConfirm": {
     "description": "Confirmation action for enabling screenshot context"
   },
+  "accessibilityContext": "App context",
+  "@accessibilityContext": {
+    "description": "Setting title for App context, the text read from the active app through Accessibility"
+  },
+  "accessibilityContextHelper": "Send text from the app you're typing in with shortcut rewrites. May include sensitive content.",
+  "@accessibilityContextHelper": {
+    "description": "Privacy helper for App context setting"
+  },
+  "accessibilityContextOff": "Off",
+  "@accessibilityContextOff": {
+    "description": "App context off option"
+  },
+  "accessibilityContextField": "Field text",
+  "@accessibilityContextField": {
+    "description": "App context option that reads only the text of the field being edited"
+  },
+  "accessibilityContextFieldAndNearby": "Field and nearby text",
+  "@accessibilityContextFieldAndNearby": {
+    "description": "App context option that also reads nearby text in the window"
+  },
+  "accessibilityContextEnableTitle": "Send app context?",
+  "@accessibilityContextEnableTitle": {
+    "description": "Confirmation dialog title for enabling nearby App context"
+  },
+  "accessibilityContextEnableMessage": "Text from the field you're editing and nearby text in the window, such as other people's messages, is sent to your selected AI provider. It may include sensitive content.",
+  "@accessibilityContextEnableMessage": {
+    "description": "Confirmation dialog message for enabling nearby App context"
+  },
+  "accessibilityContextEnableConfirm": "Enable",
+  "@accessibilityContextEnableConfirm": {
+    "description": "Confirmation action for enabling nearby App context"
+  },
   "screenRecordingPermissionUnsupported": "Screenshot context requires macOS 14 or later.",
   "@screenRecordingPermissionUnsupported": {
     "description": "Message shown when screenshot context is unsupported"

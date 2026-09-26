@@ -429,6 +429,111 @@ void main() {
     );
   });
 
+  group('App context row', () {
+    const fieldKey = Key('accessibilityContextModeField');
+
+    Iterable<MethodCall> accessibilityCalls() => methodCalls.where(
+      (call) => call.method == MethodChannelMethods.setAccessibilityContextMode,
+    );
+
+    Finder shownMode(String label) => find.descendant(
+      of: find.byKey(fieldKey),
+      matching: find.text(label),
+    );
+
+    Future<void> selectMode(WidgetTester tester, String label) async {
+      await tester.tap(find.byKey(fieldKey));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label).last);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('sits right after the screenshot context row', (tester) async {
+      await pumpWritingSettings(tester);
+
+      expect(find.text('App context'), findsOneWidget);
+      expect(shownMode('Off'), findsOneWidget);
+      final screenshotTop = tester
+          .getTopLeft(find.byKey(const Key('screenshotContextModeField')))
+          .dy;
+      final appContextTop = tester.getTopLeft(find.byKey(fieldKey)).dy;
+      expect(appContextTop, greaterThan(screenshotTop));
+    });
+
+    testWidgets('shows the stored mode', (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'accessibility_context_mode': 'fieldAndNearby',
+      });
+
+      await pumpWritingSettings(tester);
+
+      expect(shownMode('Field and nearby text'), findsOneWidget);
+    });
+
+    testWidgets('saves field text without a confirmation', (tester) async {
+      await pumpWritingSettings(tester);
+      await selectMode(tester, 'Field text');
+
+      expect(find.text('Send app context?'), findsNothing);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('accessibility_context_mode'), 'field');
+      expect(shownMode('Field text'), findsOneWidget);
+      expect(accessibilityCalls().single.arguments, 'field');
+    });
+
+    testWidgets('confirms before enabling nearby text', (tester) async {
+      await pumpWritingSettings(tester);
+      await selectMode(tester, 'Field and nearby text');
+
+      expect(find.text('Send app context?'), findsOneWidget);
+      // Nothing is stored or sent until the user confirms.
+      expect(accessibilityCalls(), isEmpty);
+      var prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('accessibility_context_mode'), isNull);
+
+      await tester.tap(find.text('Enable'));
+      await tester.pumpAndSettle();
+
+      prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('accessibility_context_mode'), 'fieldAndNearby');
+      expect(shownMode('Field and nearby text'), findsOneWidget);
+      expect(accessibilityCalls().single.arguments, 'fieldAndNearby');
+    });
+
+    testWidgets('keeps the previous mode when the confirmation is cancelled', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({
+        'accessibility_context_mode': 'field',
+      });
+
+      await pumpWritingSettings(tester);
+      await selectMode(tester, 'Field and nearby text');
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('accessibility_context_mode'), 'field');
+      expect(shownMode('Field text'), findsOneWidget);
+      expect(accessibilityCalls(), isEmpty);
+    });
+
+    testWidgets('lowering the mode needs no confirmation', (tester) async {
+      SharedPreferences.setMockInitialValues({
+        'accessibility_context_mode': 'fieldAndNearby',
+      });
+
+      await pumpWritingSettings(tester);
+      await selectMode(tester, 'Off');
+
+      expect(find.text('Send app context?'), findsNothing);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('accessibility_context_mode'), 'off');
+      expect(shownMode('Off'), findsOneWidget);
+      expect(accessibilityCalls().single.arguments, 'off');
+    });
+  });
+
   testWidgets('Writing pop-up selects use readable dark colors', (
     tester,
   ) async {

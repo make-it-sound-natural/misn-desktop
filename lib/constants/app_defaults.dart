@@ -1,3 +1,4 @@
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 
@@ -37,6 +38,13 @@ class AppDefaults {
   /// Default screenshot context mode used when no value has been saved.
   static const ScreenshotContextMode screenshotContextMode =
       ScreenshotContextMode.off;
+
+  /// Fallback for an unparsable App context mode.
+  ///
+  /// Installs never rely on it: the v2 settings migration stores `field` or
+  /// `fieldAndNearby` before the first read.
+  static const AccessibilityContextMode accessibilityContextMode =
+      AccessibilityContextMode.off;
 
   /// Version for the local appearance preferences object.
   static const int appearanceSchemaVersion = 1;
