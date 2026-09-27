@@ -153,7 +153,7 @@
   "noMatchingTargetProfiles": "No hay perfiles de destino coincidentes",
   "fieldRequired": "Obligatorio",
   "screenshotContext": "Contexto de captura",
-  "screenshotContextHelper": "Envía una captura con reescrituras por atajo. Las capturas pueden incluir contenido visible sensible.",
+  "screenshotContextHelper": "Envía una captura con reescrituras por atajo. Las reescrituras tardan un poco más. Las capturas pueden incluir contenido visible sensible.",
   "screenshotContextPendingPermission": "{mode} se activará después de conceder Grabación de pantalla. Reinicia la app si macOS lo pide.",
   "screenshotContextOff": "Desactivado",
   "screenshotContextApplication": "Aplicación",

@@ -13,10 +13,10 @@ final class ElectronAccessibilityEnabler<Reader: AXElementReading> {
     static var attribute: String { "AXManualAccessibility" }
 
     /// A nearby walk that covered fewer nodes than this and kept no text
-    /// found a tree that is off. Slack exposes its composer even then, and
-    /// the walk around it visits 2 nodes; with the tree on it visits
-    /// hundreds.
-    static var emptyWalkNodeLimit: Int { 10 }
+    /// found a tree that is off. Electron windows with the tree off hold
+    /// 12 to 26 elements in all, and Slack exposes its composer even then;
+    /// with the tree on, the walk around it visits a hundred or more.
+    static var emptyWalkNodeLimit: Int { 50 }
 
     private let reader: Reader
     private let messagingTimeout: Float

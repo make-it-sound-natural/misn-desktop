@@ -27,7 +27,7 @@ final class AccessibilityContextDebugSaver {
     }
 
     /// `screenshotReason` is a short slug from the context source policy that
-    /// explains `screenshotTaken`, for example why the screenshot was skipped.
+    /// explains `screenshotTaken`, for example that screenshot context is off.
     func saveIfEnabled(
         result: AccessibilityContextResult,
         screenshotTaken: Bool,

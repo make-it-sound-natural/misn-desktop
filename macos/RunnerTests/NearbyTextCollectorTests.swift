@@ -66,8 +66,14 @@ final class NearbyTextCollectorTests: XCTestCase {
         }
         XCTAssertTrue(reader.readAttributes(of: "toolbarText").isEmpty)
         XCTAssertTrue(reader.readAttributes(of: "reactText").isEmpty)
-        // The content holds the thread, so the climb stops below the split.
-        XCTAssertTrue(reader.readAttributes(of: "split").isEmpty)
+        // The thread is short, so the climb reaches the split, where the
+        // navigation and the sidebar beside the field are pruned.
+        for name in ["nav", "sidebar"] {
+            XCTAssertFalse(
+                reader.readAttributes(of: name).contains(kAXChildrenAttribute),
+                name
+            )
+        }
         // The focused field is never walked.
         XCTAssertFalse(
             reader.readAttributes(of: "field").contains(kAXChildrenAttribute)
@@ -165,16 +171,37 @@ final class NearbyTextCollectorTests: XCTestCase {
         }
     }
 
-    func testClimbStopsAtTheFirstAncestorWithText() {
+    /// A "Replying to…" label beside the composer is not the thread.
+    func testClimbGoesPastAShortLabel() {
         nest([
             [],
-            [staticText("close", y: 600)],
+            [staticText("Replying to Anna", y: 600)],
+            [staticText("Anna: is the draft ready?", y: 300)]
+        ])
+
+        let context = usableContext()
+
+        XCTAssertEqual(
+            context.nearbyText,
+            "Anna: is the draft ready?\nReplying to Anna"
+        )
+        XCTAssertNil(context.nearbyWalk?.cutoff)
+    }
+
+    func testClimbStopsOnceItHasEnoughText() {
+        let thread = String(
+            repeating: "x",
+            count: NearbyTextLimits.climbTextLength
+        )
+        nest([
+            [],
+            [staticText(thread, y: 600)],
             [staticText("far", name: "far", y: 300)]
         ])
 
         let context = usableContext()
 
-        XCTAssertEqual(context.nearbyText, "close")
+        XCTAssertEqual(context.nearbyText, thread)
         XCTAssertNil(context.nearbyWalk?.cutoff)
         XCTAssertTrue(reader.readAttributes(of: "wrapper3").isEmpty)
         XCTAssertTrue(reader.readAttributes(of: "far").isEmpty)
@@ -203,12 +230,48 @@ final class NearbyTextCollectorTests: XCTestCase {
             ElectronAccessibilityEnabler<FakeAXReader>.emptyWalkNodeLimit
         )
         XCTAssertTrue(
-            reader.readAttributes(of: "wrapper20")
-                .contains(kAXChildrenAttribute)
-        )
-        XCTAssertFalse(
             reader.readAttributes(of: "window").contains(kAXChildrenAttribute)
         )
+    }
+
+    /// Telegram: the composer's text field sits right under the window,
+    /// beside the message list, and each message is static text with only a
+    /// title.
+    func testWindowChildrenAreWalked() {
+        let message = FakeAXNode(
+            "message",
+            role: kAXStaticTextRole,
+            frame: CGRect(x: 250, y: 600, width: 900, height: 100)
+        )
+        message.strings[kAXTitleAttribute] = "Anna: is the draft ready?"
+        let list = FakeAXNode(
+            "list",
+            role: kAXListRole,
+            frame: CGRect(x: 250, y: -60_000, width: 900, height: 60_700)
+        ).add(message)
+        let composer = FakeAXNode(
+            "composer",
+            role: kAXTextFieldRole,
+            frame: field.frame
+        ).add(field)
+        window.add(list, composer)
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "Anna: is the draft ready?")
+        XCTAssertNil(context.nearbyWalk?.cutoff)
+    }
+
+    /// WhatsApp: static text with an empty value and the message in its
+    /// description.
+    func testTextFallsBackToTheDescription() {
+        let message = staticText("", y: 600)
+        message.strings[kAXDescriptionAttribute] = "message, Is the draft ready?"
+        layout(message)
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "message, Is the draft ready?")
     }
 
     func testClimbStopsAtTheWebArea() {
@@ -351,6 +414,25 @@ final class NearbyTextCollectorTests: XCTestCase {
         XCTAssertFalse(
             reader.readAttributes(of: "jump").contains(kAXChildrenAttribute)
         )
+    }
+
+    /// Screen reader only text: a 1×1 px element above the field.
+    func testTextWithoutWidthIsSkipped() {
+        layout(
+            staticText("Anna: ready?", y: 500),
+            staticText(
+                "3 unread messages",
+                name: "hidden",
+                x: 600,
+                y: 600,
+                width: 1,
+                height: 1
+            )
+        )
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "Anna: ready?")
     }
 
     /// Rows that share one line tie on distance; the text cap keeps the

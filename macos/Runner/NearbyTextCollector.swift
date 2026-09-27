@@ -7,6 +7,9 @@ enum NearbyTextLimits {
     static let nodeBudget = 500
     static let deadline: TimeInterval = 0.15
     static let textLength = 3_000
+    /// The climb goes on until it has this much text, so a short label next
+    /// to the field does not stand in for the thread above it.
+    static let climbTextLength = 1_000
 }
 
 /// Which elements the nearby text walk skips.
@@ -40,7 +43,8 @@ private enum NearbyTextRoles {
 
 /// How a nearby text walk went, for the debug saver and logs.
 struct NearbyTextWalk: Equatable {
-    /// What stopped the walk before it found text or reached the window.
+    /// What stopped the walk before it found enough text or reached the
+    /// window.
     enum Cutoff: String, Equatable {
         case nodeBudget
         case deadline
@@ -60,7 +64,7 @@ struct NearbyTextWalk: Equatable {
 /// chat composer. Climbs the field's ancestors one at a time, walking each
 /// one's subtree within a shared node budget and deadline, and keeps static
 /// text, headings and other text areas that sit above the field and overlap
-/// it horizontally. The climb stops at the first ancestor that adds text:
+/// it horizontally. The climb stops once it has `climbTextLength` characters:
 /// web apps nest a composer under many empty wrapper groups, so no fixed
 /// depth reaches the thread everywhere.
 ///
@@ -98,7 +102,8 @@ final class NearbyTextCollector<Reader: AXElementReading> {
             deadline: now() + Limits.deadline
         )
         var walked = field
-        while walk.stats.cutoff == nil, walk.candidates.isEmpty,
+        while walk.stats.cutoff == nil,
+              walk.textLength < Limits.climbTextLength,
               walk.stats.nodesVisited < Limits.nodeBudget {
             // A level that adds no nodes never reaches the check in the
             // subtree walk.
@@ -113,10 +118,12 @@ final class NearbyTextCollector<Reader: AXElementReading> {
                 break
             }
             let role = self.role(of: ancestor)
-            if role == kAXWindowRole || role == kAXApplicationRole { break }
+            if role == kAXApplicationRole { break }
             walkDescendants(of: ancestor, skipping: walked, into: &walk)
-            // Above the page are only the browser's tabs and toolbars.
-            if role == Self.webAreaRole { break }
+            // Telegram puts the message list right under the window, so the
+            // window is walked too. Above the page are only the browser's
+            // tabs and toolbars.
+            if role == kAXWindowRole || role == Self.webAreaRole { break }
             walked = ancestor
         }
         // Children are fetched only up to the budget, so a walk that spent
@@ -144,6 +151,7 @@ private extension NearbyTextCollector {
         let deadline: TimeInterval
         var stats = NearbyTextWalk()
         var candidates: [Candidate] = []
+        var textLength = 0
     }
 
     enum Visit {
@@ -193,6 +201,7 @@ private extension NearbyTextCollector {
                         distance: distance,
                         order: walk.candidates.count
                     ))
+                    walk.textLength += text.count
                 }
             } catch {
                 walk.stats.cutoff = .readFailed
@@ -212,7 +221,8 @@ private extension NearbyTextCollector {
         switch role {
         case kAXStaticTextRole?, kAXHeadingRole?, kAXTextAreaRole?:
             // A line of text may report no height; it still has a place.
-            guard let frame = frame,
+            // One with no width is text hidden for screen readers.
+            guard let frame = frame, frame.width > 1,
                   Self.overlapsHorizontally(frame, field),
                   frame.maxY <= field.minY else {
                 // Beside or below the field, or nowhere to place it.
@@ -248,19 +258,29 @@ private extension NearbyTextCollector {
     }
 
     func text(of node: Reader.Element, role: String?) throws -> String? {
-        let raw: String?
         if role == kAXTextAreaRole {
-            raw = try tail(of: node)
-        } else {
-            raw = try optional(reader.string(kAXValueAttribute, of: node))
-                ?? optional(reader.string(kAXTitleAttribute, of: node))
+            return try tail(of: node).flatMap(Self.clean)
         }
-        guard let raw = raw else { return nil }
+        // Telegram keeps a message in the title, WhatsApp in the
+        // description, both with an empty value.
+        let attributes = [
+            kAXValueAttribute, kAXTitleAttribute, kAXDescriptionAttribute
+        ]
+        for attribute in attributes {
+            if let raw = try optional(reader.string(attribute, of: node)),
+               let text = Self.clean(raw) {
+                return text
+            }
+        }
+        return nil
+    }
+
+    static func clean(_ raw: String) -> String? {
         let text = raw
             .replacingOccurrences(of: "\u{FFFC}", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return nil }
-        return Self.suffix(text, Limits.textLength)
+        return suffix(text, Limits.textLength)
     }
 
     /// Another text area can hold a whole document, so read only its end,

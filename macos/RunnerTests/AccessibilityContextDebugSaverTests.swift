@@ -60,7 +60,7 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         let savedURL = saver.saveIfEnabled(
             result: .usable(usableContext()),
             screenshotTaken: false,
-            screenshotReason: "ax_nearby_text"
+            screenshotReason: "accessibilityUsable"
         )
 
         XCTAssertNil(savedURL)
@@ -78,7 +78,7 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         let savedURL = saver.saveIfEnabled(
             result: .usable(context),
             screenshotTaken: false,
-            screenshotReason: "ax_nearby_text"
+            screenshotReason: "accessibilityUsable"
         )
 
         let url = try XCTUnwrap(savedURL)
@@ -111,7 +111,7 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         XCTAssertEqual(entry["requestedManualAccessibility"] as? Bool, false)
         let screenshot = try XCTUnwrap(entry["screenshot"] as? [String: Any])
         XCTAssertEqual(screenshot["taken"] as? Bool, false)
-        XCTAssertEqual(screenshot["reason"] as? String, "ax_nearby_text")
+        XCTAssertEqual(screenshot["reason"] as? String, "accessibilityUsable")
         let parts = try XCTUnwrap(entry["parts"] as? [String: String])
         XCTAssertEqual(parts["windowTitle"], "#design - AdGuard")
         XCTAssertEqual(parts["fieldLabel"], "Message #design")
@@ -173,7 +173,7 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
                 saver.saveIfEnabled(
                     result: .usable(usableContext()),
                     screenshotTaken: false,
-                    screenshotReason: "ax_nearby_text"
+                    screenshotReason: "accessibilityUsable"
                 )
             )
         }
@@ -199,7 +199,7 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         let savedURL = saver.saveIfEnabled(
             result: .usable(usableContext()),
             screenshotTaken: false,
-            screenshotReason: "ax_nearby_text"
+            screenshotReason: "accessibilityUsable"
         )
 
         let url = try XCTUnwrap(savedURL)

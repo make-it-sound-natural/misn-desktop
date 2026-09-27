@@ -153,7 +153,7 @@
   "noMatchingTargetProfiles": "没有匹配的目标配置",
   "fieldRequired": "必填",
   "screenshotContext": "截图上下文",
-  "screenshotContextHelper": "使用快捷键改写时发送截图。截图可能包含可见的敏感内容。",
+  "screenshotContextHelper": "使用快捷键改写时发送截图。改写会稍慢一些。截图可能包含可见的敏感内容。",
   "screenshotContextPendingPermission": "{mode} 会在授予屏幕录制权限后启用。如果 macOS 要求，请重新启动 App。",
   "screenshotContextOff": "关闭",
   "screenshotContextApplication": "应用",

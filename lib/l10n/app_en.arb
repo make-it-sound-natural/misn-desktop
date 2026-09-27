@@ -634,7 +634,7 @@
   "@screenshotContext": {
     "description": "Setting title for screenshot context"
   },
-  "screenshotContextHelper": "Send a screenshot with shortcut rewrites. Screenshots may include sensitive visible content.",
+  "screenshotContextHelper": "Send a screenshot with shortcut rewrites. Rewrites take a little longer. Screenshots may include sensitive visible content.",
   "@screenshotContextHelper": {
     "description": "Privacy helper for screenshot context setting"
   },

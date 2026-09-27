@@ -153,7 +153,7 @@
   "noMatchingTargetProfiles": "لا توجد ملفات هدف مطابقة",
   "fieldRequired": "مطلوب",
   "screenshotContext": "سياق لقطة الشاشة",
-  "screenshotContextHelper": "إرسال لقطة شاشة مع إعادة الصياغة عبر الاختصار. قد تحتوي اللقطات على محتوى حساس ظاهر.",
+  "screenshotContextHelper": "إرسال لقطة شاشة مع إعادة الصياغة عبر الاختصار. تستغرق إعادة الصياغة وقتًا أطول قليلًا. قد تحتوي اللقطات على محتوى حساس ظاهر.",
   "screenshotContextPendingPermission": "سيتم تفعيل {mode} بعد منح إذن تسجيل الشاشة. أعد تشغيل التطبيق إذا طلب macOS ذلك.",
   "screenshotContextOff": "إيقاف",
   "screenshotContextApplication": "التطبيق",

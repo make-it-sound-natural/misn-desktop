@@ -153,7 +153,7 @@
   "noMatchingTargetProfiles": "Aucun profil cible correspondant",
   "fieldRequired": "Obligatoire",
   "screenshotContext": "Contexte de capture",
-  "screenshotContextHelper": "Envoie une capture avec les réécritures par raccourci. Les captures peuvent inclure du contenu visible sensible.",
+  "screenshotContextHelper": "Envoie une capture avec les réécritures par raccourci. Les réécritures prennent un peu plus de temps. Les captures peuvent inclure du contenu visible sensible.",
   "screenshotContextPendingPermission": "{mode} s'activera une fois l'autorisation Enregistrement de l’écran accordée. Redémarrez l'app si macOS le demande.",
   "screenshotContextOff": "Désactivé",
   "screenshotContextApplication": "Appli",

@@ -85,9 +85,10 @@ Settings:
   messages in a chat thread. Installs that already used screenshot context
   start here.
 
-When nearby text is found, the screenshot is skipped, even if screenshot context
-is on. Some apps do not expose their text through Accessibility. There App
-context adds nothing and the screenshot is used, if it is on.
+App context and screenshot context are independent: when screenshot context is
+on, the screenshot is sent next to App context. Rewrites with a screenshot take
+a little longer. Some apps do not expose their text through Accessibility.
+There App context adds nothing and only the screenshot is sent, if it is on.
 
 Electron apps such as Slack, Discord, and Notion expose no text until asked.
 When a rewrite finds no readable text there, the app turns on that app's

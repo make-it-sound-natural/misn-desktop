@@ -153,7 +153,7 @@
   "noMatchingTargetProfiles": "Keine passenden Zielprofile",
   "fieldRequired": "Erforderlich",
   "screenshotContext": "Screenshot-Kontext",
-  "screenshotContextHelper": "Sendet bei Shortcut-Umschreibungen einen Screenshot. Screenshots können sichtbare vertrauliche Inhalte enthalten.",
+  "screenshotContextHelper": "Sendet bei Shortcut-Umschreibungen einen Screenshot. Umschreibungen dauern dann etwas länger. Screenshots können sichtbare vertrauliche Inhalte enthalten.",
   "screenshotContextPendingPermission": "{mode} wird aktiviert, nachdem Bildschirmaufnahme erlaubt wurde. Starten Sie die App neu, falls macOS danach fragt.",
   "screenshotContextOff": "Aus",
   "screenshotContextApplication": "App",

@@ -69,38 +69,29 @@ final class ContextSourcePolicyTests: XCTestCase {
         }
     }
 
-    func testFieldExcerptIsSentAndComplementsTheScreenshot() {
-        let modes: [AccessibilityContextMode] = [.field, .fieldAndNearby]
-        for mode in modes {
-            let field = context(mode: mode)
+    func testUsableReadIsSentAndTheScreenshotFollowsItsSetting() {
+        let contexts = [
+            context(mode: .field),
+            context(mode: .fieldAndNearby),
+            context(
+                mode: .fieldAndNearby,
+                nearbyText: "Anna: is the draft ready?"
+            )
+        ]
+        for sent in contexts {
             for screenshotMode in screenshotModes {
                 let screenshotOn = screenshotMode != .off
                 assertDecision(
-                    .usable(field),
+                    .usable(sent),
                     screenshotMode: screenshotMode,
-                    sends: field,
+                    sends: sent,
                     fallbackReason: nil,
-                    screenshotReason: screenshotOn ? .noNearbyText : .screenshotOff,
+                    screenshotReason: screenshotOn
+                        ? .accessibilityUsable
+                        : .screenshotOff,
                     takesScreenshot: screenshotOn
                 )
             }
-        }
-    }
-
-    func testNearbyTextReplacesTheScreenshot() {
-        let nearby = context(
-            mode: .fieldAndNearby,
-            nearbyText: "Anna: is the draft ready?"
-        )
-        for screenshotMode in screenshotModes {
-            assertDecision(
-                .usable(nearby),
-                screenshotMode: screenshotMode,
-                sends: nearby,
-                fallbackReason: nil,
-                screenshotReason: .nearbyTextAvailable,
-                takesScreenshot: false
-            )
         }
     }
 

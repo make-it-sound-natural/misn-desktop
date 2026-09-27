@@ -141,7 +141,7 @@ final class ContextSourceCollectorTests: XCTestCase {
         )
     }
 
-    func testNearbyTextSkipsTheScreenshot() async {
+    func testNearbyTextIsSentWithTheScreenshot() async {
         let accessibility = FakeAccessibilityContextCapturer(
             result: fieldCapture(
                 mode: .fieldAndNearby,
@@ -160,8 +160,8 @@ final class ContextSourceCollectorTests: XCTestCase {
             screenshotMode: .activeApplication
         )
 
-        XCTAssertEqual(screenshot.modes, [])
-        XCTAssertNil(collected.screenshot.attachment)
+        XCTAssertEqual(screenshot.modes, [.activeApplication])
+        XCTAssertNotNil(collected.screenshot.attachment)
         XCTAssertEqual(
             collected.accessibilityContext?.nearbyText,
             "Anna: is the draft ready?"
