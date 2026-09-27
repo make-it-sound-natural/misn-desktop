@@ -20,6 +20,7 @@ class OnboardingScreen extends StatefulWidget {
   /// Creates the onboarding shell.
   const OnboardingScreen({
     required this.initialState,
+    required this.initialAccessibilityContextMode,
     required this.onStateChanged,
     required this.onCompleted,
     required this.checkAccessibility,
@@ -31,6 +32,9 @@ class OnboardingScreen extends StatefulWidget {
 
   /// Initial persisted state.
   final OnboardingSetupState initialState;
+
+  /// Persisted App context mode; the nearby text switch starts from it.
+  final AccessibilityContextMode initialAccessibilityContextMode;
 
   /// Called whenever progress changes.
   final ValueChanged<OnboardingSetupState> onStateChanged;
@@ -50,10 +54,9 @@ class OnboardingScreen extends StatefulWidget {
   )
   onScreenshotContextSelected;
 
-  /// Saves the App context mode after the user opts into nearby text.
-  ///
-  /// New installs already start with the field text mode, so this is only
-  /// called to raise it.
+  /// Saves the App context mode when the nearby text switch changes what is
+  /// stored: raised to field and nearby text on Continue, lowered back to
+  /// field text on Continue with the switch off or on Skip.
   final Future<void> Function(AccessibilityContextMode mode)
   onAccessibilityContextSelected;
 
@@ -77,7 +80,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ScreenshotContextMode _selectedScreenshotContextMode =
       ScreenshotContextMode.off;
   ScreenRecordingPermissionStatus? _screenshotPermissionStatus;
-  var _includeNearbyText = false;
+  late AccessibilityContextMode _savedAccessibilityContextMode =
+      widget.initialAccessibilityContextMode;
+  late var _includeNearbyText =
+      _savedAccessibilityContextMode == AccessibilityContextMode.fieldAndNearby;
 
   @override
   void initState() {
@@ -101,15 +107,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _continueScreenshotContext() async {
-    if (_includeNearbyText) {
-      await widget.onAccessibilityContextSelected(
-        AccessibilityContextMode.fieldAndNearby,
-      );
-      if (!mounted) return;
-    }
+    await _saveNearbyText(include: _includeNearbyText);
+    if (!mounted) return;
 
     if (_selectedScreenshotContextMode == ScreenshotContextMode.off) {
-      _skipOptional();
+      _setState(_state.skipOptionalScreenshotContext());
       return;
     }
 
@@ -123,8 +125,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _skipOptional() {
+  /// Continue can save the opt-in and still keep the step open while Screen
+  /// Recording is pending, so Skip takes it back.
+  Future<void> _skipOptional() async {
+    await _saveNearbyText(include: false);
+    if (!mounted) return;
     _setState(_state.skipOptionalScreenshotContext());
+  }
+
+  Future<void> _saveNearbyText({required bool include}) async {
+    final mode = include
+        ? AccessibilityContextMode.fieldAndNearby
+        : _savedAccessibilityContextMode ==
+              AccessibilityContextMode.fieldAndNearby
+        ? AccessibilityContextMode.field
+        : _savedAccessibilityContextMode;
+    if (mode == _savedAccessibilityContextMode) return;
+    await widget.onAccessibilityContextSelected(mode);
+    _savedAccessibilityContextMode = mode;
   }
 
   void _skipAccessibility() {
@@ -282,7 +300,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               OnboardingStep.screenshotContext)
                             TextButton(
                               key: const Key('onboarding-skip-optional'),
-                              onPressed: _skipOptional,
+                              onPressed: () => unawaited(_skipOptional()),
                               child: Text(l10n.onboardingSkipOptional),
                             ),
                           if (_state.lastStep == OnboardingStep.done)

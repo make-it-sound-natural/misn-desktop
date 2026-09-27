@@ -39,6 +39,8 @@ class _OnboardingGateState extends State<OnboardingGate> {
   late final SettingsService _settingsService =
       widget._settingsService ?? SettingsService();
   OnboardingSetupState? _state;
+  AccessibilityContextMode _accessibilityContextMode =
+      AccessibilityContextMode.field;
   var _showOnboarding = false;
   var _loaded = false;
 
@@ -53,10 +55,14 @@ class _OnboardingGateState extends State<OnboardingGate> {
     final state = showOnboarding
         ? await _service.loadState()
         : const OnboardingSetupState.completed();
+    final accessibilityContextMode = showOnboarding
+        ? await _settingsService.getAccessibilityContextMode()
+        : AccessibilityContextMode.field;
     if (!mounted) return;
     setState(() {
       _showOnboarding = showOnboarding;
       _state = state;
+      _accessibilityContextMode = accessibilityContextMode;
       _loaded = true;
     });
   }
@@ -118,6 +124,7 @@ class _OnboardingGateState extends State<OnboardingGate> {
 
     return OnboardingScreen(
       initialState: _state ?? const OnboardingSetupState.initial(),
+      initialAccessibilityContextMode: _accessibilityContextMode,
       onStateChanged: (state) => unawaited(_saveState(state)),
       onCompleted: () => unawaited(_complete()),
       checkAccessibility: _shortcutService.checkAccessibilityPermissions,

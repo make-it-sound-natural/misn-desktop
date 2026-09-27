@@ -12,6 +12,8 @@ void main() {
   Future<void> pumpOnboarding(
     WidgetTester tester, {
     OnboardingSetupState initialState = const OnboardingSetupState.initial(),
+    AccessibilityContextMode initialAccessibilityContextMode =
+        AccessibilityContextMode.field,
     ValueChanged<OnboardingSetupState>? onStateChanged,
     VoidCallback? onCompleted,
     Future<bool> Function()? checkAccessibility,
@@ -41,6 +43,7 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         home: OnboardingScreen(
           initialState: initialState,
+          initialAccessibilityContextMode: initialAccessibilityContextMode,
           onStateChanged: onStateChanged ?? (_) {},
           onCompleted: onCompleted ?? () {},
           checkAccessibility: checkAccessibility ?? () async => false,
@@ -464,5 +467,84 @@ void main() {
 
     expect(selectedModes, isEmpty);
     expect(find.text('Finish setup'), findsOneWidget);
+  });
+
+  testWidgets('Skip takes back an opt-in saved while Screen Recording is '
+      'pending', (tester) async {
+    final selectedModes = <AccessibilityContextMode>[];
+    await pumpOnboarding(
+      tester,
+      initialState: screenshotStepState,
+      onAccessibilityContextSelected: (mode) async => selectedModes.add(mode),
+      onScreenshotContextSelected: (_) async =>
+          ScreenRecordingPermissionStatus.manualGrantRequired,
+    );
+
+    await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
+    await tester.tap(find.text('Application'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-skip-optional')));
+    await tester.pumpAndSettle();
+
+    expect(selectedModes, [
+      AccessibilityContextMode.fieldAndNearby,
+      AccessibilityContextMode.field,
+    ]);
+    expect(find.text('Finish setup'), findsOneWidget);
+  });
+
+  testWidgets('switch turned off before Continue lowers a saved opt-in', (
+    tester,
+  ) async {
+    final selectedModes = <AccessibilityContextMode>[];
+    await pumpOnboarding(
+      tester,
+      initialState: screenshotStepState,
+      onAccessibilityContextSelected: (mode) async => selectedModes.add(mode),
+      onScreenshotContextSelected: (_) async =>
+          ScreenRecordingPermissionStatus.manualGrantRequired,
+    );
+
+    await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
+    await tester.tap(find.text('Application'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
+    await tester.tap(find.text('Off'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+
+    expect(selectedModes, [
+      AccessibilityContextMode.fieldAndNearby,
+      AccessibilityContextMode.field,
+    ]);
+  });
+
+  testWidgets('a resumed step shows the stored nearby text opt-in', (
+    tester,
+  ) async {
+    final selectedModes = <AccessibilityContextMode>[];
+    await pumpOnboarding(
+      tester,
+      initialState: screenshotStepState,
+      initialAccessibilityContextMode: AccessibilityContextMode.fieldAndNearby,
+      onAccessibilityContextSelected: (mode) async => selectedModes.add(mode),
+    );
+
+    final nearbySwitch = tester.widget<Switch>(
+      find.byKey(const Key('onboarding-nearby-text-switch')),
+    );
+    expect(nearbySwitch.value, isTrue);
+
+    await tester.tap(find.byKey(const Key('onboarding-skip-optional')));
+    await tester.pumpAndSettle();
+
+    expect(selectedModes, [AccessibilityContextMode.field]);
   });
 }
