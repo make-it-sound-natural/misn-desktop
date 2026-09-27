@@ -24,6 +24,20 @@ struct AccessibilityContext: Equatable {
         case noSurroundingText
         /// The text around the selection is mostly U+FFFC or whitespace.
         case mostlyPlaceholderText
+
+        /// The field text is unusable, but the read reached the right field:
+        /// its app, window, label and any nearby text are still worth
+        /// sending.
+        var keepsPartialContext: Bool {
+            switch self {
+            case .noSurroundingText, .mostlyPlaceholderText, .rangeUnavailable:
+                return true
+            case .disabled, .notTrusted, .secureInput, .secureField,
+                 .noFocusedElement, .apiDisabled, .timeout,
+                 .windowOrApplicationRole, .selectionMismatch:
+                return false
+            }
+        }
     }
 
     /// Wall-clock time of each capture step, in milliseconds.
@@ -59,6 +73,25 @@ struct AccessibilityContext: Equatable {
         self.appName = appName
         self.bundleId = bundleId
     }
+}
+
+/// How a nearby text walk went, for the debug saver and logs.
+struct NearbyTextWalk: Equatable {
+    /// What stopped the walk before it found enough text or reached the
+    /// window.
+    enum Cutoff: String, Equatable {
+        case nodeBudget
+        case deadline
+        /// The target app stopped answering or the API was disabled.
+        case readFailed
+        /// More text was found than fits; the farthest was dropped.
+        case textLength
+        /// The field reports no frame, so nothing can be placed above it.
+        case noFieldFrame
+    }
+
+    var nodesVisited = 0
+    var cutoff: Cutoff?
 }
 
 enum AccessibilityContextResult: Equatable {
@@ -134,5 +167,73 @@ struct AccessibilityContextCapture: Equatable {
 
     private static func withoutPlaceholders(_ text: String) -> String {
         text.replacingOccurrences(of: String(objectReplacement), with: "")
+    }
+}
+
+/// Caps for text read from other apps count UTF-16 code units, the unit AX
+/// ranges use. A Character can carry any number of combining marks, so a
+/// cap in Characters bounds nothing.
+extension String {
+    /// A cut edge drops the word it went through, but no more than this: text
+    /// without spaces (CJK) would otherwise lose everything up to a newline.
+    static let partialWordLengthLimit = 40
+
+    /// The longest prefix of whole Characters within `limit` UTF-16 units.
+    func prefix(utf16Limit limit: Int) -> String {
+        guard utf16.count > limit else { return self }
+        var used = 0
+        var end = startIndex
+        for index in indices {
+            used += self[index].utf16.count
+            guard used <= limit else { break }
+            end = self.index(after: index)
+        }
+        return String(self[..<end])
+    }
+
+    /// The longest suffix of whole Characters within `limit` UTF-16 units.
+    func suffix(utf16Limit limit: Int) -> String {
+        guard utf16.count > limit else { return self }
+        var used = 0
+        var start = endIndex
+        for index in indices.reversed() {
+            used += self[index].utf16.count
+            guard used <= limit else { break }
+            start = index
+        }
+        return String(self[start...])
+    }
+
+    /// Drops the partial word before the first whitespace, when it is short
+    /// enough to be one.
+    func droppingFirstPartialWord() -> String {
+        guard let cut = prefix(Self.partialWordLengthLimit + 1)
+            .firstIndex(where: { $0.isWhitespace }) else {
+            return self
+        }
+        return String(self[index(after: cut)...])
+    }
+
+    /// Drops the partial word after the last whitespace, when it is short
+    /// enough to be one.
+    func droppingLastPartialWord() -> String {
+        guard let cut = suffix(Self.partialWordLengthLimit + 1)
+            .lastIndex(where: { $0.isWhitespace }) else {
+            return self
+        }
+        return String(self[..<cut])
+    }
+
+    /// Without invisible format characters (Unicode Cf), such as the tag
+    /// characters that can hide instructions from a reader. Keeps the zero
+    /// width joiner and non-joiner, which emoji and some scripts need.
+    var withoutFormatCharacters: String {
+        let kept = unicodeScalars.filter { scalar in
+            scalar.properties.generalCategory != .format
+                || scalar == "\u{200C}" || scalar == "\u{200D}"
+        }
+        var scalars = String.UnicodeScalarView()
+        scalars.append(contentsOf: kept)
+        return String(scalars)
     }
 }

@@ -166,7 +166,7 @@
   "accessibilityContextOff": "Desactivado",
   "accessibilityContextField": "Texto del campo",
   "accessibilityContextFieldAndNearby": "Campo y texto cercano",
-  "accessibilityContextEnableTitle": "¿Enviar contexto de la app?",
+  "accessibilityContextNearbyEnableTitle": "¿Enviar texto cercano?",
   "accessibilityContextEnableMessage": "El texto del campo que editas y el texto cercano en la ventana, como mensajes de otras personas, se envían al proveedor de IA seleccionado y pueden incluir contenido sensible.",
   "accessibilityContextEnableConfirm": "Activar",
   "screenRecordingPermissionUnsupported": "El contexto de captura requiere macOS 14 o posterior.",

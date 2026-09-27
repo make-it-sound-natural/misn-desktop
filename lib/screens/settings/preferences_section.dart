@@ -122,29 +122,15 @@ class _PreferencesSettingsSectionState
     );
   }
 
-  Future<bool> _confirmScreenshotContextEnable() async {
+  Future<bool> _confirmScreenshotContextEnable() {
     final l10n = AppLocalizations.of(context)!;
-    final result = await showDialog<bool>(
+    return showAppConsentDialog(
       context: context,
-      builder: (context) => AppDialogShell(
-        title: l10n.screenshotContextEnableTitle,
-        content: Text(
-          l10n.screenshotContextEnableMessage,
-          style: AppTextStyles.rowSubtitleOf(context),
-        ),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.screenshotContextEnableConfirm),
-          ),
-        ],
-      ),
+      title: l10n.screenshotContextEnableTitle,
+      message: l10n.screenshotContextEnableMessage,
+      confirmLabel: l10n.screenshotContextEnableConfirm,
+      cancelLabel: l10n.cancel,
     );
-    return result ?? false;
   }
 
   Future<ScreenRecordingPermissionStatus> _requestScreenRecordingPermission(

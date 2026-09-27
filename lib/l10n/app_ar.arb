@@ -166,7 +166,7 @@
   "accessibilityContextOff": "إيقاف",
   "accessibilityContextField": "نص الحقل",
   "accessibilityContextFieldAndNearby": "الحقل والنص المجاور",
-  "accessibilityContextEnableTitle": "إرسال سياق التطبيق؟",
+  "accessibilityContextNearbyEnableTitle": "إرسال النص المجاور؟",
   "accessibilityContextEnableMessage": "يتم إرسال نص الحقل الذي تحرره والنص المجاور في النافذة، مثل رسائل الآخرين، إلى مزود الذكاء الاصطناعي المحدد وقد يحتوي على محتوى حساس.",
   "accessibilityContextEnableConfirm": "تفعيل",
   "screenRecordingPermissionUnsupported": "يتطلب سياق لقطة الشاشة macOS 14 أو أحدث.",

@@ -26,12 +26,12 @@ final class AccessibilityContextDebugSaver {
         )
     }
 
-    /// `screenshotReason` is a short slug from the context source policy that
-    /// explains `screenshotTaken`, for example that screenshot context is off.
+    /// `decision` is what the context source policy made of `result`: the
+    /// App context that was sent and why the screenshot was or was not taken.
     func saveIfEnabled(
         result: AccessibilityContextResult,
-        screenshotTaken: Bool,
-        screenshotReason: String
+        decision: ContextSourcePolicy.Decision,
+        screenshotTaken: Bool
     ) -> URL? {
         #if DEBUG
         guard environment["MISN_SAVE_ACCESSIBILITY_CONTEXT"] == "1" else {
@@ -44,8 +44,8 @@ final class AccessibilityContextDebugSaver {
 
         let entry = AccessibilityContextDebugEntry(
             result: result,
-            screenshotTaken: screenshotTaken,
-            screenshotReason: screenshotReason
+            decision: decision,
+            screenshotTaken: screenshotTaken
         )
         do {
             let fileURL = try store.write(
@@ -121,14 +121,14 @@ private struct AccessibilityContextDebugEntry: Encodable {
     let requestedManualAccessibility: Bool
     let screenshot: Screenshot
     let parts: Parts
-    /// The exact `<app_context>` block sent to the LLM. Absent when the read
-    /// was unusable, because nothing is sent then.
+    /// The exact `<app_context>` block sent to the LLM. Absent when nothing
+    /// was sent.
     let appContext: String?
 
     init(
         result: AccessibilityContextResult,
-        screenshotTaken: Bool,
-        screenshotReason: String
+        decision: ContextSourcePolicy.Decision,
+        screenshotTaken: Bool
     ) {
         let context: AccessibilityContext
         switch result {
@@ -136,13 +136,13 @@ private struct AccessibilityContextDebugEntry: Encodable {
             context = resolved
             usable = true
             unusableReason = nil
-            appContext = PromptTemplates.appContextSection(resolved)
         case .unusable(let reason, let partial):
             context = partial
             usable = false
             unusableReason = reason.rawValue
-            appContext = nil
         }
+        appContext = decision.accessibilityContext
+            .flatMap(PromptTemplates.appContextSection)
 
         app = context.appName
         bundleId = context.bundleId
@@ -164,7 +164,10 @@ private struct AccessibilityContextDebugEntry: Encodable {
             )
         }
         requestedManualAccessibility = context.requestedManualAccessibility
-        screenshot = Screenshot(taken: screenshotTaken, reason: screenshotReason)
+        screenshot = Screenshot(
+            taken: screenshotTaken,
+            reason: decision.screenshotReason.rawValue
+        )
         parts = Parts(
             windowTitle: context.windowTitle,
             fieldLabel: context.fieldLabel,

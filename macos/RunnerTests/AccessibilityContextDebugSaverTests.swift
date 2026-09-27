@@ -44,6 +44,21 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         return context
     }
 
+    private func save(
+        _ saver: AccessibilityContextDebugSaver,
+        _ result: AccessibilityContextResult,
+        screenshotMode: ScreenshotContextMode
+    ) -> URL? {
+        saver.saveIfEnabled(
+            result: result,
+            decision: ContextSourcePolicy.decide(
+                accessibility: result,
+                screenshotMode: screenshotMode
+            ),
+            screenshotTaken: screenshotMode != .off
+        )
+    }
+
     private func json(at url: URL) throws -> [String: Any] {
         let data = try Data(contentsOf: url)
         let object = try JSONSerialization.jsonObject(with: data)
@@ -57,10 +72,10 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
             outputDirectory: directory
         )
 
-        let savedURL = saver.saveIfEnabled(
-            result: .usable(usableContext()),
-            screenshotTaken: false,
-            screenshotReason: "accessibilityUsable"
+        let savedURL = save(
+            saver,
+            .usable(usableContext()),
+            screenshotMode: .off
         )
 
         XCTAssertNil(savedURL)
@@ -75,10 +90,10 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         )
         let context = usableContext()
 
-        let savedURL = saver.saveIfEnabled(
-            result: .usable(context),
-            screenshotTaken: false,
-            screenshotReason: "accessibilityUsable"
+        let savedURL = save(
+            saver,
+            .usable(context),
+            screenshotMode: .off
         )
 
         let url = try XCTUnwrap(savedURL)
@@ -111,7 +126,7 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         XCTAssertEqual(entry["requestedManualAccessibility"] as? Bool, false)
         let screenshot = try XCTUnwrap(entry["screenshot"] as? [String: Any])
         XCTAssertEqual(screenshot["taken"] as? Bool, false)
-        XCTAssertEqual(screenshot["reason"] as? String, "accessibilityUsable")
+        XCTAssertEqual(screenshot["reason"] as? String, "screenshotOff")
         let parts = try XCTUnwrap(entry["parts"] as? [String: String])
         XCTAssertEqual(parts["windowTitle"], "#design - AdGuard")
         XCTAssertEqual(parts["fieldLabel"], "Message #design")
@@ -135,10 +150,10 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
             outputDirectory: makeDirectory()
         )
 
-        let savedURL = saver.saveIfEnabled(
-            result: .unusable(.windowOrApplicationRole, partial: partial),
-            screenshotTaken: true,
-            screenshotReason: "ax_unusable"
+        let savedURL = save(
+            saver,
+            .unusable(.windowOrApplicationRole, partial: partial),
+            screenshotMode: .activeApplication
         )
 
         let entry = try json(at: XCTUnwrap(savedURL))
@@ -152,7 +167,33 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         XCTAssertEqual(entry["requestedManualAccessibility"] as? Bool, true)
         let screenshot = try XCTUnwrap(entry["screenshot"] as? [String: Any])
         XCTAssertEqual(screenshot["taken"] as? Bool, true)
-        XCTAssertEqual(screenshot["reason"] as? String, "ax_unusable")
+        XCTAssertEqual(screenshot["reason"] as? String, "accessibilityUnusable")
+    }
+
+    /// The whole message selected: no field text, but the source is sent.
+    func testUnusableRunThatKeepsItsSourceRecordsTheSentBlock() throws {
+        var partial = AccessibilityContext(
+            mode: .field,
+            appName: "Slack",
+            bundleId: "com.tinyspeck.slackmacgap"
+        )
+        partial.fieldLabel = "Message #design"
+        let saver = AccessibilityContextDebugSaver(
+            environment: enabled,
+            outputDirectory: makeDirectory()
+        )
+
+        let savedURL = save(
+            saver,
+            .unusable(.noSurroundingText, partial: partial),
+            screenshotMode: .off
+        )
+
+        let entry = try json(at: XCTUnwrap(savedURL))
+        XCTAssertEqual(entry["usable"] as? Bool, false)
+        XCTAssertEqual(entry["unusableReason"] as? String, "noSurroundingText")
+        let block = try XCTUnwrap(PromptTemplates.appContextSection(partial))
+        XCTAssertEqual(entry["appContext"] as? String, block)
     }
 
     func testSaverKeepsLatestFilesOnly() throws {
@@ -170,10 +211,10 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
 
         let urls = try (0..<3).map { _ in
             try XCTUnwrap(
-                saver.saveIfEnabled(
-                    result: .usable(usableContext()),
-                    screenshotTaken: false,
-                    screenshotReason: "accessibilityUsable"
+                save(
+                    saver,
+                    .usable(usableContext()),
+                    screenshotMode: .off
                 )
             )
         }
@@ -196,10 +237,10 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
             ) { $1 }
         )
 
-        let savedURL = saver.saveIfEnabled(
-            result: .usable(usableContext()),
-            screenshotTaken: false,
-            screenshotReason: "accessibilityUsable"
+        let savedURL = save(
+            saver,
+            .usable(usableContext()),
+            screenshotMode: .off
         )
 
         let url = try XCTUnwrap(savedURL)

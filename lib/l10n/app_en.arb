@@ -692,8 +692,8 @@
   "@accessibilityContextFieldAndNearby": {
     "description": "App context option that also reads nearby text in the window"
   },
-  "accessibilityContextEnableTitle": "Send app context?",
-  "@accessibilityContextEnableTitle": {
+  "accessibilityContextNearbyEnableTitle": "Send nearby text?",
+  "@accessibilityContextNearbyEnableTitle": {
     "description": "Confirmation dialog title for enabling nearby App context"
   },
   "accessibilityContextEnableMessage": "Text from the field you're editing and nearby text in the window, such as other people's messages, is sent to your selected AI provider. It may include sensitive content.",

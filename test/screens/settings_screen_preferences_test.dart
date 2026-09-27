@@ -474,7 +474,7 @@ void main() {
       await pumpWritingSettings(tester);
       await selectMode(tester, 'Field text');
 
-      expect(find.text('Send app context?'), findsNothing);
+      expect(find.text('Send nearby text?'), findsNothing);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('accessibility_context_mode'), 'field');
       expect(shownMode('Field text'), findsOneWidget);
@@ -485,7 +485,7 @@ void main() {
       await pumpWritingSettings(tester);
       await selectMode(tester, 'Field and nearby text');
 
-      expect(find.text('Send app context?'), findsOneWidget);
+      expect(find.text('Send nearby text?'), findsOneWidget);
       // Nothing is stored or sent until the user confirms.
       expect(accessibilityCalls(), isEmpty);
       var prefs = await SharedPreferences.getInstance();
@@ -526,7 +526,7 @@ void main() {
       await pumpWritingSettings(tester);
       await selectMode(tester, 'Off');
 
-      expect(find.text('Send app context?'), findsNothing);
+      expect(find.text('Send nearby text?'), findsNothing);
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('accessibility_context_mode'), 'off');
       expect(shownMode('Off'), findsOneWidget);

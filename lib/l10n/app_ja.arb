@@ -166,7 +166,7 @@
   "accessibilityContextOff": "オフ",
   "accessibilityContextField": "入力欄のテキスト",
   "accessibilityContextFieldAndNearby": "入力欄と周辺のテキスト",
-  "accessibilityContextEnableTitle": "アプリのコンテキストを送信しますか？",
+  "accessibilityContextNearbyEnableTitle": "周辺のテキストを送信しますか？",
   "accessibilityContextEnableMessage": "編集中の入力欄のテキストと、ウィンドウ内の周辺のテキスト（他の人のメッセージなど）が選択した AI プロバイダーに送信され、機密情報が含まれる場合があります。",
   "accessibilityContextEnableConfirm": "有効にする",
   "screenRecordingPermissionUnsupported": "スクリーンショットのコンテキストには macOS 14 以降が必要です。",

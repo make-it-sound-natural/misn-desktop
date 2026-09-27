@@ -6,6 +6,8 @@ import Foundation
 final class PendingAccessibilityContextCapture {
     private let request: AccessibilityContextRequest
     private let startedAt: TimeInterval
+    /// Uptime at which the shortcut stops waiting for the read.
+    private let deadline: TimeInterval
     private let now: () -> TimeInterval
     private let lock = NSLock()
     private var capture: AccessibilityContextCapture?
@@ -13,30 +15,33 @@ final class PendingAccessibilityContextCapture {
     /// capture and the deadline comes first, so it runs exactly once.
     private var waiter: ((AccessibilityContextCapture?) -> Void)?
 
+    /// - Parameter timeout: how long after now the shortcut waits for the
+    ///   read. The capturer gets the same deadline, so it can end its walk in
+    ///   time and keep the field text.
     init(
         request: AccessibilityContextRequest,
         capturer: AccessibilityContextCapturing,
         queue: DispatchQueue,
+        timeout: TimeInterval,
         now: @escaping () -> TimeInterval = {
             ProcessInfo.processInfo.systemUptime
         }
     ) {
         self.request = request
         self.now = now
-        self.startedAt = now()
+        let startedAt = now()
+        let deadline = startedAt + timeout
+        self.startedAt = startedAt
+        self.deadline = deadline
         queue.async { [self] in
-            finish(with: capturer.capture(request))
+            finish(with: capturer.capture(request, until: deadline))
         }
     }
 
-    /// Resolves the read against the copied text. A read still running when
-    /// `deadline` seconds have passed since it started counts as a timeout;
-    /// its late result is dropped.
-    func result(
-        copiedText: String,
-        deadline: TimeInterval
-    ) async -> AccessibilityContextResult {
-        let remaining = max(0, deadline - (now() - startedAt))
+    /// Resolves the read against the copied text. A read still running at
+    /// the deadline counts as a timeout; its late result is dropped.
+    func result(copiedText: String) async -> AccessibilityContextResult {
+        let remaining = max(0, deadline - now())
         let capture = await withCheckedContinuation { continuation in
             wait(timeout: remaining) { continuation.resume(returning: $0) }
         }

@@ -6,6 +6,7 @@ enum NearbyTextLimits {
     /// is about 290 nodes, and the empty levels below it cost a few dozen.
     static let nodeBudget = 500
     static let deadline: TimeInterval = 0.15
+    /// In UTF-16 units, like every cap on text read from another app.
     static let textLength = 3_000
     /// The climb goes on until it has this much text, so a short label next
     /// to the field does not stand in for the thread above it.
@@ -41,25 +42,6 @@ private enum NearbyTextRoles {
     ]
 }
 
-/// How a nearby text walk went, for the debug saver and logs.
-struct NearbyTextWalk: Equatable {
-    /// What stopped the walk before it found enough text or reached the
-    /// window.
-    enum Cutoff: String, Equatable {
-        case nodeBudget
-        case deadline
-        /// The target app stopped answering or the API was disabled.
-        case readFailed
-        /// More text was found than fits; the farthest was dropped.
-        case textLength
-        /// The field reports no frame, so nothing can be placed above it.
-        case noFieldFrame
-    }
-
-    var nodesVisited = 0
-    var cutoff: Cutoff?
-}
-
 /// Collects text shown above the focused field, such as the thread above a
 /// chat composer. Climbs the field's ancestors one at a time, walking each
 /// one's subtree within a shared node budget and deadline, and keeps static
@@ -89,17 +71,25 @@ final class NearbyTextCollector<Reader: AXElementReading> {
     }
 
     /// Returns the kept text in document order, one element per line. When
-    /// more is found than fits, the text closest to the field wins.
+    /// more is found than fits, the text closest to the field wins. The walk
+    /// stops at `Limits.deadline` from now or at `deadline`, whichever comes
+    /// first, and keeps what it found so far.
     func collect(
-        around field: Reader.Element
+        around field: Reader.Element,
+        until deadline: TimeInterval
     ) -> (text: String, walk: NearbyTextWalk) {
-        guard case .success(let fieldFrame) = reader.frame(of: field),
-              !fieldFrame.isEmpty else {
+        let fieldFrame: CGRect
+        switch reader.frame(of: field) {
+        case .success(let frame) where !frame.isEmpty:
+            fieldFrame = frame
+        case .success, .failure(.unavailable):
             return ("", NearbyTextWalk(cutoff: .noFieldFrame))
+        case .failure(.timeout), .failure(.apiDisabled):
+            return ("", NearbyTextWalk(cutoff: .readFailed))
         }
         var walk = Walk(
             field: fieldFrame,
-            deadline: now() + Limits.deadline
+            deadline: min(now() + Limits.deadline, deadline)
         )
         var walked = field
         while walk.stats.cutoff == nil,
@@ -111,13 +101,23 @@ final class NearbyTextCollector<Reader: AXElementReading> {
                 walk.stats.cutoff = .deadline
                 break
             }
-            guard case .success(let ancestor) = reader.element(
-                kAXParentAttribute,
-                of: walked
-            ) else {
+            let ancestor: Reader.Element
+            let role: String?
+            do {
+                guard let parent = try optional(
+                    reader.element(kAXParentAttribute, of: walked)
+                ) else {
+                    break
+                }
+                ancestor = parent
+                touch(ancestor)
+                role = try optional(
+                    reader.string(kAXRoleAttribute, of: ancestor)
+                )
+            } catch {
+                walk.stats.cutoff = .readFailed
                 break
             }
-            let role = self.role(of: ancestor)
             if role == kAXApplicationRole { break }
             walkDescendants(of: ancestor, skipping: walked, into: &walk)
             // Telegram puts the message list right under the window, so the
@@ -162,12 +162,6 @@ private extension NearbyTextCollector {
 
     static var webAreaRole: String { "AXWebArea" }
 
-    /// An ancestor whose role cannot be read is walked like any other.
-    func role(of element: Reader.Element) -> String? {
-        touch(element)
-        return try? reader.string(kAXRoleAttribute, of: element).get()
-    }
-
     /// Depth first, last child first: the end of a thread is what sits
     /// closest to the composer, so it gets the budget first.
     func walkDescendants(
@@ -201,7 +195,7 @@ private extension NearbyTextCollector {
                         distance: distance,
                         order: walk.candidates.count
                     ))
-                    walk.textLength += text.count
+                    walk.textLength += text.utf16.count
                 }
             } catch {
                 walk.stats.cutoff = .readFailed
@@ -279,8 +273,9 @@ private extension NearbyTextCollector {
         let text = raw
             .replacingOccurrences(of: "\u{FFFC}", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return nil }
-        return suffix(text, Limits.textLength)
+        // A single Character over the cap leaves nothing.
+        let capped = suffix(text, Limits.textLength)
+        return capped.isEmpty ? nil : capped
     }
 
     /// Another text area can hold a whole document, so read only its end,
@@ -370,8 +365,8 @@ private extension NearbyTextCollector {
                 distance: candidate.distance,
                 order: candidate.order
             ))
-            length += separator + text.count
-            if text.count < candidate.text.count {
+            length += separator + text.utf16.count
+            if text != candidate.text {
                 walk.stats.cutoff = walk.stats.cutoff ?? .textLength
                 break
             }
@@ -384,14 +379,10 @@ private extension NearbyTextCollector {
         )
     }
 
-    /// The last `limit` characters, starting at a whole word when cut.
+    /// The last `limit` UTF-16 units, starting at a whole word when cut.
     static func suffix(_ text: String, _ limit: Int) -> String {
-        guard text.count > limit else { return text }
+        guard text.utf16.count > limit else { return text }
         guard limit > 0 else { return "" }
-        let cut = text.suffix(limit)
-        guard let space = cut.firstIndex(where: { $0.isWhitespace }) else {
-            return String(cut)
-        }
-        return String(cut[cut.index(after: space)...])
+        return text.suffix(utf16Limit: limit).droppingFirstPartialWord()
     }
 }

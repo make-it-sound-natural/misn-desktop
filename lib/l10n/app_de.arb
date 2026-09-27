@@ -166,7 +166,7 @@
   "accessibilityContextOff": "Aus",
   "accessibilityContextField": "Feldtext",
   "accessibilityContextFieldAndNearby": "Feld- und Umgebungstext",
-  "accessibilityContextEnableTitle": "App-Kontext senden?",
+  "accessibilityContextNearbyEnableTitle": "Text in der Nähe senden?",
   "accessibilityContextEnableMessage": "Text aus dem bearbeiteten Feld und Text in der Nähe im Fenster, z. B. Nachrichten anderer, wird an den gewählten KI-Anbieter gesendet und kann vertrauliche Inhalte enthalten.",
   "accessibilityContextEnableConfirm": "Aktivieren",
   "screenRecordingPermissionUnsupported": "Screenshot-Kontext erfordert macOS 14 oder neuer.",

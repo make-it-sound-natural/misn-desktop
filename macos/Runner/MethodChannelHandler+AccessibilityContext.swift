@@ -7,15 +7,19 @@ extension MethodChannelHandler {
         _ call: FlutterMethodCall,
         result: @escaping FlutterResult
     ) {
-        guard let value = call.arguments as? String else {
+        // Only our Dart side sends this, so a value it does not know is a
+        // bug to surface, not a reason to turn App context off.
+        guard let value = call.arguments as? String,
+              let mode = AccessibilityContextMode(rawValue: value) else {
             result(FlutterError(
                 code: "INVALID_ARGUMENT",
-                message: "App context mode must be a string",
+                message: "Unknown App context mode: " +
+                    String(describing: call.arguments),
                 details: nil
             ))
             return
         }
-        accessibilityContextMode = AccessibilityContextMode.parse(value)
+        accessibilityContextMode = mode
         result(nil)
     }
 

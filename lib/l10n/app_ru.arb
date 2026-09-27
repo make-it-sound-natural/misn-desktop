@@ -166,7 +166,7 @@
   "accessibilityContextOff": "Выкл.",
   "accessibilityContextField": "Текст поля",
   "accessibilityContextFieldAndNearby": "Поле и текст рядом",
-  "accessibilityContextEnableTitle": "Отправлять контекст приложения?",
+  "accessibilityContextNearbyEnableTitle": "Отправлять соседний текст?",
   "accessibilityContextEnableMessage": "Текст редактируемого поля и соседний текст в окне, например сообщения других людей, отправляются выбранному AI-провайдеру и могут содержать чувствительные данные.",
   "accessibilityContextEnableConfirm": "Включить",
   "screenRecordingPermissionUnsupported": "Контекст скриншота требует macOS 14 или новее.",

@@ -2,6 +2,15 @@ import ApplicationServices
 import XCTest
 @testable import Make_It_Sound_Natural
 
+extension AccessibilityContextCapturer {
+    /// Without a capture deadline: only the walk's own limit applies.
+    func capture(
+        _ request: AccessibilityContextRequest
+    ) -> AccessibilityContextCapture {
+        capture(request, until: .infinity)
+    }
+}
+
 /// One element of the fake AX tree. Compares by identity, like distinct
 /// `AXUIElement`s.
 final class FakeAXNode: Hashable {
@@ -193,18 +202,6 @@ final class AccessibilityContextCapturerTests: XCTestCase {
         super.tearDown()
     }
 
-    // MARK: - Mode
-
-    func testModeParseFallsBackToOff() {
-        XCTAssertEqual(AccessibilityContextMode.parse("field"), .field)
-        XCTAssertEqual(
-            AccessibilityContextMode.parse("fieldAndNearby"),
-            .fieldAndNearby
-        )
-        XCTAssertEqual(AccessibilityContextMode.parse("unknown"), .off)
-        XCTAssertEqual(AccessibilityContextMode.parse(nil), .off)
-    }
-
     // MARK: - Usable field context
 
     func testFieldModeReadsWindowTitleLabelAndSurroundingText() {
@@ -258,13 +255,51 @@ final class AccessibilityContextCapturerTests: XCTestCase {
         XCTAssertEqual(context.textAfterSelection, "")
     }
 
-    func testEmojiOffsetsAreUTF16() {
-        focus("Hi 👋🏽 there 👨‍👩‍👧 friends, see you 🚀 soon", "there 👨‍👩‍👧 friends")
+    /// "👋 " is 3 UTF-16 units and 2 Characters, so a window counted in
+    /// Characters would keep 750 of them instead of 500.
+    func testWindowEdgeCountsUTF16Units() {
+        let head = String(repeating: "👋 ", count: 600)
+        focus(head + "SELECTED 👨‍👩‍👧!", "SELECTED")
 
-        let context = usableContext(copiedText: "there 👨‍👩‍👧 friends")
+        let context = usableContext(copiedText: "SELECTED")
 
-        XCTAssertEqual(context.textBeforeSelection, "Hi 👋🏽 ")
-        XCTAssertEqual(context.textAfterSelection, ", see you 🚀 soon")
+        // The window starts at a 👋, which counts as a cut word.
+        XCTAssertEqual(
+            context.textBeforeSelection,
+            String(repeating: "👋 ", count: 499)
+        )
+        XCTAssertEqual(context.textAfterSelection, " 👨‍👩‍👧!")
+    }
+
+    /// One Character with thousands of combining marks: a cap in Characters
+    /// would let all of it through.
+    func testWindowTitleCapCountsUTF16Units() {
+        let zalgo = "e" + String(repeating: "\u{0301}", count: 10_000)
+        window.strings[kAXTitleAttribute] = "#design " + zalgo
+        focus("Hi team, please review this.", "review")
+
+        let context = usableContext(copiedText: "review")
+
+        XCTAssertEqual(context.windowTitle, "#design ")
+    }
+
+    /// CJK text has no spaces, so the partial word at a cut edge cannot be
+    /// found; a far newline must not take the whole window with it.
+    func testCutEdgeInTextWithoutSpacesKeepsTheWindow() {
+        let head = String(repeating: "漢", count: 2_000)
+        let tail = String(repeating: "字", count: 1_000)
+        focus(head + "\n" + "選択" + "\n" + tail, "選択")
+
+        let context = usableContext(copiedText: "選択")
+
+        XCTAssertEqual(
+            context.textBeforeSelection,
+            String(repeating: "漢", count: 1_499) + "\n"
+        )
+        XCTAssertEqual(
+            context.textAfterSelection,
+            "\n" + String(repeating: "字", count: 499)
+        )
     }
 
     func testHugeValueReadsOnlyBoundedRangeAndNeverValue() {

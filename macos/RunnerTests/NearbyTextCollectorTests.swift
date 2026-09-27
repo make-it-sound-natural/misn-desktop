@@ -329,6 +329,67 @@ final class NearbyTextCollectorTests: XCTestCase {
         XCTAssertTrue(reader.readAttributes(of: "wrapper30").isEmpty)
     }
 
+    /// The field reads took most of the time the shortcut waits: the walk
+    /// ends by the capture deadline and the field text survives.
+    func testWalkEndsBeforeTheCaptureDeadline() {
+        buildChatLayout()
+        let capturer = AccessibilityContextCapturer(reader: reader) { 10 }
+
+        let result = capturer.capture(request(), until: 10)
+            .resolve(copiedText: "looks")
+
+        guard case .usable(let context) = result else {
+            return XCTFail("Expected usable, got \(result)")
+        }
+        XCTAssertEqual(context.textBeforeSelection, "Hi, ")
+        XCTAssertEqual(context.nearbyWalk?.cutoff, .deadline)
+        XCTAssertEqual(context.nearbyWalk?.nodesVisited, 0)
+    }
+
+    func testParentReadTimeoutEndsTheWalkAsReadFailed() {
+        nest([[], []])
+        field.parent?.errors[kAXParentAttribute] = .timeout
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyWalk?.cutoff, .readFailed)
+    }
+
+    func testFieldFrameTimeoutIsReadFailed() {
+        layout(staticText("Anna: ready?", y: 600))
+        field.errors[kAXPositionAttribute] = .timeout
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyWalk, NearbyTextWalk(cutoff: .readFailed))
+    }
+
+    func testFieldWithoutRangeStillCollectsNearbyText() {
+        layout(staticText("Anna: ready?", y: 600))
+        field.ranges[kAXSelectedTextRangeAttribute] = nil
+
+        let result = capture().resolve(copiedText: "looks")
+
+        guard case .unusable(.rangeUnavailable, let partial) = result else {
+            return XCTFail("Expected rangeUnavailable, got \(result)")
+        }
+        XCTAssertEqual(partial.nearbyText, "Anna: ready?")
+    }
+
+    /// A message of one Character with thousands of combining marks is over
+    /// the cap on its own, so it is dropped rather than sent whole.
+    func testTextCapCountsUTF16Units() {
+        let zalgo = "e" + String(repeating: "\u{0301}", count: 10_000)
+        layout(
+            staticText("Anna: ready?", y: 500),
+            staticText(zalgo, y: 600)
+        )
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "Anna: ready?")
+    }
+
     // MARK: - Frames
 
     /// Slack's virtualized message list: the list reports a 1×1 px frame

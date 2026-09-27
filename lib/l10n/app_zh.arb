@@ -166,7 +166,7 @@
   "accessibilityContextOff": "关闭",
   "accessibilityContextField": "输入框文本",
   "accessibilityContextFieldAndNearby": "输入框及附近文本",
-  "accessibilityContextEnableTitle": "发送应用上下文？",
+  "accessibilityContextNearbyEnableTitle": "发送附近文本？",
   "accessibilityContextEnableMessage": "正在编辑的输入框文本以及窗口中的附近文本（如他人的消息）会发送给所选 AI 提供商，可能包含敏感内容。",
   "accessibilityContextEnableConfirm": "启用",
   "screenRecordingPermissionUnsupported": "截图上下文需要 macOS 14 或更高版本。",

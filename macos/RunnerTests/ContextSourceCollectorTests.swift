@@ -9,6 +9,7 @@ private final class FakeAccessibilityContextCapturer:
     private let lock = NSLock()
     private var recordedRequests: [AccessibilityContextRequest] = []
     private var recordedMainThread: [Bool] = []
+    private var recordedDeadlines: [TimeInterval] = []
     let started = XCTestExpectation(description: "AX capture started")
 
     init(result: AccessibilityContextCapture, gate: DispatchSemaphore? = nil) {
@@ -28,11 +29,19 @@ private final class FakeAccessibilityContextCapturer:
         return recordedMainThread
     }
 
+    var deadlines: [TimeInterval] {
+        lock.lock()
+        defer { lock.unlock() }
+        return recordedDeadlines
+    }
+
     func capture(
-        _ request: AccessibilityContextRequest
+        _ request: AccessibilityContextRequest,
+        until deadline: TimeInterval
     ) -> AccessibilityContextCapture {
         lock.lock()
         recordedRequests.append(request)
+        recordedDeadlines.append(deadline)
         recordedMainThread.append(Thread.isMainThread)
         lock.unlock()
         started.fulfill()
@@ -277,7 +286,7 @@ final class ContextSourceCollectorTests: XCTestCase {
         XCTAssertEqual(screenshot.modes, [.activeApplication])
     }
 
-    func testCaptureRunsInBackgroundBeforeTheCopyArrives() async {
+    func testCaptureRunsInBackgroundBeforeTheCopyArrives() async throws {
         let gate = DispatchSemaphore(value: 0)
         gates.append(gate)
         let accessibility = FakeAccessibilityContextCapturer(
@@ -290,7 +299,9 @@ final class ContextSourceCollectorTests: XCTestCase {
         )
 
         // Returns while the read is still blocked, as it would be during Cmd+C.
+        let startedBefore = ProcessInfo.processInfo.systemUptime
         let pending = collector.startAccessibilityCapture(request(.field))
+        let startedAfter = ProcessInfo.processInfo.systemUptime
         await fulfillment(of: [accessibility.started], timeout: 1)
         gate.signal()
         let collected = await collector.collect(
@@ -301,6 +312,10 @@ final class ContextSourceCollectorTests: XCTestCase {
         )
 
         XCTAssertEqual(accessibility.ranOnMainThread, [false])
+        // The capturer gets the deadline the shortcut waits until.
+        let deadline = try XCTUnwrap(accessibility.deadlines.first)
+        XCTAssertGreaterThanOrEqual(deadline, startedBefore + 5)
+        XCTAssertLessThanOrEqual(deadline, startedAfter + 5)
         XCTAssertEqual(accessibility.requests.first?.processID, 123)
         XCTAssertNotNil(collected.accessibilityContext)
     }

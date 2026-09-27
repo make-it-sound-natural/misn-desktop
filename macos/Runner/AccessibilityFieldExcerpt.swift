@@ -46,8 +46,8 @@ struct AccessibilityFieldExcerpt: Equatable {
             )
         )
         return (
-            startsAtFieldStart ? before : Self.droppingFirstPartialWord(before),
-            endsAtFieldEnd ? after : Self.droppingLastPartialWord(after)
+            startsAtFieldStart ? before : before.droppingFirstPartialWord(),
+            endsAtFieldEnd ? after : after.droppingLastPartialWord()
         )
     }
 
@@ -108,21 +108,5 @@ struct AccessibilityFieldExcerpt: Equatable {
             .replacingOccurrences(of: "\r", with: "\n")
             .replacingOccurrences(of: "\u{00A0}", with: " ")
             .trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    /// Keeps text without any whitespace (e.g. CJK) whole rather than
-    /// dropping all of it.
-    private static func droppingFirstPartialWord(_ text: String) -> String {
-        guard let cut = text.firstIndex(where: { $0.isWhitespace }) else {
-            return text
-        }
-        return String(text[text.index(after: cut)...])
-    }
-
-    private static func droppingLastPartialWord(_ text: String) -> String {
-        guard let cut = text.lastIndex(where: { $0.isWhitespace }) else {
-            return text
-        }
-        return String(text[..<cut])
     }
 }

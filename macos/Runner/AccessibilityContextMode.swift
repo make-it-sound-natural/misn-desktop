@@ -6,12 +6,4 @@ enum AccessibilityContextMode: String {
     case off
     case field
     case fieldAndNearby
-
-    static func parse(_ value: String?) -> AccessibilityContextMode {
-        guard let value = value,
-              let mode = AccessibilityContextMode(rawValue: value) else {
-            return .off
-        }
-        return mode
-    }
 }

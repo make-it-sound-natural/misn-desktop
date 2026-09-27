@@ -4,7 +4,9 @@ import Foundation
 ///
 /// App context and the screenshot are independent: a usable Accessibility
 /// read is always sent, and the screenshot is taken whenever its own setting
-/// is on, next to App context or in place of an unusable read.
+/// is on, next to App context or in place of an unusable read. An unusable
+/// read that still reached the right field sends what it has: app, window,
+/// field label and nearby text.
 enum ContextSourcePolicy {
     /// Why the screenshot is taken or skipped. The raw value is the slug the
     /// Accessibility debug saver records.
@@ -42,9 +44,11 @@ enum ContextSourcePolicy {
                     ? .screenshotOff
                     : .accessibilityOff
             )
-        case .unusable(let reason, _)?:
+        case .unusable(let reason, let partial)?:
             return Decision(
-                accessibilityContext: nil,
+                accessibilityContext: reason.keepsPartialContext
+                    ? partial
+                    : nil,
                 accessibilityFallbackReason: reason,
                 screenshotReason: screenshotMode == .off
                     ? .screenshotOff

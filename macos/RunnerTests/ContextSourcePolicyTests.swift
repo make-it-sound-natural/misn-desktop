@@ -95,6 +95,27 @@ final class ContextSourcePolicyTests: XCTestCase {
         }
     }
 
+    /// The whole message selected, or a field without a range: the source
+    /// and any nearby text still go out.
+    func testUnusableReadThatReachedTheFieldSendsWhatItHas() {
+        var partial = context(mode: .fieldAndNearby)
+        partial.textBeforeSelection = ""
+        partial.nearbyText = "Anna: is the draft ready?"
+        let reasons: [AccessibilityContext.UnusableReason] = [
+            .noSurroundingText, .mostlyPlaceholderText, .rangeUnavailable,
+        ]
+        for reason in reasons {
+            assertDecision(
+                .unusable(reason, partial: partial),
+                screenshotMode: .activeApplication,
+                sends: partial,
+                fallbackReason: reason,
+                screenshotReason: .accessibilityUnusable,
+                takesScreenshot: true
+            )
+        }
+    }
+
     func testUnusableReadFallsBackToTheScreenshotOnlyWhenItIsOn() {
         let modes: [AccessibilityContextMode] = [.field, .fieldAndNearby]
         let reasons: [AccessibilityContext.UnusableReason] = [

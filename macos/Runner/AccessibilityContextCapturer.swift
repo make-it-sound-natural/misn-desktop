@@ -13,9 +13,12 @@ struct AccessibilityContextRequest {
 
 protocol AccessibilityContextCapturing {
     /// Reads the focused field before Cmd+C. Makes blocking cross-process AX
-    /// calls, so run it off the main thread.
+    /// calls, so run it off the main thread. `deadline` is the uptime at
+    /// which the shortcut stops waiting; the nearby walk ends before it and
+    /// keeps what it found.
     func capture(
-        _ request: AccessibilityContextRequest
+        _ request: AccessibilityContextRequest,
+        until deadline: TimeInterval
     ) -> AccessibilityContextCapture
 }
 
@@ -26,6 +29,11 @@ enum AccessibilityContextLimits {
     /// started before Cmd+C. The copy itself takes at least 50 ms, so most
     /// of this is already spent by the time the clipboard arrives.
     static let captureDeadline: TimeInterval = 0.3
+    /// Left between the end of the nearby walk and the capture deadline. One
+    /// walk step makes several AX calls, so the walk can overrun its own
+    /// deadline by that much.
+    static let nearbyDeadlineMargin: TimeInterval = 0.05
+    /// Text caps are in UTF-16 units.
     static let windowTitleLength = 200
     static let fieldLabelLength = 200
     static let textBeforeSelectionLength = 1_500
@@ -34,7 +42,8 @@ enum AccessibilityContextLimits {
 
 final class AccessibilityContextCapturer<Reader: AXElementReading>:
     AccessibilityContextCapturing {
-    private typealias Reason = AccessibilityContext.UnusableReason
+    // Named in the typed throws of the private extension below.
+    fileprivate typealias Reason = AccessibilityContext.UnusableReason
     private typealias Limits = AccessibilityContextLimits
 
     private let reader: Reader
@@ -64,7 +73,8 @@ final class AccessibilityContextCapturer<Reader: AXElementReading>:
     }
 
     func capture(
-        _ request: AccessibilityContextRequest
+        _ request: AccessibilityContextRequest,
+        until deadline: TimeInterval
     ) -> AccessibilityContextCapture {
         let start = now()
         var context = AccessibilityContext(
@@ -73,14 +83,18 @@ final class AccessibilityContextCapturer<Reader: AXElementReading>:
             bundleId: request.bundleId
         )
         let field: AccessibilityContextCapture.Field
-        do {
-            field = .excerpt(try readField(request, into: &context))
+        do throws(Reason) {
+            field = .excerpt(try readField(
+                request,
+                nearbyDeadline: deadline - Limits.nearbyDeadlineMargin,
+                into: &context
+            ))
         } catch {
-            // readField throws nothing but UnusableReason.
-            let reason = error as? Reason ?? .noFocusedElement
-            field = .unusable(reason)
-            context.requestedManualAccessibility = electronAccessibility
-                .enableIfNeeded(after: reason, in: request)
+            field = .unusable(error)
+            // The nearby walk may already have asked, before a range error.
+            if electronAccessibility.enableIfNeeded(after: error, in: request) {
+                context.requestedManualAccessibility = true
+            }
         }
         context.timings.total = milliseconds(since: start)
         return AccessibilityContextCapture(context: context, field: field)
@@ -96,8 +110,9 @@ extension AccessibilityContextCapturer where Reader == LiveAXElementReader {
 private extension AccessibilityContextCapturer {
     func readField(
         _ request: AccessibilityContextRequest,
+        nearbyDeadline: TimeInterval,
         into context: inout AccessibilityContext
-    ) throws -> AccessibilityFieldExcerpt {
+    ) throws(Reason) -> AccessibilityFieldExcerpt {
         guard request.mode != .off else { throw Reason.disabled }
         guard reader.isProcessTrusted() else { throw Reason.notTrusted }
         guard !reader.isSecureEventInputEnabled() else {
@@ -115,16 +130,20 @@ private extension AccessibilityContextCapturer {
         context.timings.metadata = milliseconds(since: stepStart)
 
         stepStart = now()
-        let fieldExcerpt: AccessibilityFieldExcerpt
-        do {
-            defer { context.timings.excerpt = milliseconds(since: stepStart) }
-            fieldExcerpt = try excerpt(of: field)
+        let fieldExcerpt: Result<AccessibilityFieldExcerpt, Reason>
+        do throws(Reason) {
+            fieldExcerpt = .success(try excerpt(of: field))
+        } catch .rangeUnavailable {
+            // A composer without a range can still have a thread above it.
+            fieldExcerpt = .failure(.rangeUnavailable)
         }
+        context.timings.excerpt = milliseconds(since: stepStart)
 
         if request.mode == .fieldAndNearby {
             stepStart = now()
             (context.nearbyText, context.nearbyWalk) = nearbyText.collect(
-                around: field
+                around: field,
+                until: nearbyDeadline
             )
             context.timings.nearby = milliseconds(since: stepStart)
             if let walk = context.nearbyWalk {
@@ -136,13 +155,13 @@ private extension AccessibilityContextCapturer {
                     )
             }
         }
-        return fieldExcerpt
+        return try fieldExcerpt.get()
     }
 
     func focusedField(
         of app: Reader.Element,
         into context: inout AccessibilityContext
-    ) throws -> Reader.Element {
+    ) throws(Reason) -> Reader.Element {
         touch(app)
         guard let field = try optional(
             reader.element(kAXFocusedUIElementAttribute, of: app)
@@ -165,7 +184,7 @@ private extension AccessibilityContextCapturer {
         return field
     }
 
-    func windowTitle(of app: Reader.Element) throws -> String? {
+    func windowTitle(of app: Reader.Element) throws(Reason) -> String? {
         guard let window = try optional(
             reader.element(kAXFocusedWindowAttribute, of: app)
         ) else {
@@ -178,7 +197,7 @@ private extension AccessibilityContextCapturer {
         )
     }
 
-    func label(of field: Reader.Element) throws -> String? {
+    func label(of field: Reader.Element) throws(Reason) -> String? {
         let attributes = [
             kAXPlaceholderValueAttribute,
             kAXDescriptionAttribute,
@@ -213,7 +232,9 @@ private extension AccessibilityContextCapturer {
 
     /// Reads a bounded window around the selection. Never reads `kAXValue`:
     /// a terminal or a long document would return all of its text.
-    func excerpt(of field: Reader.Element) throws -> AccessibilityFieldExcerpt {
+    func excerpt(
+        of field: Reader.Element
+    ) throws(Reason) -> AccessibilityFieldExcerpt {
         guard let count = try optional(
                 reader.integer(kAXNumberOfCharactersAttribute, of: field)
               ),
@@ -259,7 +280,7 @@ private extension AccessibilityContextCapturer {
     /// the capture.
     func optional<Value>(
         _ result: Result<Value, AXReadError>
-    ) throws -> Value? {
+    ) throws(Reason) -> Value? {
         switch result {
         case .success(let value):
             return value
@@ -278,7 +299,9 @@ private extension AccessibilityContextCapturer {
         ), !text.isEmpty else {
             return nil
         }
-        return String(text.prefix(limit))
+        // A single Character over the cap leaves nothing.
+        let capped = text.prefix(utf16Limit: limit)
+        return capped.isEmpty ? nil : capped
     }
 
     func milliseconds(since start: TimeInterval) -> Double {

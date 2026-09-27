@@ -60,7 +60,8 @@ final class ContextSourceCollector {
         return PendingAccessibilityContextCapture(
             request: request,
             capturer: accessibilityCapturer,
-            queue: accessibilityQueue
+            queue: accessibilityQueue,
+            timeout: captureDeadline
         )
     }
 
@@ -70,10 +71,7 @@ final class ContextSourceCollector {
         screenshotMode: ScreenshotContextMode,
         screenshotTarget: ScreenshotTarget
     ) async -> CollectedContext {
-        let accessibility = await pending?.result(
-            copiedText: copiedText,
-            deadline: captureDeadline
-        )
+        let accessibility = await pending?.result(copiedText: copiedText)
         if let accessibility = accessibility {
             log(Self.describe(accessibility))
         }
@@ -91,8 +89,8 @@ final class ContextSourceCollector {
         if let accessibility = accessibility {
             _ = accessibilityDebugSaver.saveIfEnabled(
                 result: accessibility,
-                screenshotTaken: screenshot.attachment != nil,
-                screenshotReason: decision.screenshotReason.rawValue
+                decision: decision,
+                screenshotTaken: screenshot.attachment != nil
             )
         }
         return CollectedContext(
