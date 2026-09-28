@@ -4,8 +4,9 @@ import Foundation
 /// are UTF-16 code units, the unit AX ranges use.
 struct AccessibilityFieldExcerpt: Equatable {
     let text: String
-    /// Where the app said the selection is, relative to `text`.
-    let selection: NSRange
+    /// Where the app said the selection is, relative to `text`. Nil when the
+    /// field was read whole because its range was unusable.
+    let selection: NSRange?
     /// Whether `text` starts at the beginning of the field, so its first word
     /// is complete.
     let startsAtFieldStart: Bool
@@ -46,14 +47,32 @@ struct AccessibilityFieldExcerpt: Equatable {
             )
         )
         return (
-            startsAtFieldStart ? before : before.droppingFirstPartialWord(),
-            endsAtFieldEnd ? after : after.droppingLastPartialWord()
+            Self.leading(before, complete: startsAtFieldStart),
+            Self.trailing(after, complete: endsAtFieldEnd)
         )
+    }
+
+    /// A whole field can be longer than the window around the selection.
+    private static func leading(_ text: String, complete: Bool) -> String {
+        let limit = AccessibilityContextLimits.textBeforeSelectionLength
+        if text.utf16.count > limit {
+            return text.suffix(utf16Limit: limit).droppingFirstPartialWord()
+        }
+        return complete ? text : text.droppingFirstPartialWord()
+    }
+
+    private static func trailing(_ text: String, complete: Bool) -> String {
+        let limit = AccessibilityContextLimits.textAfterSelectionLength
+        if text.utf16.count > limit {
+            return text.prefix(utf16Limit: limit).droppingLastPartialWord()
+        }
+        return complete ? text : text.droppingLastPartialWord()
     }
 
     private func locate(_ copiedText: String, in text: NSString) -> NSRange? {
         let copied = Self.normalized(copiedText)
-        if !copied.isEmpty, NSMaxRange(selection) <= text.length,
+        if let selection = selection, !copied.isEmpty,
+           NSMaxRange(selection) <= text.length,
            Self.normalized(text.substring(with: selection)) == copied {
             return selection
         }
@@ -82,8 +101,10 @@ struct AccessibilityFieldExcerpt: Equatable {
                 range: searchRange
             )
             guard found.location != NSNotFound else { break }
-            let distance = abs(found.location - selection.location)
-            if nearest.map({ abs($0.location - selection.location) > distance })
+            // Without a reported selection, the first occurrence wins.
+            let reported = selection?.location ?? 0
+            let distance = abs(found.location - reported)
+            if nearest.map({ abs($0.location - reported) > distance })
                 ?? true {
                 nearest = found
             }

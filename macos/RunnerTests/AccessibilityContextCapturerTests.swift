@@ -521,23 +521,88 @@ final class AccessibilityContextCapturerTests: XCTestCase {
         })
     }
 
-    func testMissingSelectionRangeIsUnusable() {
+    /// Slack's composer in some states: no range, but a short value.
+    func testMissingSelectionRangeReadsTheWholeShortField() {
+        let field = focus("Hello there, see you", "there")
+        field.ranges[kAXSelectedTextRangeAttribute] = nil
+
+        let context = usableContext(copiedText: "there")
+
+        XCTAssertEqual(context.textBeforeSelection, "Hello ")
+        XCTAssertEqual(context.textAfterSelection, ", see you")
+        XCTAssertTrue(context.fieldReadWhole)
+        XCTAssertEqual(context.fieldCharacterCount, 20)
+        XCTAssertNil(context.fieldSelection)
+        XCTAssertTrue(reader.rangeReads.isEmpty)
+    }
+
+    func testRangeBeyondCharacterCountReadsTheWholeShortField() {
         let field = focus("Hello there", "there")
+        field.integers[kAXNumberOfCharactersAttribute] = 3
+
+        let context = usableContext(copiedText: "there")
+
+        XCTAssertEqual(context.textBeforeSelection, "Hello ")
+        XCTAssertTrue(context.fieldReadWhole)
+        XCTAssertEqual(context.fieldCharacterCount, 3)
+        XCTAssertEqual(context.fieldSelection, NSRange(location: 6, length: 5))
+    }
+
+    func testMissingSelectionRangeWithoutValueIsUnusable() {
+        let field = focus("Hello there", "there")
+        field.ranges[kAXSelectedTextRangeAttribute] = nil
+        field.strings[kAXValueAttribute] = nil
+
+        let result = capture().resolve(copiedText: "there")
+
+        XCTAssertEqual(reason(of: result), .rangeUnavailable)
+    }
+
+    /// A document or a terminal buffer is never read whole.
+    func testLongFieldWithoutRangeIsNeverReadWhole() {
+        let long = String(repeating: "lorem ", count: 1_000)
+        let field = focus(long + "there", "there")
         field.ranges[kAXSelectedTextRangeAttribute] = nil
 
         let result = capture().resolve(copiedText: "there")
 
         XCTAssertEqual(reason(of: result), .rangeUnavailable)
-        XCTAssertTrue(reader.rangeReads.isEmpty)
+        XCTAssertFalse(
+            reader.readAttributes(of: "field").contains(kAXValueAttribute)
+        )
     }
 
-    func testRangeBeyondCharacterCountIsUnusable() {
+    /// A whole field read keeps the same caps as a window around the range.
+    func testWholeFieldReadKeepsTheWindowCaps() {
+        let head = String(repeating: "a ", count: 1_200)
+        let tail = String(repeating: "b ", count: 400)
+        let field = focus(head + "there " + tail, "there")
+        field.ranges[kAXSelectedTextRangeAttribute] = nil
+
+        let context = usableContext(copiedText: "there")
+
+        XCTAssertLessThanOrEqual(
+            context.textBeforeSelection.utf16.count,
+            AccessibilityContextLimits.textBeforeSelectionLength
+        )
+        XCTAssertLessThanOrEqual(
+            context.textAfterSelection.utf16.count,
+            AccessibilityContextLimits.textAfterSelectionLength
+        )
+        XCTAssertTrue(context.textBeforeSelection.hasSuffix("a a "))
+        XCTAssertTrue(context.textAfterSelection.hasPrefix(" b b"))
+    }
+
+    func testFieldFrameIsRecorded() {
         let field = focus("Hello there", "there")
-        field.integers[kAXNumberOfCharactersAttribute] = 3
+        field.frame = CGRect(x: 10, y: 700, width: 800, height: 40)
 
-        let result = capture().resolve(copiedText: "there")
+        let context = usableContext(copiedText: "there")
 
-        XCTAssertEqual(reason(of: result), .rangeUnavailable)
+        XCTAssertEqual(
+            context.fieldFrame,
+            CGRect(x: 10, y: 700, width: 800, height: 40)
+        )
     }
 
     func testWholeFieldSelectedHasNoSurroundingText() {

@@ -41,11 +41,15 @@ enum ScreenshotCaptureWarning {
 }
 
 protocol ScreenshotCapturing {
+    /// - Parameter focusFrame: the focused field, from the Accessibility
+    ///   read. In `activeApplication` mode the window is cropped to the
+    ///   column around it.
     func capture(
         mode: ScreenshotContextMode,
         activeBundleId: String?,
         activeWindowID: CGWindowID?,
-        cursorLocation: NSPoint?
+        cursorLocation: NSPoint?,
+        focusFrame: CGRect?
     ) async -> ScreenshotCaptureResult
 }
 
@@ -60,7 +64,8 @@ final class ScreenshotCapturer: ScreenshotCapturing {
         mode: ScreenshotContextMode,
         activeBundleId: String?,
         activeWindowID: CGWindowID?,
-        cursorLocation: NSPoint?
+        cursorLocation: NSPoint?,
+        focusFrame: CGRect?
     ) async -> ScreenshotCaptureResult {
         guard mode != .off else {
             return ScreenshotCaptureResult(attachment: nil, warning: nil)
@@ -84,7 +89,8 @@ final class ScreenshotCapturer: ScreenshotCapturing {
             mode: mode,
             activeBundleId: activeBundleId,
             activeWindowID: activeWindowID,
-            cursorLocation: cursorLocation
+            cursorLocation: cursorLocation,
+            focusFrame: focusFrame
         )
     }
 }
@@ -95,7 +101,8 @@ private extension ScreenshotCapturer {
         mode: ScreenshotContextMode,
         activeBundleId: String?,
         activeWindowID: CGWindowID?,
-        cursorLocation: NSPoint?
+        cursorLocation: NSPoint?,
+        focusFrame: CGRect?
     ) async -> ScreenshotCaptureResult {
         #if canImport(ScreenCaptureKit)
         do {
@@ -106,9 +113,12 @@ private extension ScreenshotCapturer {
             guard let target = captureTarget(
                 mode: mode,
                 content: content,
-                activeBundleId: activeBundleId,
-                activeWindowID: activeWindowID,
-                cursorLocation: cursorLocation
+                active: ScreenshotTarget(
+                    bundleId: activeBundleId,
+                    windowID: activeWindowID,
+                    cursorLocation: cursorLocation
+                ),
+                focusFrame: focusFrame
             ) else {
                 return ScreenshotCaptureResult(
                     attachment: nil,
@@ -195,9 +205,8 @@ private extension ScreenshotCapturer {
     func captureTarget(
         mode: ScreenshotContextMode,
         content: SCShareableContent,
-        activeBundleId: String?,
-        activeWindowID: CGWindowID?,
-        cursorLocation: NSPoint?
+        active: ScreenshotTarget,
+        focusFrame: CGRect?
     ) -> ScreenshotCaptureTargetCandidate? {
         switch mode {
         case .off:
@@ -205,14 +214,15 @@ private extension ScreenshotCapturer {
         case .activeApplication:
             return activeWindowTarget(
                 content: content,
-                activeBundleId: activeBundleId,
-                activeWindowID: activeWindowID,
-                cursorLocation: cursorLocation
+                activeBundleId: active.bundleId,
+                activeWindowID: active.windowID,
+                cursorLocation: active.cursorLocation,
+                focusFrame: focusFrame
             )
         case .fullScreen:
             return activeDisplayFilter(
                 content: content,
-                cursorLocation: cursorLocation
+                cursorLocation: active.cursorLocation
             )
         }
     }
@@ -222,7 +232,8 @@ private extension ScreenshotCapturer {
         content: SCShareableContent,
         activeBundleId: String?,
         activeWindowID: CGWindowID?,
-        cursorLocation: NSPoint?
+        cursorLocation: NSPoint?,
+        focusFrame: CGRect?
     ) -> ScreenshotCaptureTargetCandidate? {
         guard let window = selectedActiveWindow(
             content: content,
@@ -243,8 +254,15 @@ private extension ScreenshotCapturer {
             return nil
         }
         let filter = SCContentFilter(display: display, excludingWindows: [])
+        // The column around the field: readable text, without the sidebar.
+        let capturedFrame = focusFrame.flatMap {
+            ScreenshotCaptureSelection.focusFrame(
+                windowFrame: window.frame,
+                fieldFrame: $0
+            )
+        } ?? window.frame
         guard let visibleSource = ScreenshotCaptureSelection.visibleSourceRect(
-            windowFrame: window.frame,
+            windowFrame: capturedFrame,
             displayFrame: display.frame,
             filterContentRect: filter.contentRect
         ) else {
@@ -254,6 +272,7 @@ private extension ScreenshotCapturer {
             "Screenshot selected window: id=\(window.windowID), " +
             "bundle=\(window.owningApplication?.bundleIdentifier ?? "unknown"), " +
             "frame=\(describeScreenshotCapture(rect: window.frame)), " +
+            "captured=\(describeScreenshotCapture(rect: capturedFrame)), " +
             "display=\(display.displayID), " +
             "displayFrame=\(describeScreenshotCapture(rect: display.frame)), " +
             "visibleSource=\(describeScreenshotCapture(rect: visibleSource.rect)), " +

@@ -87,6 +87,7 @@
 		ACCTXEXCP01 /* AccessibilityFieldExcerpt.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */; };
 		ACCTXCAPT01 /* AccessibilityContextCapturer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXCAPT02 /* AccessibilityContextCapturer.swift */; };
 		NEARBYTXT01 /* NearbyTextCollector.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEARBYTXT02 /* NearbyTextCollector.swift */; };
+		NEARBYRUL01 /* NearbyTextRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEARBYRUL02 /* NearbyTextRules.swift */; };
 		ELECAXEN01 /* ElectronAccessibilityEnabler.swift in Sources */ = {isa = PBXBuildFile; fileRef = ELECAXEN02 /* ElectronAccessibilityEnabler.swift */; };
 		NEARBYTEST01 /* NearbyTextCollectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = NEARBYTEST02 /* NearbyTextCollectorTests.swift */; };
 		ELECAXTEST01 /* ElectronAccessibilityEnablerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ELECAXTEST02 /* ElectronAccessibilityEnablerTests.swift */; };
@@ -224,6 +225,7 @@
 		ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityFieldExcerpt.swift; sourceTree = "<group>"; };
 		ACCTXCAPT02 /* AccessibilityContextCapturer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextCapturer.swift; sourceTree = "<group>"; };
 		NEARBYTXT02 /* NearbyTextCollector.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NearbyTextCollector.swift; sourceTree = "<group>"; };
+		NEARBYRUL02 /* NearbyTextRules.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NearbyTextRules.swift; sourceTree = "<group>"; };
 		ELECAXEN02 /* ElectronAccessibilityEnabler.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ElectronAccessibilityEnabler.swift; sourceTree = "<group>"; };
 		NEARBYTEST02 /* NearbyTextCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyTextCollectorTests.swift; sourceTree = "<group>"; };
 		ELECAXTEST02 /* ElectronAccessibilityEnablerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ElectronAccessibilityEnablerTests.swift; sourceTree = "<group>"; };
@@ -411,6 +413,7 @@
 				ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */,
 				ACCTXCAPT02 /* AccessibilityContextCapturer.swift */,
 				NEARBYTXT02 /* NearbyTextCollector.swift */,
+				NEARBYRUL02 /* NearbyTextRules.swift */,
 				ELECAXEN02 /* ElectronAccessibilityEnabler.swift */,
 				AXREADER02 /* AXElementReading.swift */,
 				DBGSTORE02 /* DebugArtifactStore.swift */,
@@ -736,6 +739,7 @@
 				ACCTXEXCP01 /* AccessibilityFieldExcerpt.swift in Sources */,
 				ACCTXCAPT01 /* AccessibilityContextCapturer.swift in Sources */,
 				NEARBYTXT01 /* NearbyTextCollector.swift in Sources */,
+				NEARBYRUL01 /* NearbyTextRules.swift in Sources */,
 				ELECAXEN01 /* ElectronAccessibilityEnabler.swift in Sources */,
 				AXREADER01 /* AXElementReading.swift in Sources */,
 				DBGSTORE01 /* DebugArtifactStore.swift in Sources */,

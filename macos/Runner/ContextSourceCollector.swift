@@ -13,6 +13,9 @@ struct CollectedContext {
     let accessibilityContext: AccessibilityContext?
     let accessibilityFallbackReason: AccessibilityContext.UnusableReason?
     let screenshot: ScreenshotCaptureResult
+    /// The Accessibility debug JSON of this run, when the saver is on; the
+    /// model's answer is added to it later.
+    let debugEntry: URL?
 }
 
 /// Runs the Accessibility read and the screenshot for a shortcut run and
@@ -83,12 +86,13 @@ final class ContextSourceCollector {
         let screenshot = await screenshot(
             for: decision,
             mode: screenshotMode,
-            target: screenshotTarget
+            target: screenshotTarget,
+            focusFrame: accessibility.flatMap(Self.fieldFrame)
         )
 
-        if let accessibility = accessibility {
-            _ = accessibilityDebugSaver.saveIfEnabled(
-                result: accessibility,
+        let debugEntry = accessibility.flatMap {
+            accessibilityDebugSaver.saveIfEnabled(
+                result: $0,
                 decision: decision,
                 screenshotTaken: screenshot.attachment != nil
             )
@@ -96,14 +100,39 @@ final class ContextSourceCollector {
         return CollectedContext(
             accessibilityContext: decision.accessibilityContext,
             accessibilityFallbackReason: decision.accessibilityFallbackReason,
-            screenshot: screenshot
+            screenshot: screenshot,
+            debugEntry: debugEntry
         )
+    }
+
+    /// Adds the model's answer to this run's debug JSON.
+    func recordResponse(
+        _ response: AccessibilityContextDebugSaver.Response,
+        in debugEntry: URL?
+    ) {
+        guard let debugEntry = debugEntry else { return }
+        accessibilityDebugSaver.addResponse(response, to: debugEntry)
+    }
+
+    /// Where the field is, unless focus moved before the copy.
+    private static func fieldFrame(
+        _ result: AccessibilityContextResult
+    ) -> CGRect? {
+        switch result {
+        case .usable(let context):
+            return context.fieldFrame
+        case .unusable(.selectionMismatch, _):
+            return nil
+        case .unusable(_, let partial):
+            return partial.fieldFrame
+        }
     }
 
     private func screenshot(
         for decision: ContextSourcePolicy.Decision,
         mode: ScreenshotContextMode,
-        target: ScreenshotTarget
+        target: ScreenshotTarget,
+        focusFrame: CGRect?
     ) async -> ScreenshotCaptureResult {
         guard decision.takesScreenshot else {
             log("Screenshot: skipped/\(decision.screenshotReason.rawValue)")
@@ -115,7 +144,8 @@ final class ContextSourceCollector {
             mode: mode,
             activeBundleId: target.bundleId,
             activeWindowID: target.windowID,
-            cursorLocation: target.cursorLocation
+            cursorLocation: target.cursorLocation,
+            focusFrame: focusFrame
         )
         let elapsed = (ProcessInfo.processInfo.systemUptime - start) * 1_000
         let outcome = result.attachment.map {

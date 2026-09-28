@@ -9,11 +9,45 @@ final class ScreenshotCapturerTests: XCTestCase {
             mode: .off,
             activeBundleId: "com.example.app",
             activeWindowID: 10,
-            cursorLocation: .zero
+            cursorLocation: .zero,
+            focusFrame: nil
         )
 
         XCTAssertNil(result.attachment)
         XCTAssertNil(result.warning)
+    }
+
+    /// A chat composer on the right of a window with a sidebar: the column
+    /// above it, down to just below the field.
+    func testFocusFrameIsTheColumnAboveTheField() {
+        let window = CGRect(x: 0, y: 30, width: 1_600, height: 930)
+        let field = CGRect(x: 600, y: 800, width: 980, height: 60)
+
+        let focus = ScreenshotCaptureSelection.focusFrame(
+            windowFrame: window,
+            fieldFrame: field
+        )
+
+        XCTAssertEqual(focus, CGRect(x: 576, y: 30, width: 1_024, height: 854))
+    }
+
+    func testNarrowFieldGetsTheMinimumWidthInsideTheWindow() {
+        let window = CGRect(x: 0, y: 0, width: 1_000, height: 800)
+        let field = CGRect(x: 850, y: 400, width: 100, height: 30)
+
+        let focus = ScreenshotCaptureSelection.focusFrame(
+            windowFrame: window,
+            fieldFrame: field
+        )
+
+        XCTAssertEqual(focus, CGRect(x: 580, y: 0, width: 420, height: 454))
+    }
+
+    func testFieldOutsideTheWindowHasNoFocusFrame() {
+        XCTAssertNil(ScreenshotCaptureSelection.focusFrame(
+            windowFrame: CGRect(x: 0, y: 0, width: 800, height: 600),
+            fieldFrame: CGRect(x: 900, y: 100, width: 200, height: 30)
+        ))
     }
 
     func testUnsupportedMacOSWarningMessageIsStable() {

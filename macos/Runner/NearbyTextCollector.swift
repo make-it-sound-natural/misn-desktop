@@ -1,47 +1,6 @@
 import ApplicationServices
 import Foundation
 
-enum NearbyTextLimits {
-    /// Shared by every ancestor the walk climbs. Slack's message pane alone
-    /// is about 290 nodes, and the empty levels below it cost a few dozen.
-    static let nodeBudget = 500
-    static let deadline: TimeInterval = 0.15
-    /// In UTF-16 units, like every cap on text read from another app.
-    static let textLength = 3_000
-    /// The climb goes on until it has this much text, so a short label next
-    /// to the field does not stand in for the thread above it.
-    static let climbTextLength = 1_000
-}
-
-/// Which elements the nearby text walk skips.
-private enum NearbyTextRoles {
-    /// Chrome and navigation around the content, never message text. Applies
-    /// below the ancestors only: a field inside a tab group still gets the
-    /// rest of that tab's content.
-    static let skippedRoles: Set<String> = [
-        kAXToolbarRole,
-        kAXMenuBarRole,
-        kAXMenuRole,
-        kAXTabGroupRole,
-        kAXOutlineRole,
-        kAXButtonRole,
-        kAXScrollBarRole
-    ]
-
-    /// Sidebar lists: AppKit source lists and web navigation landmarks.
-    static let skippedSubroles: Set<String> = [
-        "AXSourceList",
-        "AXLandmarkNavigation"
-    ]
-
-    /// Containers whose subrole can mark a sidebar; only these pay for the
-    /// extra subrole read.
-    static let subroleCheckedRoles: Set<String> = [
-        kAXGroupRole,
-        kAXListRole
-    ]
-}
-
 /// Collects text shown above the focused field, such as the thread above a
 /// chat composer. Climbs the field's ancestors one at a time, walking each
 /// one's subtree within a shared node budget and deadline, and keeps static
@@ -76,10 +35,11 @@ final class NearbyTextCollector<Reader: AXElementReading> {
     /// first, and keeps what it found so far.
     func collect(
         around field: Reader.Element,
+        frame: Result<CGRect, AXReadError>,
         until deadline: TimeInterval
     ) -> (text: String, walk: NearbyTextWalk) {
         let fieldFrame: CGRect
-        switch reader.frame(of: field) {
+        switch frame {
         case .success(let frame) where !frame.isEmpty:
             fieldFrame = frame
         case .success, .failure(.unavailable):
@@ -144,6 +104,15 @@ private extension NearbyTextCollector {
         /// Visit order. The walk goes last child first, so this is reverse
         /// document order.
         let order: Int
+        let parent: Reader.Element
+        let isAuthor: Bool
+    }
+
+    /// A node to visit and where it sits among its siblings.
+    struct Entry {
+        let node: Reader.Element
+        let parent: Reader.Element
+        let isFirstChild: Bool
     }
 
     struct Walk {
@@ -157,7 +126,7 @@ private extension NearbyTextCollector {
     enum Visit {
         case descend
         case skip
-        case keep(String, distance: CGFloat)
+        case keep(String, distance: CGFloat, isAuthor: Bool)
     }
 
     static var webAreaRole: String { "AXWebArea" }
@@ -170,9 +139,11 @@ private extension NearbyTextCollector {
         into walk: inout Walk
     ) {
         // One more than the budget: the walked branch may be among them.
-        var stack = children(of: ancestor, walk: &walk, extra: 1)
-            .filter { $0 != walked }
-        while walk.stats.cutoff == nil, let node = stack.popLast() {
+        var stack = entries(
+            children(of: ancestor, walk: &walk, extra: 1),
+            of: ancestor
+        ).filter { $0.node != walked }
+        while walk.stats.cutoff == nil, let entry = stack.popLast() {
             if now() >= walk.deadline {
                 walk.stats.cutoff = .deadline
                 return
@@ -184,16 +155,21 @@ private extension NearbyTextCollector {
             walk.stats.nodesVisited += 1
 
             do {
-                switch try visit(node, field: walk.field) {
+                switch try visit(entry, field: walk.field) {
                 case .skip:
                     continue
                 case .descend:
-                    stack.append(contentsOf: children(of: node, walk: &walk))
-                case let .keep(text, distance):
+                    stack.append(contentsOf: entries(
+                        children(of: entry.node, walk: &walk),
+                        of: entry.node
+                    ))
+                case let .keep(text, distance, isAuthor):
                     walk.candidates.append(Candidate(
                         text: text,
                         distance: distance,
-                        order: walk.candidates.count
+                        order: walk.candidates.count,
+                        parent: entry.parent,
+                        isAuthor: isAuthor
                     ))
                     walk.textLength += text.utf16.count
                 }
@@ -204,16 +180,30 @@ private extension NearbyTextCollector {
         }
     }
 
-    func visit(_ node: Reader.Element, field: CGRect) throws -> Visit {
+    func entries(
+        _ nodes: [Reader.Element],
+        of parent: Reader.Element
+    ) -> [Entry] {
+        nodes.enumerated().map { index, node in
+            Entry(node: node, parent: parent, isFirstChild: index == 0)
+        }
+    }
+
+    func visit(_ entry: Entry, field: CGRect) throws -> Visit {
+        let node = entry.node
         touch(node)
         let role = try optional(reader.string(kAXRoleAttribute, of: node))
         if let role = role, try isSkipped(node, role: role) {
             return .skip
         }
+        // Slack shows a message's author as a button, the first thing in the
+        // group that holds the message. Other buttons are actions.
+        if role == kAXButtonRole, !entry.isFirstChild { return .skip }
         let frame = try optional(reader.frame(of: node))
 
         switch role {
-        case kAXStaticTextRole?, kAXHeadingRole?, kAXTextAreaRole?:
+        case kAXStaticTextRole?, kAXHeadingRole?, kAXTextAreaRole?,
+             kAXButtonRole?:
             // A line of text may report no height; it still has a place.
             // One with no width is text hidden for screen readers.
             guard let frame = frame, frame.width > 1,
@@ -223,7 +213,11 @@ private extension NearbyTextCollector {
                 return .skip
             }
             if let text = try text(of: node, role: role) {
-                return .keep(text, distance: field.minY - frame.maxY)
+                return .keep(
+                    text,
+                    distance: field.minY - frame.maxY,
+                    isAuthor: role == kAXButtonRole
+                )
             }
             // A web heading keeps its text in static text children.
             return role == kAXHeadingRole ? .descend : .skip
@@ -254,6 +248,11 @@ private extension NearbyTextCollector {
     func text(of node: Reader.Element, role: String?) throws -> String? {
         if role == kAXTextAreaRole {
             return try tail(of: node).flatMap(Self.clean)
+        }
+        if role == kAXButtonRole {
+            // An icon button has only a description; an author has a title.
+            return try optional(reader.string(kAXTitleAttribute, of: node))
+                .flatMap(Self.clean)
         }
         // Telegram keeps a message in the title, WhatsApp in the
         // description, both with an empty value.
@@ -347,7 +346,14 @@ private extension NearbyTextCollector {
     static func assemble(
         _ walk: inout Walk
     ) -> (text: String, walk: NearbyTextWalk) {
-        let closestFirst = walk.candidates.sorted {
+        // A first button counts as an author only next to message text; a
+        // lone "Download all" is not one.
+        let textParents = Set(
+            walk.candidates.filter { !$0.isAuthor }.map(\.parent)
+        )
+        let closestFirst = walk.candidates.filter {
+            !$0.isAuthor || textParents.contains($0.parent)
+        }.sorted {
             ($0.distance, $0.order) < ($1.distance, $1.order)
         }
         var kept: [Candidate] = []
@@ -363,7 +369,9 @@ private extension NearbyTextCollector {
             kept.append(Candidate(
                 text: text,
                 distance: candidate.distance,
-                order: candidate.order
+                order: candidate.order,
+                parent: candidate.parent,
+                isAuthor: candidate.isAuthor
             ))
             length += separator + text.utf16.count
             if text != candidate.text {

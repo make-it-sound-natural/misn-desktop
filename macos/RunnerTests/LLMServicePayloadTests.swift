@@ -68,7 +68,7 @@ final class LLMServicePayloadTests: XCTestCase {
         XCTAssertEqual(
             lines[3],
             "Screenshot context attached to LLM request: yes, " +
-            "mime=image/jpeg, base64Length=6, detail=low"
+            "mime=image/jpeg, base64Length=6, detail=high"
         )
     }
 
@@ -159,7 +159,7 @@ final class LLMServicePayloadTests: XCTestCase {
             imageURL["url"] as? String,
             "data:image/jpeg;base64,abc123"
         )
-        XCTAssertEqual(imageURL["detail"] as? String, "low")
+        XCTAssertEqual(imageURL["detail"] as? String, "high")
     }
 
     func testOpenRouterCustomSlugImagePayloadUsesMultimodalContent() throws {

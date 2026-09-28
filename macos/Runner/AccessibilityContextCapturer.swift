@@ -38,6 +38,9 @@ enum AccessibilityContextLimits {
     static let fieldLabelLength = 200
     static let textBeforeSelectionLength = 1_500
     static let textAfterSelectionLength = 500
+    /// A field whose range cannot be used is read whole up to this length. A
+    /// chat composer fits; a document or a terminal buffer does not.
+    static let wholeValueLength = 5_000
 }
 
 final class AccessibilityContextCapturer<Reader: AXElementReading>:
@@ -127,12 +130,14 @@ private extension AccessibilityContextCapturer {
         stepStart = now()
         context.windowTitle = try windowTitle(of: app)
         context.fieldLabel = try label(of: field)
+        let fieldFrame = reader.frame(of: field)
+        context.fieldFrame = try? fieldFrame.get()
         context.timings.metadata = milliseconds(since: stepStart)
 
         stepStart = now()
         let fieldExcerpt: Result<AccessibilityFieldExcerpt, Reason>
         do throws(Reason) {
-            fieldExcerpt = .success(try excerpt(of: field))
+            fieldExcerpt = .success(try excerpt(of: field, into: &context))
         } catch .rangeUnavailable {
             // A composer without a range can still have a thread above it.
             fieldExcerpt = .failure(.rangeUnavailable)
@@ -143,6 +148,7 @@ private extension AccessibilityContextCapturer {
             stepStart = now()
             (context.nearbyText, context.nearbyWalk) = nearbyText.collect(
                 around: field,
+                frame: fieldFrame,
                 until: nearbyDeadline
             )
             context.timings.nearby = milliseconds(since: stepStart)
@@ -230,20 +236,44 @@ private extension AccessibilityContextCapturer {
         return nil
     }
 
-    /// Reads a bounded window around the selection. Never reads `kAXValue`:
-    /// a terminal or a long document would return all of its text.
+    /// Reads a bounded window around the selection. Reads `kAXValue` only
+    /// when the range is unusable and the field is short: a terminal or a
+    /// long document would return all of its text.
     func excerpt(
-        of field: Reader.Element
+        of field: Reader.Element,
+        into context: inout AccessibilityContext
     ) throws(Reason) -> AccessibilityFieldExcerpt {
-        guard let count = try optional(
-                reader.integer(kAXNumberOfCharactersAttribute, of: field)
-              ),
-              let selection = try optional(
-                reader.range(kAXSelectedTextRangeAttribute, of: field)
-              ),
-              selection.location >= 0, selection.length >= 0,
+        let count = try optional(
+            reader.integer(kAXNumberOfCharactersAttribute, of: field)
+        )
+        let selection = try optional(
+            reader.range(kAXSelectedTextRangeAttribute, of: field)
+        )
+        context.fieldCharacterCount = count
+        context.fieldSelection = selection.map {
+            NSRange(location: $0.location, length: $0.length)
+        }
+        if let count = count, let selection = selection,
+           let excerpt = try windowExcerpt(
+            of: field,
+            count: count,
+            selection: selection
+           ) {
+            return excerpt
+        }
+        let excerpt = try wholeValueExcerpt(of: field, count: count)
+        context.fieldReadWhole = true
+        return excerpt
+    }
+
+    func windowExcerpt(
+        of field: Reader.Element,
+        count: Int,
+        selection: CFRange
+    ) throws(Reason) -> AccessibilityFieldExcerpt? {
+        guard selection.location >= 0, selection.length >= 0,
               selection.location + selection.length <= count else {
-            throw Reason.rangeUnavailable
+            return nil
         }
 
         let selectionEnd = selection.location + selection.length
@@ -261,7 +291,7 @@ private extension AccessibilityContextCapturer {
         )
         guard let text = try optional(reader.string(for: window, of: field))
         else {
-            throw Reason.rangeUnavailable
+            return nil
         }
 
         return AccessibilityFieldExcerpt(
@@ -269,6 +299,27 @@ private extension AccessibilityContextCapturer {
             selection: NSRange(location: beforeLength, length: selection.length),
             startsAtFieldStart: window.location == 0,
             endsAtFieldEnd: selectionEnd + afterLength == count
+        )
+    }
+
+    /// Slack's composer reports no usable range in some states. It is short,
+    /// so its whole value is read and the copied text is found in it later.
+    func wholeValueExcerpt(
+        of field: Reader.Element,
+        count: Int?
+    ) throws(Reason) -> AccessibilityFieldExcerpt {
+        guard count.map({ $0 <= Limits.wholeValueLength }) ?? true,
+              let value = try optional(
+                reader.string(kAXValueAttribute, of: field)
+              ),
+              value.utf16.count <= Limits.wholeValueLength else {
+            throw Reason.rangeUnavailable
+        }
+        return AccessibilityFieldExcerpt(
+            text: value,
+            selection: nil,
+            startsAtFieldStart: true,
+            endsAtFieldEnd: true
         )
     }
 

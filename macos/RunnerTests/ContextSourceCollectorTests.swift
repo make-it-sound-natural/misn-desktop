@@ -52,6 +52,7 @@ private final class FakeAccessibilityContextCapturer:
 
 private final class FakeScreenshotCapturer: ScreenshotCapturing {
     private(set) var modes: [ScreenshotContextMode] = []
+    private(set) var focusFrames: [CGRect?] = []
     let attachment = LLMService.ScreenshotAttachment(
         mimeType: "image/jpeg",
         base64Data: "c2NyZWVu"
@@ -61,9 +62,11 @@ private final class FakeScreenshotCapturer: ScreenshotCapturing {
         mode: ScreenshotContextMode,
         activeBundleId: String?,
         activeWindowID: CGWindowID?,
-        cursorLocation: NSPoint?
+        cursorLocation: NSPoint?,
+        focusFrame: CGRect?
     ) async -> ScreenshotCaptureResult {
         modes.append(mode)
+        focusFrames.append(focusFrame)
         return ScreenshotCaptureResult(attachment: attachment, warning: nil)
     }
 }
@@ -108,6 +111,7 @@ final class ContextSourceCollectorTests: XCTestCase {
             bundleId: "com.apple.mail"
         )
         context.nearbyText = nearbyText
+        context.fieldFrame = CGRect(x: 600, y: 800, width: 900, height: 40)
         let excerpt = AccessibilityFieldExcerpt(
             text: "Hi Anna, the draft is ready. Thanks",
             selection: NSRange(location: 9, length: 19),
@@ -170,6 +174,10 @@ final class ContextSourceCollectorTests: XCTestCase {
         )
 
         XCTAssertEqual(screenshot.modes, [.activeApplication])
+        XCTAssertEqual(
+            screenshot.focusFrames,
+            [CGRect(x: 600, y: 800, width: 900, height: 40)]
+        )
         XCTAssertNotNil(collected.screenshot.attachment)
         XCTAssertEqual(
             collected.accessibilityContext?.nearbyText,

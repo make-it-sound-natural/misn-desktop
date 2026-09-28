@@ -36,6 +36,27 @@ enum ScreenshotCaptureSizing {
 }
 
 enum ScreenshotCaptureSelection {
+    /// The column of the window the field sits in, from the window's top to
+    /// just below the field. In a chat that is the thread and the composer,
+    /// without the sidebar. Nil when the field is outside the window.
+    static func focusFrame(
+        windowFrame: CGRect,
+        fieldFrame: CGRect,
+        minimumWidth: CGFloat = 640,
+        margin: CGFloat = 24
+    ) -> CGRect? {
+        guard windowFrame.intersects(fieldFrame) else { return nil }
+        let width = max(fieldFrame.width + 2 * margin, minimumWidth)
+        let column = CGRect(
+            x: fieldFrame.midX - width / 2,
+            y: windowFrame.minY,
+            width: width,
+            height: fieldFrame.maxY + margin - windowFrame.minY
+        )
+        let cropped = column.intersection(windowFrame)
+        return cropped.isEmpty ? nil : cropped
+    }
+
     static func visibleSourceRect(
         windowFrame: CGRect,
         displayFrame: CGRect,

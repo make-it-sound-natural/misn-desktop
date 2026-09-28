@@ -367,6 +367,7 @@ final class NearbyTextCollectorTests: XCTestCase {
     func testFieldWithoutRangeStillCollectsNearbyText() {
         layout(staticText("Anna: ready?", y: 600))
         field.ranges[kAXSelectedTextRangeAttribute] = nil
+        field.strings[kAXValueAttribute] = nil
 
         let result = capture().resolve(copiedText: "looks")
 
@@ -384,6 +385,50 @@ final class NearbyTextCollectorTests: XCTestCase {
             staticText("Anna: ready?", y: 500),
             staticText(zalgo, y: 600)
         )
+
+        let context = usableContext()
+
+        XCTAssertEqual(context.nearbyText, "Anna: ready?")
+    }
+
+    // MARK: - Authors
+
+    /// Slack: the author is a button, first in the group that holds the
+    /// message. A lone button and a button after the text are actions.
+    func testAuthorButtonBeforeMessageTextIsKept() {
+        let message = FakeAXNode(
+            "message",
+            role: kAXGroupRole,
+            frame: CGRect(x: 250, y: 500, width: 900, height: 60)
+        ).add(
+            button("Anna", y: 500),
+            staticText("can someone review the mockups?", y: 520),
+            button("React", y: 540)
+        )
+        let files = FakeAXNode(
+            "files",
+            role: kAXGroupRole,
+            frame: CGRect(x: 250, y: 600, width: 900, height: 30)
+        ).add(button("Download all", y: 600))
+        layout(message, files)
+
+        let context = usableContext()
+
+        XCTAssertEqual(
+            context.nearbyText,
+            "Anna\ncan someone review the mockups?"
+        )
+    }
+
+    func testIconButtonWithoutTitleIsSkipped() {
+        let icon = button("", y: 500)
+        icon.strings[kAXDescriptionAttribute] = "More actions"
+        let message = FakeAXNode(
+            "message",
+            role: kAXGroupRole,
+            frame: CGRect(x: 250, y: 500, width: 900, height: 60)
+        ).add(icon, staticText("Anna: ready?", y: 520))
+        layout(message)
 
         let context = usableContext()
 
@@ -849,6 +894,17 @@ final class NearbyTextCollectorTests: XCTestCase {
     }
 
     private var textCount = 0
+
+    private func button(_ title: String, y: CGFloat) -> FakeAXNode {
+        textCount += 1
+        let node = FakeAXNode(
+            "button\(textCount)",
+            role: kAXButtonRole,
+            frame: CGRect(x: 260, y: y, width: 200, height: 20)
+        )
+        node.strings[kAXTitleAttribute] = title
+        return node
+    }
 
     private func staticText(
         _ value: String,

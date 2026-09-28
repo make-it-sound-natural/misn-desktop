@@ -352,7 +352,8 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                         selectedText: selectedText,
                         defaultVariant: defaultVariant,
                         config: config,
-                        previousClipboard: captureResult.previousContent
+                        previousClipboard: captureResult.previousContent,
+                        debugEntry: collected.debugEntry
                     )
                 }
             }
@@ -363,7 +364,8 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
         selectedText: String,
         defaultVariant: String,
         config: LLMService.Configuration,
-        previousClipboard: String?
+        previousClipboard: String?,
+        debugEntry: URL?
     ) {
         shortcutLlmInvocationActive = true
         lastShortcutLlmError = nil
@@ -374,6 +376,16 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
 
             guard let fullContent = fullContent else {
                 let message = savedError ?? "Request failed. Try again."
+                self.contextCollector.recordResponse(
+                    .init(
+                        selectedText: selectedText,
+                        model: config.model,
+                        fullContent: nil,
+                        selectedVariant: nil,
+                        error: message
+                    ),
+                    in: debugEntry
+                )
                 self.handleLlmFailure(
                     previousClipboard: previousClipboard,
                     message: message
@@ -384,6 +396,16 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
             let variant = self.llmService.extractVariant(
                 from: fullContent,
                 variant: defaultVariant
+            )
+            self.contextCollector.recordResponse(
+                .init(
+                    selectedText: selectedText,
+                    model: config.model,
+                    fullContent: fullContent,
+                    selectedVariant: variant,
+                    error: nil
+                ),
+                in: debugEntry
             )
 
             let processingContext = VariantHandler.ProcessingContext(

@@ -57,6 +57,15 @@ struct AccessibilityContext: Equatable {
     var windowTitle: String?
     /// Placeholder, description, title or linked title element of the field.
     var fieldLabel: String?
+    /// Screen coordinates, origin at the top left. Crops the screenshot to
+    /// the part of the window the field belongs to.
+    var fieldFrame: CGRect?
+    /// What the field reported, for the debug saver: why a range was
+    /// unusable is otherwise invisible.
+    var fieldCharacterCount: Int?
+    var fieldSelection: NSRange?
+    /// The range was unusable, so the field's whole value was read.
+    var fieldReadWhole = false
     var textBeforeSelection = ""
     var textAfterSelection = ""
     /// Text shown above the field, `fieldAndNearby` mode only.

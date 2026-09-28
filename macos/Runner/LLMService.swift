@@ -388,6 +388,10 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
         return payload
     }
 
+    /// Low detail shrinks the image to 512 px, and the text in a window
+    /// becomes unreadable.
+    static let screenshotDetail = "high"
+
     private func userMessageContent(
         text: String,
         screenshotAttachment: ScreenshotAttachment?
@@ -402,7 +406,7 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
                 "type": "image_url",
                 "image_url": [
                     "url": screenshotAttachment.dataURL,
-                    "detail": "low"
+                    "detail": Self.screenshotDetail
                 ]
             ]
         ]
@@ -428,10 +432,13 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
 
 
 Screenshot context:
-The screenshot is context only. Use it to understand surrounding UI,
-conversation, document, or product state. Rewrite only the selected text.
+The screenshot is context only: the app window, or the part of it around the
+field the user is typing in. Use it to see who wrote what and what the
+conversation, document, or product state is. Rewrite only the selected text.
 Do not describe the screenshot. Do not add new facts from the screenshot unless
-they are needed to preserve the selected text's intended meaning.
+they are needed to preserve the selected text's intended meaning. When
+app_context is also present, it is the exact text; if the two disagree, trust
+app_context.
 """
     }
 

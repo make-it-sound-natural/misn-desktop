@@ -170,6 +170,71 @@ final class AccessibilityContextDebugSaverTests: XCTestCase {
         XCTAssertEqual(screenshot["reason"] as? String, "accessibilityUnusable")
     }
 
+    func testResponseIsAddedToTheSavedRun() throws {
+        let saver = AccessibilityContextDebugSaver(
+            environment: enabled,
+            outputDirectory: makeDirectory()
+        )
+        var context = usableContext()
+        context.fieldCharacterCount = 42
+        context.fieldSelection = NSRange(location: 9, length: 6)
+        context.fieldFrame = CGRect(x: 10, y: 700, width: 800, height: 40)
+        let url = try XCTUnwrap(save(saver, .usable(context), screenshotMode: .off))
+
+        saver.addResponse(
+            .init(
+                selectedText: "review",
+                model: "gpt-5-mini",
+                fullContent: "{\"balanced\":\"check\"}",
+                selectedVariant: "check",
+                error: nil
+            ),
+            to: url
+        )
+
+        let entry = try json(at: url)
+        let field = try XCTUnwrap(entry["field"] as? [String: Any])
+        XCTAssertEqual(field["characterCount"] as? Int, 42)
+        XCTAssertEqual(field["selectedRange"] as? [Int], [9, 6])
+        XCTAssertEqual(field["readWhole"] as? Bool, false)
+        XCTAssertEqual(field["frame"] as? [Double], [10, 700, 800, 40])
+        let response = try XCTUnwrap(entry["response"] as? [String: Any])
+        XCTAssertEqual(response["selectedText"] as? String, "review")
+        XCTAssertEqual(response["model"] as? String, "gpt-5-mini")
+        XCTAssertEqual(response["selectedVariant"] as? String, "check")
+        XCTAssertNil(response["error"])
+        XCTAssertNotNil(entry["appContext"])
+    }
+
+    func testResponseForAnOlderRunIsDropped() throws {
+        var clock = Date(timeIntervalSince1970: 1_700_000_000)
+        let saver = AccessibilityContextDebugSaver(
+            environment: enabled,
+            outputDirectory: makeDirectory(),
+            now: {
+                clock.addTimeInterval(1)
+                return clock
+            }
+        )
+        let first = try XCTUnwrap(
+            save(saver, .usable(usableContext()), screenshotMode: .off)
+        )
+        _ = save(saver, .usable(usableContext()), screenshotMode: .off)
+
+        saver.addResponse(
+            .init(
+                selectedText: "review",
+                model: "gpt-5-mini",
+                fullContent: nil,
+                selectedVariant: nil,
+                error: "timeout"
+            ),
+            to: first
+        )
+
+        XCTAssertNil(try json(at: first)["response"])
+    }
+
     /// The whole message selected: no field text, but the source is sent.
     func testUnusableRunThatKeepsItsSourceRecordsTheSentBlock() throws {
         var partial = AccessibilityContext(

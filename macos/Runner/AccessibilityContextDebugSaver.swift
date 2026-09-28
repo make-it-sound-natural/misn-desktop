@@ -4,8 +4,22 @@ import Foundation
 /// Accessibility read produced and what happened to the screenshot. Lets the
 /// per-app coverage be checked without printing user text to the console.
 final class AccessibilityContextDebugSaver {
+    /// What the model made of the run, added once the request finishes.
+    struct Response: Encodable, Equatable {
+        let selectedText: String
+        let model: String
+        /// The raw answer with every variant; nil when the request failed.
+        let fullContent: String?
+        let selectedVariant: String?
+        let error: String?
+    }
+
     private let environment: [String: String]
     private let store: DebugArtifactStore
+    private let lock = NSLock()
+    /// The last entry written, so its response can be added without reading
+    /// the file back.
+    private var lastEntry: (url: URL, entry: AccessibilityContextDebugEntry)?
 
     init(
         environment: [String: String] = ProcessInfo.processInfo.environment,
@@ -52,6 +66,9 @@ final class AccessibilityContextDebugSaver {
                 try Self.encoder.encode(entry),
                 nameSuffix: "\(entry.mode).json"
             )
+            lock.lock()
+            lastEntry = (fileURL, entry)
+            lock.unlock()
             debugLog("Accessibility context debug saved: \(fileURL.path)")
             return fileURL
         } catch {
@@ -60,6 +77,26 @@ final class AccessibilityContextDebugSaver {
         }
         #else
         return nil
+        #endif
+    }
+
+    /// Rewrites the entry at `url` with the model's response. Does nothing
+    /// when another run has been saved since.
+    func addResponse(_ response: Response, to url: URL) {
+        #if DEBUG
+        lock.lock()
+        guard var saved = lastEntry, saved.url == url else {
+            lock.unlock()
+            return
+        }
+        saved.entry.response = response
+        lastEntry = saved
+        lock.unlock()
+        do {
+            try Self.encoder.encode(saved.entry).write(to: url)
+        } catch {
+            debugLog("Accessibility context response save failed: \(error)")
+        }
         #endif
     }
 
@@ -107,6 +144,28 @@ private struct AccessibilityContextDebugEntry: Encodable {
         let reason: String
     }
 
+    /// What the field reported, to tell why its range was unusable.
+    struct Field: Encodable {
+        let characterCount: Int?
+        /// `[location, length]` in UTF-16 units.
+        let selectedRange: [Int]?
+        /// The range was unusable and the whole value was read instead.
+        let readWhole: Bool
+        /// `[x, y, width, height]` in screen points, origin top left.
+        let frame: [Double]?
+
+        init(_ context: AccessibilityContext) {
+            characterCount = context.fieldCharacterCount
+            selectedRange = context.fieldSelection.map {
+                [$0.location, $0.length]
+            }
+            readWhole = context.fieldReadWhole
+            frame = context.fieldFrame.map {
+                [$0.minX, $0.minY, $0.width, $0.height].map(Double.init)
+            }
+        }
+    }
+
     let app: String?
     let bundleId: String?
     let role: String?
@@ -121,9 +180,12 @@ private struct AccessibilityContextDebugEntry: Encodable {
     let requestedManualAccessibility: Bool
     let screenshot: Screenshot
     let parts: Parts
+    let field: Field
     /// The exact `<app_context>` block sent to the LLM. Absent when nothing
     /// was sent.
     let appContext: String?
+    /// Added when the request finishes.
+    var response: AccessibilityContextDebugSaver.Response?
 
     init(
         result: AccessibilityContextResult,
@@ -164,6 +226,7 @@ private struct AccessibilityContextDebugEntry: Encodable {
             )
         }
         requestedManualAccessibility = context.requestedManualAccessibility
+        field = Field(context)
         screenshot = Screenshot(
             taken: screenshotTaken,
             reason: decision.screenshotReason.rawValue
