@@ -163,7 +163,7 @@
   "screenshotContextEnableMessage": "截图会发送给所选 AI 提供商，可能包含可见的敏感内容。",
   "screenshotContextEnableConfirm": "启用",
   "accessibilityContext": "应用上下文",
-  "accessibilityContextHelper": "使用快捷键改写时发送你正在输入的 App 中的文本。可能包含敏感内容。",
+  "accessibilityContextHelper": "使用快捷键改写时发送你正在输入的应用中的文本。可能包含敏感内容。",
   "accessibilityContextOff": "关闭",
   "accessibilityContextField": "输入框文本",
   "accessibilityContextFieldAndNearby": "输入框及附近文本",

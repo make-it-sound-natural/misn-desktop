@@ -278,7 +278,7 @@
   "@onboardingAccessibilityCheckAgain": {
     "description": "Button to recheck Accessibility permission status"
   },
-  "onboardingScreenshotTitle": "سياق التطبيق ولقطة الشاشة",
+  "onboardingScreenshotTitle": "سياق التطبيق وسياق لقطة الشاشة",
   "@onboardingScreenshotTitle": {
     "description": "Onboarding Screenshot context step title"
   },
