@@ -468,6 +468,34 @@ final class NearbyTextCollectorTests: XCTestCase {
         )
     }
 
+    /// A short reply in a Slack thread: the name button, then the timestamp
+    /// link and the message text, each in a group of its own.
+    func testAuthorBeforeTextInANestedGroupIsKept() {
+        let time = FakeAXNode(
+            "time",
+            role: "AXLink",
+            frame: CGRect(x: 470, y: 500, width: 80, height: 20)
+        ).add(staticText("Just now", x: 470, y: 500, width: 80, height: 20))
+        let body = FakeAXNode(
+            "body",
+            role: kAXGroupRole,
+            frame: CGRect(x: 250, y: 520, width: 900, height: 40)
+        ).add(staticText("is there a skill for it?", y: 520))
+        let message = FakeAXNode(
+            "message",
+            role: kAXGroupRole,
+            frame: CGRect(x: 250, y: 500, width: 900, height: 60)
+        ).add(button("Ivan", y: 500), time, body)
+        layout(message)
+
+        let context = usableContext()
+
+        XCTAssertEqual(
+            context.nearbyText,
+            "Ivan\nJust now\nis there a skill for it?"
+        )
+    }
+
     func testIconButtonWithoutTitleIsSkipped() {
         let icon = button("", y: 500)
         icon.strings[kAXDescriptionAttribute] = "More actions"

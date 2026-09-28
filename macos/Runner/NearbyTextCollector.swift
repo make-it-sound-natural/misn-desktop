@@ -104,14 +104,16 @@ private extension NearbyTextCollector {
         /// Visit order. The walk goes last child first, so this is reverse
         /// document order.
         let order: Int
-        let parent: Reader.Element
+        /// An author's parent; a text's parent and grandparent, as Slack
+        /// wraps a short reply in a group below the author button.
+        let containers: [Reader.Element]
         let isAuthor: Bool
     }
 
-    /// A node to visit and the container it sits in.
     struct Entry {
         let node: Reader.Element
         let parent: Reader.Element
+        let grandparent: Reader.Element?
     }
 
     struct Walk {
@@ -120,9 +122,9 @@ private extension NearbyTextCollector {
         var stats = NearbyTextWalk()
         var candidates: [Candidate] = []
         var textLength = 0
-        /// Containers with kept text. The walk goes last child first, so a
-        /// button visited in one of them comes before that text.
-        var textParents: Set<Reader.Element> = []
+        /// Parents and grandparents of kept text. The walk goes last child
+        /// first, so a button visited in one of them comes before that text.
+        var textContainers: Set<Reader.Element> = []
     }
 
     enum Visit {
@@ -163,18 +165,21 @@ private extension NearbyTextCollector {
                 case .descend:
                     stack.append(contentsOf: entries(
                         children(of: entry.node, walk: &walk),
-                        of: entry.node
+                        of: entry.node,
+                        grandparent: entry.parent
                     ))
                 case let .keep(text, distance, isAuthor):
+                    let containers = isAuthor ? [entry.parent]
+                        : [entry.parent] + [entry.grandparent].compactMap { $0 }
                     walk.candidates.append(Candidate(
                         text: text,
                         distance: distance,
                         order: walk.candidates.count,
-                        parent: entry.parent,
+                        containers: containers,
                         isAuthor: isAuthor
                     ))
                     walk.textLength += text.utf16.count
-                    if !isAuthor { walk.textParents.insert(entry.parent) }
+                    if !isAuthor { walk.textContainers.formUnion(containers) }
                 }
             } catch {
                 walk.stats.cutoff = .readFailed
@@ -185,9 +190,10 @@ private extension NearbyTextCollector {
 
     func entries(
         _ nodes: [Reader.Element],
-        of parent: Reader.Element
+        of parent: Reader.Element,
+        grandparent: Reader.Element? = nil
     ) -> [Entry] {
-        nodes.map { Entry(node: $0, parent: parent) }
+        nodes.map { Entry(node: $0, parent: parent, grandparent: grandparent) }
     }
 
     func visit(_ entry: Entry, in walk: Walk) throws -> Visit {
@@ -199,9 +205,9 @@ private extension NearbyTextCollector {
             return .skip
         }
         // Chat apps can show a message's author as a button (Slack opens
-        // the profile). Only a button followed by message text in the same
+        // the profile). Only a button followed by message text in its
         // container can be one; the rest are actions, skipped after one read.
-        if role == kAXButtonRole, !walk.textParents.contains(entry.parent) {
+        if role == kAXButtonRole, !walk.textContainers.contains(entry.parent) {
             return .skip
         }
         let frame = try optional(reader.frame(of: node))
@@ -336,17 +342,20 @@ private extension NearbyTextCollector {
         // Visit order is reverse document order: larger means earlier.
         var firstText: [Reader.Element: Int] = [:]
         for candidate in candidates where !candidate.isAuthor {
-            firstText[candidate.parent] = max(
-                firstText[candidate.parent] ?? candidate.order,
-                candidate.order
-            )
+            for container in candidate.containers {
+                firstText[container] = max(
+                    firstText[container] ?? candidate.order,
+                    candidate.order
+                )
+            }
         }
         var authors: [Reader.Element: Int] = [:]
         for candidate in candidates where candidate.isAuthor {
-            guard let text = firstText[candidate.parent],
+            let parent = candidate.containers[0]
+            guard let text = firstText[parent],
                   candidate.order > text else { continue }
-            authors[candidate.parent] = max(
-                authors[candidate.parent] ?? candidate.order,
+            authors[parent] = max(
+                authors[parent] ?? candidate.order,
                 candidate.order
             )
         }
@@ -360,11 +369,11 @@ private extension NearbyTextCollector {
     ) -> (text: String, walk: NearbyTextWalk) {
         let authors = authorOrders(walk.candidates)
         let closestFirst = walk.candidates.filter {
-            !$0.isAuthor || authors[$0.parent] == $0.order
+            !$0.isAuthor || authors[$0.containers[0]] == $0.order
         }.sorted {
             ($0.distance, $0.order) < ($1.distance, $1.order)
         }
-        var kept: [Candidate] = []
+        var kept: [(text: String, order: Int)] = []
         var length = 0
         for candidate in closestFirst {
             let separator = kept.isEmpty ? 0 : 1
@@ -374,13 +383,7 @@ private extension NearbyTextCollector {
                 walk.stats.cutoff = walk.stats.cutoff ?? .textLength
                 break
             }
-            kept.append(Candidate(
-                text: text,
-                distance: candidate.distance,
-                order: candidate.order,
-                parent: candidate.parent,
-                isAuthor: candidate.isAuthor
-            ))
+            kept.append((text, candidate.order))
             length += separator + text.utf16.count
             if text != candidate.text {
                 walk.stats.cutoff = walk.stats.cutoff ?? .textLength

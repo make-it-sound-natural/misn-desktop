@@ -57,6 +57,27 @@ enum ScreenshotCaptureSelection {
         return cropped.isEmpty ? nil : cropped
     }
 
+    /// What an active window capture takes, and the display it is taken
+    /// from: the column around the field when there is one, else the whole
+    /// window. The display follows the captured area, not the window: a
+    /// window across two displays can have its field on the smaller part.
+    static func capturedArea(
+        windowFrame: CGRect,
+        fieldFrame: CGRect?,
+        screenDisplays: [ScreenshotDisplayCandidate],
+        fallbackDisplayID: CGDirectDisplayID?
+    ) -> (frame: CGRect, displayID: CGDirectDisplayID?) {
+        let frame = fieldFrame.flatMap {
+            focusFrame(windowFrame: windowFrame, fieldFrame: $0)
+        } ?? windowFrame
+        let displayID = selectedDisplayID(
+            windowFrame: frame,
+            screenDisplays: screenDisplays,
+            fallbackDisplayID: fallbackDisplayID
+        )
+        return (frame, displayID)
+    }
+
     static func visibleSourceRect(
         windowFrame: CGRect,
         displayFrame: CGRect,

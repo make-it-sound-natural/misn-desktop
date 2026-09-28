@@ -43,6 +43,45 @@ final class ScreenshotCapturerTests: XCTestCase {
         XCTAssertEqual(focus, CGRect(x: 580, y: 0, width: 420, height: 454))
     }
 
+    /// Most of the window is on the right display, the field on the left
+    /// one: the crop is taken from the left display, not clipped to the
+    /// sliver of it on the right.
+    func testCapturedAreaTakesTheDisplayOfTheCropAroundTheField() {
+        let displays = [
+            ScreenshotDisplayCandidate(
+                displayID: 100,
+                frame: CGRect(x: 0, y: 0, width: 1_440, height: 900)
+            ),
+            ScreenshotDisplayCandidate(
+                displayID: 200,
+                frame: CGRect(x: 1_440, y: 0, width: 1_440, height: 900)
+            )
+        ]
+        let window = CGRect(x: 1_000, y: 0, width: 1_000, height: 800)
+        let field = CGRect(x: 1_050, y: 700, width: 200, height: 30)
+
+        let area = ScreenshotCaptureSelection.capturedArea(
+            windowFrame: window,
+            fieldFrame: field,
+            screenDisplays: displays,
+            fallbackDisplayID: 200
+        )
+        let whole = ScreenshotCaptureSelection.capturedArea(
+            windowFrame: window,
+            fieldFrame: nil,
+            screenDisplays: displays,
+            fallbackDisplayID: 200
+        )
+
+        XCTAssertEqual(
+            area.frame,
+            CGRect(x: 1_000, y: 0, width: 470, height: 754)
+        )
+        XCTAssertEqual(area.displayID, 100)
+        XCTAssertEqual(whole.frame, window)
+        XCTAssertEqual(whole.displayID, 200)
+    }
+
     func testFieldOutsideTheWindowHasNoFocusFrame() {
         XCTAssertNil(ScreenshotCaptureSelection.focusFrame(
             windowFrame: CGRect(x: 0, y: 0, width: 800, height: 600),

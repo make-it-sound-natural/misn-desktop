@@ -243,24 +243,20 @@ private extension ScreenshotCapturer {
         ) else {
             return nil
         }
-        let displayID = ScreenshotCaptureSelection.selectedDisplayID(
-            windowFrame: window.frame,
-            screenDisplays: displayCandidates(from: content),
-            fallbackDisplayID: content.displays.first?.displayID
-        )
+        // The column around the field: readable text, without the sidebar.
+        let (capturedFrame, displayID) = ScreenshotCaptureSelection
+            .capturedArea(
+                windowFrame: window.frame,
+                fieldFrame: focusFrame,
+                screenDisplays: displayCandidates(from: content),
+                fallbackDisplayID: content.displays.first?.displayID
+            )
         guard let display = content.displays.first(where: {
             $0.displayID == displayID
         }) ?? content.displays.first else {
             return nil
         }
         let filter = SCContentFilter(display: display, excludingWindows: [])
-        // The column around the field: readable text, without the sidebar.
-        let capturedFrame = focusFrame.flatMap {
-            ScreenshotCaptureSelection.focusFrame(
-                windowFrame: window.frame,
-                fieldFrame: $0
-            )
-        } ?? window.frame
         guard let visibleSource = ScreenshotCaptureSelection.visibleSourceRect(
             windowFrame: capturedFrame,
             displayFrame: display.frame,
