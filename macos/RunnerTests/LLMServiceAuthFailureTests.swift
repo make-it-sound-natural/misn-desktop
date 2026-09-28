@@ -32,7 +32,8 @@ final class LLMServiceAuthFailureTests: XCTestCase {
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: "Rewrite naturally.",
-            screenshotAttachment: nil
+            screenshotAttachment: nil,
+            accessibilityContext: nil
         )) { _, error in
             XCTAssertEqual(error, "Invalid API key. Check settings.")
             expectation.fulfill()

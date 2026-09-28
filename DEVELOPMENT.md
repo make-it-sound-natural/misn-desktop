@@ -78,9 +78,17 @@ under `macos/`.
 
 ```bash
 make start
-# Equivalent:
+# Without the debug savers:
 # flutter run -d macos --no-pub
 ```
+
+`make start` turns on two debug savers (`MISN_SAVE_SCREENSHOT_CONTEXT=1`,
+`MISN_SAVE_ACCESSIBILITY_CONTEXT=1`). Each shortcut run writes the screenshot
+and a JSON with the App context read, including the field text and the text
+above it (other people's messages in a chat), the selected text and the
+model's variants, under
+`~/Library/Application Support/Make It Sound Natural/`. The last 20 files are
+kept. Use `flutter run` when that text should not reach the disk.
 
 The Makefile notes that **"Failed to foreground app; open returned 1"** can
 appear for agent-style (`LSUIElement`) apps; it is usually harmless.

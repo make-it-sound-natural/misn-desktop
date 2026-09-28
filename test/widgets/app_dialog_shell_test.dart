@@ -125,4 +125,43 @@ void main() {
     await tester.pumpAndSettle();
     expect(result, isTrue);
   });
+
+  testWidgets('consent dialog returns true only when the user opts in', (
+    tester,
+  ) async {
+    bool? result;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(menuFontSize: 14),
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: TextButton(
+              onPressed: () async {
+                result = await showAppConsentDialog(
+                  context: context,
+                  title: 'Send nearby text?',
+                  message: 'Nearby text may include sensitive content.',
+                  confirmLabel: 'Enable',
+                  cancelLabel: 'Cancel',
+                );
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(result, isFalse);
+
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enable'));
+    await tester.pumpAndSettle();
+    expect(result, isTrue);
+  });
 }

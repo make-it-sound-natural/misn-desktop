@@ -23,7 +23,11 @@ class LLMService {
         let context: String?
         let targetProfileInstruction: String?
         let screenshotAttachment: ScreenshotAttachment?
+        let accessibilityContext: AccessibilityContext?
         var reasoningEffort: ReasoningEffort = AppDefaults.reasoningEffort
+        /// Why the Accessibility read could not serve as context. Only
+        /// reported in debug logs; it never reaches the prompt.
+        var accessibilityFallbackReason: AccessibilityContext.UnusableReason?
     }
 
     private let logger = OSLog(
@@ -81,31 +85,47 @@ class LLMService {
         debugLog("═══════════════════════════════════════════")
         #endif
 
-        let systemInstructions = buildSystemPrompt(
-            customPrompt: config.customPrompt,
-            targetProfileInstruction: config.targetProfileInstruction
-        )
-        let finalInstructions = appendContextIfNeeded(
-            systemInstructions: systemInstructions,
-            userText: text,
-            context: config.context ?? "",
-            model: model
-        )
-        let finalInstructionsWithScreenshot = appendScreenshotInstructionIfNeeded(
-            systemInstructions: finalInstructions,
-            hasScreenshot: config.screenshotAttachment != nil
+        let finalInstructions = buildFinalSystemInstructions(
+            text: text,
+            config: config
         )
 
         #if DEBUG
-        debugLog("System prompt length: \(finalInstructionsWithScreenshot.count)")
+        debugLog("System prompt length: \(finalInstructions.count)")
         debugLog("═══════════════════════════════════════════")
         #endif
 
         executeRequest(
             text: text,
             config: config,
-            systemInstructions: finalInstructionsWithScreenshot,
+            systemInstructions: finalInstructions,
             completion: completion
+        )
+    }
+
+    /// The editable prompt and fixed rules, then the manual `Context:`, the
+    /// `<app_context>` section and the screenshot note, in that order.
+    func buildFinalSystemInstructions(
+        text: String,
+        config: Configuration
+    ) -> String {
+        let systemInstructions = buildSystemPrompt(
+            customPrompt: config.customPrompt,
+            targetProfileInstruction: config.targetProfileInstruction
+        )
+        let withContext = appendContextIfNeeded(
+            systemInstructions: systemInstructions,
+            userText: text,
+            context: config.context ?? "",
+            model: config.model
+        )
+        let withAppContext = appendAppContextIfNeeded(
+            systemInstructions: withContext,
+            context: config.accessibilityContext
+        )
+        return appendScreenshotInstructionIfNeeded(
+            systemInstructions: withAppContext,
+            hasScreenshot: config.screenshotAttachment != nil
         )
     }
 
@@ -368,6 +388,10 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
         return payload
     }
 
+    /// Low detail shrinks the image to 512 px, and the text in a window
+    /// becomes unreadable.
+    static let screenshotDetail = "high"
+
     private func userMessageContent(
         text: String,
         screenshotAttachment: ScreenshotAttachment?
@@ -382,10 +406,21 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
                 "type": "image_url",
                 "image_url": [
                     "url": screenshotAttachment.dataURL,
-                    "detail": "low"
+                    "detail": Self.screenshotDetail
                 ]
             ]
         ]
+    }
+
+    private func appendAppContextIfNeeded(
+        systemInstructions: String,
+        context: AccessibilityContext?
+    ) -> String {
+        guard let context = context,
+              let section = PromptTemplates.appContextSection(context) else {
+            return systemInstructions
+        }
+        return systemInstructions + "\n\n" + section
     }
 
     private func appendScreenshotInstructionIfNeeded(
@@ -397,10 +432,13 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
 
 
 Screenshot context:
-The screenshot is context only. Use it to understand surrounding UI,
-conversation, document, or product state. Rewrite only the selected text.
+The screenshot is context only: the app window, or the part of it around the
+field the user is typing in. Use it to see who wrote what and what the
+conversation, document, or product state is. Rewrite only the selected text.
 Do not describe the screenshot. Do not add new facts from the screenshot unless
-they are needed to preserve the selected text's intended meaning.
+they are needed to preserve the selected text's intended meaning. When
+app_context is also present, it is the exact text; if the two disagree, trust
+app_context.
 """
     }
 

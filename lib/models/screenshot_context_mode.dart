@@ -3,6 +3,10 @@ enum ScreenshotContextMode {
   /// Do not capture or send screenshots.
   off('off'),
 
+  /// Capture the active window cropped to the column around the field
+  /// being edited; the whole window when App context cannot place it.
+  fieldArea('fieldArea'),
+
   /// Capture the active app/window when possible.
   activeApplication('activeApplication'),
 

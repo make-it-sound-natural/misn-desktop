@@ -2,9 +2,7 @@ import Foundation
 
 final class ScreenshotDebugSaver {
     private let environment: [String: String]
-    private let outputDirectoryOverride: URL?
-    private let maxFiles: Int
-    private let fileManager: FileManager
+    private let store: DebugArtifactStore
 
     init(
         environment: [String: String] = ProcessInfo.processInfo.environment,
@@ -13,9 +11,14 @@ final class ScreenshotDebugSaver {
         fileManager: FileManager = .default
     ) {
         self.environment = environment
-        self.outputDirectoryOverride = outputDirectory
-        self.maxFiles = maxFiles
-        self.fileManager = fileManager
+        self.store = DebugArtifactStore(
+            directoryEnvironmentKey: "MISN_SCREENSHOT_CONTEXT_DIR",
+            defaultDirectoryName: "DebugScreenshotContext",
+            environment: environment,
+            outputDirectory: outputDirectory,
+            maxFiles: maxFiles,
+            fileManager: fileManager
+        )
     }
 
     func saveIfEnabled(
@@ -36,16 +39,10 @@ final class ScreenshotDebugSaver {
         }
 
         do {
-            let directory = try outputDirectory()
-            let fileURL = directory.appendingPathComponent(
-                filenameForNow(mode: mode)
+            let fileURL = try store.write(
+                data,
+                nameSuffix: "\(mode.rawValue).jpg"
             )
-            try fileManager.createDirectory(
-                at: directory,
-                withIntermediateDirectories: true
-            )
-            try data.write(to: fileURL)
-            try prune(directory: directory)
             debugLog("Screenshot debug saved: \(fileURL.path)")
             return fileURL
         } catch {
@@ -55,58 +52,6 @@ final class ScreenshotDebugSaver {
         #else
         return nil
         #endif
-    }
-
-    private func outputDirectory() throws -> URL {
-        if let outputDirectoryOverride {
-            return outputDirectoryOverride
-        }
-        if let override = environment["MISN_SCREENSHOT_CONTEXT_DIR"],
-           !override.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return URL(fileURLWithPath: override, isDirectory: true)
-        }
-        let base = try fileManager.url(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask,
-            appropriateFor: nil,
-            create: true
-        )
-        return base
-            .appendingPathComponent(AppDefaults.appName, isDirectory: true)
-            .appendingPathComponent("DebugScreenshotContext", isDirectory: true)
-    }
-
-    private func filenameForNow(mode: ScreenshotContextMode) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        let timestamp = formatter.string(from: Date())
-            .replacingOccurrences(of: ":", with: "-")
-        return "\(timestamp)-\(mode.rawValue).jpg"
-    }
-
-    private func prune(directory: URL) throws {
-        let files = try fileManager.contentsOfDirectory(
-            at: directory,
-            includingPropertiesForKeys: [.creationDateKey],
-            options: [.skipsHiddenFiles]
-        )
-        guard files.count > maxFiles else { return }
-
-        let sorted = files.sorted { lhs, rhs in
-            let leftDate = (
-                try? lhs.resourceValues(forKeys: [.creationDateKey])
-                    .creationDate
-            ) ?? .distantPast
-            let rightDate = (
-                try? rhs.resourceValues(forKeys: [.creationDateKey])
-                    .creationDate
-            ) ?? .distantPast
-            return leftDate < rightDate
-        }
-
-        for file in sorted.prefix(files.count - maxFiles) {
-            try? fileManager.removeItem(at: file)
-        }
     }
 
     private func debugLog(_ message: String) {

@@ -149,3 +149,38 @@ Future<bool> showAppConfirmDialog({
   );
   return confirmed ?? false;
 }
+
+/// Shows a non-destructive consent confirmation on the shared shell.
+///
+/// Used for privacy opt-ins, such as enabling an additional context source,
+/// where the primary action affirms rather than destroys. Returns true only
+/// when the user opts in.
+Future<bool> showAppConsentDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+  required String confirmLabel,
+  required String cancelLabel,
+}) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AppDialogShell(
+      title: title,
+      content: Text(
+        message,
+        style: AppTextStyles.rowSubtitleOf(dialogContext),
+      ),
+      actions: [
+        OutlinedButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(cancelLabel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(confirmLabel),
+        ),
+      ],
+    ),
+  );
+  return confirmed ?? false;
+}

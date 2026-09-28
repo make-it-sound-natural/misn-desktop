@@ -36,6 +36,48 @@ enum ScreenshotCaptureSizing {
 }
 
 enum ScreenshotCaptureSelection {
+    /// The column of the window the field sits in, from the window's top to
+    /// just below the field. In a chat that is the thread and the composer,
+    /// without the sidebar. Nil when the field is outside the window.
+    static func focusFrame(
+        windowFrame: CGRect,
+        fieldFrame: CGRect,
+        minimumWidth: CGFloat = 640,
+        margin: CGFloat = 24
+    ) -> CGRect? {
+        guard windowFrame.intersects(fieldFrame) else { return nil }
+        let width = max(fieldFrame.width + 2 * margin, minimumWidth)
+        let column = CGRect(
+            x: fieldFrame.midX - width / 2,
+            y: windowFrame.minY,
+            width: width,
+            height: fieldFrame.maxY + margin - windowFrame.minY
+        )
+        let cropped = column.intersection(windowFrame)
+        return cropped.isEmpty ? nil : cropped
+    }
+
+    /// What an active window capture takes, and the display it is taken
+    /// from: the column around the field when there is one, else the whole
+    /// window. The display follows the captured area, not the window: a
+    /// window across two displays can have its field on the smaller part.
+    static func capturedArea(
+        windowFrame: CGRect,
+        fieldFrame: CGRect?,
+        screenDisplays: [ScreenshotDisplayCandidate],
+        fallbackDisplayID: CGDirectDisplayID?
+    ) -> (frame: CGRect, displayID: CGDirectDisplayID?) {
+        let frame = fieldFrame.flatMap {
+            focusFrame(windowFrame: windowFrame, fieldFrame: $0)
+        } ?? windowFrame
+        let displayID = selectedDisplayID(
+            windowFrame: frame,
+            screenDisplays: screenDisplays,
+            fallbackDisplayID: fallbackDisplayID
+        )
+        return (frame, displayID)
+    }
+
     static func visibleSourceRect(
         windowFrame: CGRect,
         displayFrame: CGRect,

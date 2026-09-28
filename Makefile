@@ -39,7 +39,7 @@ pub-get:
 # Note: "Failed to foreground app; open returned 1" is a harmless Flutter message
 # for LSUIElement (agent) apps when `open` cannot foreground the bundle.
 start: pub-get
-	@MISN_SAVE_SCREENSHOT_CONTEXT=1 $(FLUTTER) run -d macos --no-pub
+	@MISN_SAVE_SCREENSHOT_CONTEXT=1 MISN_SAVE_ACCESSIBILITY_CONTEXT=1 $(FLUTTER) run -d macos --no-pub
 
 build: pub-get
 	@$(FLUTTER) build macos --no-pub
@@ -226,7 +226,7 @@ help:
 	@echo "Development:"
 	@echo "  make toolchain      - Show Flutter/Dart tool paths used by Make"
 	@echo "  make pub-get        - Resolve dependencies with the pinned Flutter SDK"
-	@echo "  make start          - Run debug app with screenshot debug-save enabled"
+	@echo "  make start          - Run debug app with screenshot and App context debug-save enabled"
 	@echo "  make build          - Build debug version"
 	@echo "  make clean          - Clean build artifacts and Xcode DerivedData"
 	@echo "  make clean-xcode-derived - Remove only this project's Runner DerivedData"

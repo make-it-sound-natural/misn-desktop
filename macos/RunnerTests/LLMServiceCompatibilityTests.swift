@@ -199,6 +199,7 @@ final class LLMServiceCompatibilityTests: XCTestCase {
             model: "test-model", customPrompt: "Rewrite naturally.",
             context: "Saved context", targetProfileInstruction: "British English",
             screenshotAttachment: .init(mimeType: "image/png", base64Data: "abc"),
+            accessibilityContext: nil,
             reasoningEffort: .none
         )) { content, variantOrError in
             if expectSuccess {

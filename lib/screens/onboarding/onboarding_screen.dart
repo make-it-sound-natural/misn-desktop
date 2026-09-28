@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/onboarding_setup_state.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
+import 'package:make_it_sound_natural/screens/onboarding/onboarding_nearby_text_option.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/widgets/app_panel.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
@@ -18,16 +20,21 @@ class OnboardingScreen extends StatefulWidget {
   /// Creates the onboarding shell.
   const OnboardingScreen({
     required this.initialState,
+    required this.initialAccessibilityContextMode,
     required this.onStateChanged,
     required this.onCompleted,
     required this.checkAccessibility,
     required this.requestAccessibility,
     required this.onScreenshotContextSelected,
+    required this.onAccessibilityContextSelected,
     super.key,
   });
 
   /// Initial persisted state.
   final OnboardingSetupState initialState;
+
+  /// Persisted App context mode; the nearby text switch starts from it.
+  final AccessibilityContextMode initialAccessibilityContextMode;
 
   /// Called whenever progress changes.
   final ValueChanged<OnboardingSetupState> onStateChanged;
@@ -46,6 +53,12 @@ class OnboardingScreen extends StatefulWidget {
     ScreenshotContextMode mode,
   )
   onScreenshotContextSelected;
+
+  /// Saves the App context mode when the nearby text switch changes what is
+  /// stored: raised to field and nearby text on Continue, lowered back to
+  /// field text on Continue with the switch off or on Skip.
+  final Future<void> Function(AccessibilityContextMode mode)
+  onAccessibilityContextSelected;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -67,6 +80,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ScreenshotContextMode _selectedScreenshotContextMode =
       ScreenshotContextMode.off;
   ScreenRecordingPermissionStatus? _screenshotPermissionStatus;
+  late AccessibilityContextMode _savedAccessibilityContextMode =
+      widget.initialAccessibilityContextMode;
+  late var _includeNearbyText =
+      _savedAccessibilityContextMode == AccessibilityContextMode.fieldAndNearby;
 
   @override
   void initState() {
@@ -90,8 +107,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _continueScreenshotContext() async {
+    await _saveNearbyText(include: _includeNearbyText);
+    if (!mounted) return;
+
     if (_selectedScreenshotContextMode == ScreenshotContextMode.off) {
-      _skipOptional();
+      _setState(_state.skipOptionalScreenshotContext());
       return;
     }
 
@@ -105,8 +125,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void _skipOptional() {
+  /// Continue can save the opt-in and still keep the step open while Screen
+  /// Recording is pending, so Skip takes it back.
+  Future<void> _skipOptional() async {
+    await _saveNearbyText(include: false);
+    if (!mounted) return;
     _setState(_state.skipOptionalScreenshotContext());
+  }
+
+  Future<void> _saveNearbyText({required bool include}) async {
+    final mode = include
+        ? AccessibilityContextMode.fieldAndNearby
+        : _savedAccessibilityContextMode ==
+              AccessibilityContextMode.fieldAndNearby
+        ? AccessibilityContextMode.field
+        : _savedAccessibilityContextMode;
+    if (mode == _savedAccessibilityContextMode) return;
+    await widget.onAccessibilityContextSelected(mode);
+    _savedAccessibilityContextMode = mode;
   }
 
   void _skipAccessibility() {
@@ -210,7 +246,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               ),
                               if (_state.lastStep ==
                                   OnboardingStep.screenshotContext)
-                                _buildScreenshotContextChoices(l10n),
+                                _buildContextChoices(l10n),
                             ],
                           ),
                         ),
@@ -264,7 +300,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                               OnboardingStep.screenshotContext)
                             TextButton(
                               key: const Key('onboarding-skip-optional'),
-                              onPressed: _skipOptional,
+                              onPressed: () => unawaited(_skipOptional()),
                               child: Text(l10n.onboardingSkipOptional),
                             ),
                           if (_state.lastStep == OnboardingStep.done)
@@ -318,10 +354,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     };
   }
 
-  Widget _buildScreenshotContextChoices(AppLocalizations l10n) {
+  Widget _buildContextChoices(AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        const SizedBox(height: AppSpacing.md),
+        OnboardingNearbyTextOption(
+          title: l10n.onboardingNearbyTextTitle,
+          description: l10n.onboardingNearbyTextDescription,
+          value: _includeNearbyText,
+          onChanged: (value) => setState(() => _includeNearbyText = value),
+        ),
         const SizedBox(height: AppSpacing.md),
         Semantics(
           label: l10n.onboardingScreenshotModeLabel,
@@ -333,6 +376,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 label: Text(
                   l10n.screenshotContextOff,
                   key: const Key('onboarding-screenshot-mode-off'),
+                ),
+              ),
+              ButtonSegment<ScreenshotContextMode>(
+                value: ScreenshotContextMode.fieldArea,
+                label: Text(
+                  l10n.screenshotContextFieldArea,
+                  key: const Key('onboarding-screenshot-mode-field-area'),
                 ),
               ),
               ButtonSegment<ScreenshotContextMode>(

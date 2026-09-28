@@ -9,11 +9,84 @@ final class ScreenshotCapturerTests: XCTestCase {
             mode: .off,
             activeBundleId: "com.example.app",
             activeWindowID: 10,
-            cursorLocation: .zero
+            cursorLocation: .zero,
+            focusFrame: nil
         )
 
         XCTAssertNil(result.attachment)
         XCTAssertNil(result.warning)
+    }
+
+    /// A chat composer on the right of a window with a sidebar: the column
+    /// above it, down to just below the field.
+    func testFocusFrameIsTheColumnAboveTheField() {
+        let window = CGRect(x: 0, y: 30, width: 1_600, height: 930)
+        let field = CGRect(x: 600, y: 800, width: 980, height: 60)
+
+        let focus = ScreenshotCaptureSelection.focusFrame(
+            windowFrame: window,
+            fieldFrame: field
+        )
+
+        XCTAssertEqual(focus, CGRect(x: 576, y: 30, width: 1_024, height: 854))
+    }
+
+    func testNarrowFieldGetsTheMinimumWidthInsideTheWindow() {
+        let window = CGRect(x: 0, y: 0, width: 1_000, height: 800)
+        let field = CGRect(x: 850, y: 400, width: 100, height: 30)
+
+        let focus = ScreenshotCaptureSelection.focusFrame(
+            windowFrame: window,
+            fieldFrame: field
+        )
+
+        XCTAssertEqual(focus, CGRect(x: 580, y: 0, width: 420, height: 454))
+    }
+
+    /// Most of the window is on the right display, the field on the left
+    /// one: the crop is taken from the left display, not clipped to the
+    /// sliver of it on the right.
+    func testCapturedAreaTakesTheDisplayOfTheCropAroundTheField() {
+        let displays = [
+            ScreenshotDisplayCandidate(
+                displayID: 100,
+                frame: CGRect(x: 0, y: 0, width: 1_440, height: 900)
+            ),
+            ScreenshotDisplayCandidate(
+                displayID: 200,
+                frame: CGRect(x: 1_440, y: 0, width: 1_440, height: 900)
+            )
+        ]
+        let window = CGRect(x: 1_000, y: 0, width: 1_000, height: 800)
+        let field = CGRect(x: 1_050, y: 700, width: 200, height: 30)
+
+        let area = ScreenshotCaptureSelection.capturedArea(
+            windowFrame: window,
+            fieldFrame: field,
+            screenDisplays: displays,
+            fallbackDisplayID: 200
+        )
+        let whole = ScreenshotCaptureSelection.capturedArea(
+            windowFrame: window,
+            fieldFrame: nil,
+            screenDisplays: displays,
+            fallbackDisplayID: 200
+        )
+
+        XCTAssertEqual(
+            area.frame,
+            CGRect(x: 1_000, y: 0, width: 470, height: 754)
+        )
+        XCTAssertEqual(area.displayID, 100)
+        XCTAssertEqual(whole.frame, window)
+        XCTAssertEqual(whole.displayID, 200)
+    }
+
+    func testFieldOutsideTheWindowHasNoFocusFrame() {
+        XCTAssertNil(ScreenshotCaptureSelection.focusFrame(
+            windowFrame: CGRect(x: 0, y: 0, width: 800, height: 600),
+            fieldFrame: CGRect(x: 900, y: 100, width: 200, height: 30)
+        ))
     }
 
     func testUnsupportedMacOSWarningMessageIsStable() {

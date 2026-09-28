@@ -85,7 +85,17 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
     │   # Key files: MethodChannelHandler, ShortcutHandler, LLMService,
     │   # ClipboardService, ShortcutManager, ContextCapturer, StatusBubble*,
     │   # StatusBubbleControlling (test seam), VariantHandler, …
-    └── RunnerTests/          # XCTest (dispatch, LLM error parser, bubble policy)
+    │   # App context (text read through Accessibility and sent with a
+    │   # rewrite; not the manual ContextCapturer / user_context):
+    │   #   AccessibilityContext, AccessibilityContextMode,
+    │   #   AccessibilityContextCapturer, AXElementReading (test seam),
+    │   #   AccessibilityFieldExcerpt, NearbyTextCollector,
+    │   #   ElectronAccessibilityEnabler, PendingAccessibilityContextCapture,
+    │   #   ContextSourcePolicy, ContextSourceCollector,
+    │   #   MethodChannelHandler+AccessibilityContext,
+    │   #   AccessibilityContextDebugSaver, DebugArtifactStore
+    └── RunnerTests/          # XCTest (dispatch, LLM error parser, bubble
+                              # policy, App context capture and policy)
 ```
 
 ## Build and test commands

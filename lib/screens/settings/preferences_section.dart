@@ -7,6 +7,7 @@ import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/models/correction_variant.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
+import 'package:make_it_sound_natural/screens/settings/accessibility_context_row.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
@@ -121,29 +122,15 @@ class _PreferencesSettingsSectionState
     );
   }
 
-  Future<bool> _confirmScreenshotContextEnable() async {
+  Future<bool> _confirmScreenshotContextEnable() {
     final l10n = AppLocalizations.of(context)!;
-    final result = await showDialog<bool>(
+    return showAppConsentDialog(
       context: context,
-      builder: (context) => AppDialogShell(
-        title: l10n.screenshotContextEnableTitle,
-        content: Text(
-          l10n.screenshotContextEnableMessage,
-          style: AppTextStyles.rowSubtitleOf(context),
-        ),
-        actions: [
-          OutlinedButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.cancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.screenshotContextEnableConfirm),
-          ),
-        ],
-      ),
+      title: l10n.screenshotContextEnableTitle,
+      message: l10n.screenshotContextEnableMessage,
+      confirmLabel: l10n.screenshotContextEnableConfirm,
+      cancelLabel: l10n.cancel,
     );
-    return result ?? false;
   }
 
   Future<ScreenRecordingPermissionStatus> _requestScreenRecordingPermission(
@@ -321,6 +308,8 @@ class _PreferencesSettingsSectionState
                     value: mode,
                     label: switch (mode) {
                       ScreenshotContextMode.off => l10n.screenshotContextOff,
+                      ScreenshotContextMode.fieldArea =>
+                        l10n.screenshotContextFieldArea,
                       ScreenshotContextMode.activeApplication =>
                         l10n.screenshotContextApplication,
                       ScreenshotContextMode.fullScreen =>
@@ -336,6 +325,8 @@ class _PreferencesSettingsSectionState
             ),
           ),
         ),
+        const AppSettingsDivider(),
+        const AccessibilityContextSettingsRow(),
       ],
     );
   }
@@ -346,6 +337,7 @@ class _PreferencesSettingsSectionState
   ) {
     return switch (mode) {
       ScreenshotContextMode.off => l10n.screenshotContextOff,
+      ScreenshotContextMode.fieldArea => l10n.screenshotContextFieldArea,
       ScreenshotContextMode.activeApplication =>
         l10n.screenshotContextApplication,
       ScreenshotContextMode.fullScreen => l10n.screenshotContextFullScreen,

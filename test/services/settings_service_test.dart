@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
+import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/appearance_preferences.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
@@ -41,6 +42,10 @@ void main() {
       expect(
         await service.getScreenshotContextMode(),
         AppDefaults.screenshotContextMode,
+      );
+      expect(
+        await service.getAccessibilityContextMode(),
+        AppDefaults.accessibilityContextMode,
       );
       expect(
         await service.getAppearancePreferences(),
@@ -205,6 +210,122 @@ void main() {
       final service = SettingsService();
 
       expect(await service.getPendingScreenshotContextMode(), isNull);
+    });
+
+    test('persists accessibility context mode', () async {
+      final service = SettingsService();
+
+      await service.setAccessibilityContextMode(
+        AccessibilityContextMode.fieldAndNearby,
+      );
+
+      expect(
+        await service.getAccessibilityContextMode(),
+        AccessibilityContextMode.fieldAndNearby,
+      );
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('accessibility_context_mode'), 'fieldAndNearby');
+    });
+
+    test('falls back to off for unknown accessibility context mode', () async {
+      SharedPreferences.setMockInitialValues({
+        'accessibility_context_mode': 'futureMode',
+      });
+      final service = SettingsService();
+
+      expect(
+        await service.getAccessibilityContextMode(),
+        AccessibilityContextMode.off,
+      );
+    });
+
+    group('accessibility context migration (v1 -> v2)', () {
+      Future<AccessibilityContextMode> migrate(
+        Map<String, Object> stored,
+      ) async {
+        SharedPreferences.setMockInitialValues(stored);
+        final service = SettingsService();
+        await service.migrateIfNeeded();
+        return service.getAccessibilityContextMode();
+      }
+
+      test('fresh install starts with field text only', () async {
+        expect(await migrate({}), AccessibilityContextMode.field);
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getInt('settings_schema_version'), 2);
+      });
+
+      test('upgrade with screenshot off gets field', () async {
+        final mode = await migrate({
+          'settings_schema_version': 1,
+          'screenshot_context_mode': 'off',
+        });
+
+        expect(mode, AccessibilityContextMode.field);
+      });
+
+      test('upgrade with screenshot on gets field and nearby', () async {
+        for (final screenshotMode in ['activeApplication', 'fullScreen']) {
+          final mode = await migrate({
+            'settings_schema_version': 1,
+            'screenshot_context_mode': screenshotMode,
+          });
+
+          expect(mode, AccessibilityContextMode.fieldAndNearby);
+        }
+      });
+
+      test('upgrade with pending screenshot gets field and nearby', () async {
+        final mode = await migrate({
+          'settings_schema_version': 1,
+          'screenshot_context_mode': 'off',
+          'pending_screenshot_context_mode': 'fullScreen',
+        });
+
+        expect(mode, AccessibilityContextMode.fieldAndNearby);
+      });
+
+      test('unknown screenshot values count as off', () async {
+        final mode = await migrate({
+          'settings_schema_version': 1,
+          'screenshot_context_mode': 'futureMode',
+          'pending_screenshot_context_mode': 'futureMode',
+        });
+
+        expect(mode, AccessibilityContextMode.field);
+      });
+
+      test('keeps a mode that is already stored', () async {
+        final mode = await migrate({
+          'settings_schema_version': 1,
+          'screenshot_context_mode': 'fullScreen',
+          'accessibility_context_mode': 'off',
+        });
+
+        expect(mode, AccessibilityContextMode.off);
+      });
+
+      test('keeps an unknown stored mode as off at read time', () async {
+        final mode = await migrate({
+          'settings_schema_version': 1,
+          'screenshot_context_mode': 'fullScreen',
+          'accessibility_context_mode': 'futureMode',
+        });
+
+        expect(mode, AccessibilityContextMode.off);
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('accessibility_context_mode'), 'futureMode');
+      });
+
+      test('does not run again once the schema is at v2', () async {
+        final mode = await migrate({
+          'settings_schema_version': 2,
+          'screenshot_context_mode': 'fullScreen',
+        });
+
+        expect(mode, AccessibilityContextMode.off);
+      });
     });
 
     test('migrates legacy OpenAI API key to secure storage', () async {
