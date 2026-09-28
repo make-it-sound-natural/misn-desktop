@@ -5,7 +5,7 @@ final class ContextSourcePolicyTests: XCTestCase {
     private typealias Reason = ContextSourcePolicy.ScreenshotReason
 
     private let screenshotModes: [ScreenshotContextMode] = [
-        .off, .activeApplication, .fullScreen,
+        .off, .fieldArea, .activeApplication, .fullScreen,
     ]
 
     private func context(

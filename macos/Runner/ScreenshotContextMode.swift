@@ -2,6 +2,8 @@ import Foundation
 
 enum ScreenshotContextMode: String {
     case off
+    /// The active window cropped to the column around the focused field.
+    case fieldArea
     case activeApplication
     case fullScreen
 

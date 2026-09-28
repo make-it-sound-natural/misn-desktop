@@ -308,6 +308,8 @@ class _PreferencesSettingsSectionState
                     value: mode,
                     label: switch (mode) {
                       ScreenshotContextMode.off => l10n.screenshotContextOff,
+                      ScreenshotContextMode.fieldArea =>
+                        l10n.screenshotContextFieldArea,
                       ScreenshotContextMode.activeApplication =>
                         l10n.screenshotContextApplication,
                       ScreenshotContextMode.fullScreen =>
@@ -335,6 +337,7 @@ class _PreferencesSettingsSectionState
   ) {
     return switch (mode) {
       ScreenshotContextMode.off => l10n.screenshotContextOff,
+      ScreenshotContextMode.fieldArea => l10n.screenshotContextFieldArea,
       ScreenshotContextMode.activeApplication =>
         l10n.screenshotContextApplication,
       ScreenshotContextMode.fullScreen => l10n.screenshotContextFullScreen,

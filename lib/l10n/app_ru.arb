@@ -156,6 +156,7 @@
   "screenshotContextHelper": "Отправлять скриншот при исправлении через сочетание. Исправление займёт чуть больше времени. Скриншоты могут содержать видимые чувствительные данные.",
   "screenshotContextPendingPermission": "{mode} включится после выдачи разрешения на запись экрана. Перезапустите приложение, если macOS попросит.",
   "screenshotContextOff": "Выкл.",
+  "screenshotContextFieldArea": "Вокруг поля",
   "screenshotContextApplication": "Приложение",
   "screenshotContextFullScreen": "Весь экран",
   "screenshotContextEnableTitle": "Отправлять контекст скриншота?",

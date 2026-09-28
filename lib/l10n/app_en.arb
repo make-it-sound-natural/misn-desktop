@@ -652,6 +652,10 @@
   "@screenshotContextOff": {
     "description": "Screenshot context off option"
   },
+  "screenshotContextFieldArea": "Around Field",
+  "@screenshotContextFieldArea": {
+    "description": "Screenshot context option that crops the active window to the column around the field being edited"
+  },
   "screenshotContextApplication": "Application",
   "@screenshotContextApplication": {
     "description": "Screenshot context active application option"

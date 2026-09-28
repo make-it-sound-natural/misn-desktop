@@ -42,8 +42,8 @@ enum ScreenshotCaptureWarning {
 
 protocol ScreenshotCapturing {
     /// - Parameter focusFrame: the focused field, from the Accessibility
-    ///   read. In `activeApplication` mode the window is cropped to the
-    ///   column around it.
+    ///   read. In `fieldArea` mode the window is cropped to the column
+    ///   around it; without it the whole window is taken.
     func capture(
         mode: ScreenshotContextMode,
         activeBundleId: String?,
@@ -211,13 +211,13 @@ private extension ScreenshotCapturer {
         switch mode {
         case .off:
             return nil
-        case .activeApplication:
+        case .fieldArea, .activeApplication:
             return activeWindowTarget(
                 content: content,
                 activeBundleId: active.bundleId,
                 activeWindowID: active.windowID,
                 cursorLocation: active.cursorLocation,
-                focusFrame: focusFrame
+                focusFrame: mode == .fieldArea ? focusFrame : nil
             )
         case .fullScreen:
             return activeDisplayFilter(
@@ -361,7 +361,7 @@ private extension ScreenshotCapturer {
     }
 
     func missingFilterWarning(for mode: ScreenshotContextMode) -> String {
-        mode == .activeApplication
+        mode == .activeApplication || mode == .fieldArea
             ? ScreenshotCaptureWarning.activeWindowUnavailable.message
             : ScreenshotCaptureWarning.captureFailed.message
     }

@@ -301,6 +301,36 @@ void main() {
   );
 
   testWidgets(
+    'passes Around Field mode to Screen Recording handoff on continue',
+    (
+      tester,
+    ) async {
+      final requestedModes = <ScreenshotContextMode>[];
+      await pumpOnboarding(
+        tester,
+        initialState: const OnboardingSetupState(
+          completed: false,
+          requiredSetupCompleted: true,
+          screenshotContextSkipped: false,
+          accessibilitySkipped: false,
+          lastStep: OnboardingStep.screenshotContext,
+        ),
+        onScreenshotContextSelected: (mode) async {
+          requestedModes.add(mode);
+          return ScreenRecordingPermissionStatus.granted;
+        },
+      );
+
+      await tester.tap(find.text('Around Field'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('onboarding-continue')));
+      await tester.pumpAndSettle();
+
+      expect(requestedModes, [ScreenshotContextMode.fieldArea]);
+    },
+  );
+
+  testWidgets(
     'passes Full Screen mode to Screen Recording handoff on continue',
     (
       tester,

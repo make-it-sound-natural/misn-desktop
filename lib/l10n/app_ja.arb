@@ -156,6 +156,7 @@
   "screenshotContextHelper": "ショートカットでの書き換え時にスクリーンショットを送信します。書き換えに少し時間がかかります。表示中の機密情報が含まれる場合があります。",
   "screenshotContextPendingPermission": "{mode} は画面収録の許可後に有効になります。macOS から求められた場合はアプリを再起動してください。",
   "screenshotContextOff": "オフ",
+  "screenshotContextFieldArea": "入力欄の周り",
   "screenshotContextApplication": "アプリ",
   "screenshotContextFullScreen": "全画面",
   "screenshotContextEnableTitle": "スクリーンショットのコンテキストを送信しますか？",

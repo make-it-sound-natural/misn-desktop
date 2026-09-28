@@ -156,6 +156,7 @@
   "screenshotContextHelper": "Envia uma captura com reescritas por atalho. As reescritas demoram um pouco mais. Capturas podem incluir conteúdo visível sensível.",
   "screenshotContextPendingPermission": "{mode} será ativado depois que Gravação de Tela for concedida. Reinicie o app se o macOS pedir.",
   "screenshotContextOff": "Desativado",
+  "screenshotContextFieldArea": "Ao redor do campo",
   "screenshotContextApplication": "Aplicativo",
   "screenshotContextFullScreen": "Tela inteira",
   "screenshotContextEnableTitle": "Enviar contexto de captura?",

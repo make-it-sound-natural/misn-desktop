@@ -87,9 +87,10 @@ Settings:
 
 App context and screenshot context are independent: when screenshot context is
 on, the screenshot is sent next to App context. Rewrites with a screenshot take
-a little longer. In *Application* mode the screenshot covers the column of the
-window around the field you type in, when App context knows where the field
-is, so the text in it stays readable. Some apps do not expose their text through Accessibility.
+a little longer. *Around Field* takes the column of the active window around
+the field you type in, so the text in it stays readable; it needs App context
+to know where the field is and takes the whole window otherwise. *Application*
+takes the whole active window, *Full Screen* the whole display. Some apps do not expose their text through Accessibility.
 There App context adds nothing and only the screenshot is sent, if it is on.
 
 Electron apps such as Slack, Discord, and Notion expose no text until asked.

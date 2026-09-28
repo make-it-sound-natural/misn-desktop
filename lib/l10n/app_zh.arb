@@ -156,6 +156,7 @@
   "screenshotContextHelper": "使用快捷键改写时发送截图。改写会稍慢一些。截图可能包含可见的敏感内容。",
   "screenshotContextPendingPermission": "{mode} 会在授予屏幕录制权限后启用。如果 macOS 要求，请重新启动 App。",
   "screenshotContextOff": "关闭",
+  "screenshotContextFieldArea": "输入框周围",
   "screenshotContextApplication": "应用",
   "screenshotContextFullScreen": "全屏",
   "screenshotContextEnableTitle": "发送截图上下文？",

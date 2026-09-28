@@ -379,6 +379,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 ),
               ),
               ButtonSegment<ScreenshotContextMode>(
+                value: ScreenshotContextMode.fieldArea,
+                label: Text(
+                  l10n.screenshotContextFieldArea,
+                  key: const Key('onboarding-screenshot-mode-field-area'),
+                ),
+              ),
+              ButtonSegment<ScreenshotContextMode>(
                 value: ScreenshotContextMode.activeApplication,
                 label: Text(
                   l10n.screenshotContextApplication,

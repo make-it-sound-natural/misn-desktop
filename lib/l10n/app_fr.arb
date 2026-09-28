@@ -156,6 +156,7 @@
   "screenshotContextHelper": "Envoie une capture avec les réécritures par raccourci. Les réécritures prennent un peu plus de temps. Les captures peuvent inclure du contenu visible sensible.",
   "screenshotContextPendingPermission": "{mode} s'activera une fois l'autorisation Enregistrement de l’écran accordée. Redémarrez l'app si macOS le demande.",
   "screenshotContextOff": "Désactivé",
+  "screenshotContextFieldArea": "Autour du champ",
   "screenshotContextApplication": "Appli",
   "screenshotContextFullScreen": "Plein écran",
   "screenshotContextEnableTitle": "Envoyer le contexte de capture ?",
