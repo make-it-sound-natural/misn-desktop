@@ -1,4 +1,5 @@
 import ApplicationServices
+import Foundation
 
 enum NearbyTextLimits {
     /// Shared by every ancestor the walk climbs. Slack's message pane alone
@@ -38,4 +39,36 @@ enum NearbyTextRoles {
         kAXGroupRole,
         kAXListRole
     ]
+}
+
+/// Text and geometry rules of the nearby walk that need no Accessibility
+/// reads.
+enum NearbyTextFilters {
+    private typealias Limits = NearbyTextLimits
+
+    static func clean(_ raw: String) -> String? {
+        let text = raw
+            .replacingOccurrences(of: "\u{FFFC}", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        // A single Character over the cap leaves nothing.
+        let capped = suffix(text, Limits.textLength)
+        return capped.isEmpty ? nil : capped
+    }
+
+    static func overlapsHorizontally(_ frame: CGRect, _ field: CGRect) -> Bool {
+        frame.minX < field.maxX && frame.maxX > field.minX
+    }
+
+    /// Slack's virtualized message list is 1 px square while its rows span
+    /// the whole pane.
+    static func isDegenerate(_ frame: CGRect) -> Bool {
+        frame.width <= 1 || frame.height <= 1
+    }
+
+    /// The last `limit` UTF-16 units, starting at a whole word when cut.
+    static func suffix(_ text: String, _ limit: Int) -> String {
+        guard text.utf16.count > limit else { return text }
+        guard limit > 0 else { return "" }
+        return text.suffix(utf16Limit: limit).droppingFirstPartialWord()
+    }
 }

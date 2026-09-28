@@ -108,11 +108,10 @@ private extension NearbyTextCollector {
         let isAuthor: Bool
     }
 
-    /// A node to visit and where it sits among its siblings.
+    /// A node to visit and the container it sits in.
     struct Entry {
         let node: Reader.Element
         let parent: Reader.Element
-        let isFirstChild: Bool
     }
 
     struct Walk {
@@ -121,6 +120,9 @@ private extension NearbyTextCollector {
         var stats = NearbyTextWalk()
         var candidates: [Candidate] = []
         var textLength = 0
+        /// Containers with kept text. The walk goes last child first, so a
+        /// button visited in one of them comes before that text.
+        var textParents: Set<Reader.Element> = []
     }
 
     enum Visit {
@@ -155,7 +157,7 @@ private extension NearbyTextCollector {
             walk.stats.nodesVisited += 1
 
             do {
-                switch try visit(entry, field: walk.field) {
+                switch try visit(entry, in: walk) {
                 case .skip:
                     continue
                 case .descend:
@@ -172,6 +174,7 @@ private extension NearbyTextCollector {
                         isAuthor: isAuthor
                     ))
                     walk.textLength += text.utf16.count
+                    if !isAuthor { walk.textParents.insert(entry.parent) }
                 }
             } catch {
                 walk.stats.cutoff = .readFailed
@@ -184,21 +187,23 @@ private extension NearbyTextCollector {
         _ nodes: [Reader.Element],
         of parent: Reader.Element
     ) -> [Entry] {
-        nodes.enumerated().map { index, node in
-            Entry(node: node, parent: parent, isFirstChild: index == 0)
-        }
+        nodes.map { Entry(node: $0, parent: parent) }
     }
 
-    func visit(_ entry: Entry, field: CGRect) throws -> Visit {
+    func visit(_ entry: Entry, in walk: Walk) throws -> Visit {
         let node = entry.node
+        let field = walk.field
         touch(node)
         let role = try optional(reader.string(kAXRoleAttribute, of: node))
         if let role = role, try isSkipped(node, role: role) {
             return .skip
         }
-        // Slack shows a message's author as a button, the first thing in the
-        // group that holds the message. Other buttons are actions.
-        if role == kAXButtonRole, !entry.isFirstChild { return .skip }
+        // Chat apps can show a message's author as a button (Slack opens
+        // the profile). Only a button followed by message text in the same
+        // container can be one; the rest are actions, skipped after one read.
+        if role == kAXButtonRole, !walk.textParents.contains(entry.parent) {
+            return .skip
+        }
         let frame = try optional(reader.frame(of: node))
 
         switch role {
@@ -207,7 +212,7 @@ private extension NearbyTextCollector {
             // A line of text may report no height; it still has a place.
             // One with no width is text hidden for screen readers.
             guard let frame = frame, frame.width > 1,
-                  Self.overlapsHorizontally(frame, field),
+                  NearbyTextFilters.overlapsHorizontally(frame, field),
                   frame.maxY <= field.minY else {
                 // Beside or below the field, or nowhere to place it.
                 return .skip
@@ -225,8 +230,8 @@ private extension NearbyTextCollector {
             // A container beside the field, or one that starts at or below
             // it, holds nothing above it. A degenerate frame says nothing
             // about where its children are.
-            if let frame = frame, !Self.isDegenerate(frame),
-               !Self.overlapsHorizontally(frame, field)
+            if let frame = frame, !NearbyTextFilters.isDegenerate(frame),
+               !NearbyTextFilters.overlapsHorizontally(frame, field)
                 || frame.minY >= field.minY {
                 return .skip
             }
@@ -247,12 +252,12 @@ private extension NearbyTextCollector {
 
     func text(of node: Reader.Element, role: String?) throws -> String? {
         if role == kAXTextAreaRole {
-            return try tail(of: node).flatMap(Self.clean)
+            return try tail(of: node).flatMap(NearbyTextFilters.clean)
         }
         if role == kAXButtonRole {
             // An icon button has only a description; an author has a title.
             return try optional(reader.string(kAXTitleAttribute, of: node))
-                .flatMap(Self.clean)
+                .flatMap(NearbyTextFilters.clean)
         }
         // Telegram keeps a message in the title, WhatsApp in the
         // description, both with an empty value.
@@ -261,20 +266,11 @@ private extension NearbyTextCollector {
         ]
         for attribute in attributes {
             if let raw = try optional(reader.string(attribute, of: node)),
-               let text = Self.clean(raw) {
+               let text = NearbyTextFilters.clean(raw) {
                 return text
             }
         }
         return nil
-    }
-
-    static func clean(_ raw: String) -> String? {
-        let text = raw
-            .replacingOccurrences(of: "\u{FFFC}", with: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        // A single Character over the cap leaves nothing.
-        let capped = suffix(text, Limits.textLength)
-        return capped.isEmpty ? nil : capped
     }
 
     /// Another text area can hold a whole document, so read only its end,
@@ -331,14 +327,30 @@ private extension NearbyTextCollector {
         }
     }
 
-    static func overlapsHorizontally(_ frame: CGRect, _ field: CGRect) -> Bool {
-        frame.minX < field.maxX && frame.maxX > field.minX
-    }
-
-    /// Slack's virtualized message list is 1 px square while its rows span
-    /// the whole pane.
-    static func isDegenerate(_ frame: CGRect) -> Bool {
-        frame.width <= 1 || frame.height <= 1
+    /// Per container, the one titled button that could name the author: the
+    /// first in document order, and before all of the container's text. A
+    /// "Show more" between two paragraphs or a second button is an action.
+    static func authorOrders(
+        _ candidates: [Candidate]
+    ) -> [Reader.Element: Int] {
+        // Visit order is reverse document order: larger means earlier.
+        var firstText: [Reader.Element: Int] = [:]
+        for candidate in candidates where !candidate.isAuthor {
+            firstText[candidate.parent] = max(
+                firstText[candidate.parent] ?? candidate.order,
+                candidate.order
+            )
+        }
+        var authors: [Reader.Element: Int] = [:]
+        for candidate in candidates where candidate.isAuthor {
+            guard let text = firstText[candidate.parent],
+                  candidate.order > text else { continue }
+            authors[candidate.parent] = max(
+                authors[candidate.parent] ?? candidate.order,
+                candidate.order
+            )
+        }
+        return authors
     }
 
     /// Trims closest first; at equal distance the end of the document
@@ -346,13 +358,9 @@ private extension NearbyTextCollector {
     static func assemble(
         _ walk: inout Walk
     ) -> (text: String, walk: NearbyTextWalk) {
-        // A first button counts as an author only next to message text; a
-        // lone "Download all" is not one.
-        let textParents = Set(
-            walk.candidates.filter { !$0.isAuthor }.map(\.parent)
-        )
+        let authors = authorOrders(walk.candidates)
         let closestFirst = walk.candidates.filter {
-            !$0.isAuthor || textParents.contains($0.parent)
+            !$0.isAuthor || authors[$0.parent] == $0.order
         }.sorted {
             ($0.distance, $0.order) < ($1.distance, $1.order)
         }
@@ -361,7 +369,7 @@ private extension NearbyTextCollector {
         for candidate in closestFirst {
             let separator = kept.isEmpty ? 0 : 1
             let remaining = Limits.textLength - length - separator
-            let text = Self.suffix(candidate.text, remaining)
+            let text = NearbyTextFilters.suffix(candidate.text, remaining)
             guard !text.isEmpty else {
                 walk.stats.cutoff = walk.stats.cutoff ?? .textLength
                 break
@@ -385,12 +393,5 @@ private extension NearbyTextCollector {
             documentOrder.map(\.text).joined(separator: "\n"),
             walk.stats
         )
-    }
-
-    /// The last `limit` UTF-16 units, starting at a whole word when cut.
-    static func suffix(_ text: String, _ limit: Int) -> String {
-        guard text.utf16.count > limit else { return text }
-        guard limit > 0 else { return "" }
-        return text.suffix(utf16Limit: limit).droppingFirstPartialWord()
     }
 }

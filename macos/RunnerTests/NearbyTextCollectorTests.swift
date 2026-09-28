@@ -420,6 +420,54 @@ final class NearbyTextCollectorTests: XCTestCase {
         )
     }
 
+    /// A channel message in Slack: a nameless avatar button comes first,
+    /// then the author's name.
+    func testAuthorAfterAnAvatarButtonIsKept() {
+        let avatar = button("", y: 500)
+        avatar.strings[kAXDescriptionAttribute] = "Andrey Meshkov"
+        let message = FakeAXNode(
+            "message",
+            role: kAXGroupRole,
+            frame: CGRect(x: 250, y: 500, width: 900, height: 60)
+        ).add(
+            avatar,
+            button("Andrey Meshkov", y: 500),
+            staticText("write it up for the blog", y: 520)
+        )
+        layout(message)
+
+        let context = usableContext()
+
+        XCTAssertEqual(
+            context.nearbyText,
+            "Andrey Meshkov\nwrite it up for the blog"
+        )
+    }
+
+    /// Only the first titled button before all of the text can be an
+    /// author; one between paragraphs is an action.
+    func testOnlyTheFirstButtonBeforeTheTextIsKept() {
+        let message = FakeAXNode(
+            "message",
+            role: kAXGroupRole,
+            frame: CGRect(x: 250, y: 400, width: 900, height: 200)
+        ).add(
+            button("Anna", y: 400),
+            button("Follow", y: 400),
+            staticText("first paragraph", y: 440),
+            button("Show more", y: 480),
+            staticText("second paragraph", y: 520)
+        )
+        layout(message)
+
+        let context = usableContext()
+
+        XCTAssertEqual(
+            context.nearbyText,
+            "Anna\nfirst paragraph\nsecond paragraph"
+        )
+    }
+
     func testIconButtonWithoutTitleIsSkipped() {
         let icon = button("", y: 500)
         icon.strings[kAXDescriptionAttribute] = "More actions"
