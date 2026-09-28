@@ -339,7 +339,6 @@
   "languageSectionDescription": "El perfil de destino guía la redacción y el idioma de todas las variantes.",
   "shortcutsSectionDescription": "Los atajos globales funcionan mientras la app se ejecuta en segundo plano.",
   "permissionsSectionDescription": "macOS gestiona estos permisos en Ajustes del Sistema.",
-  "updatesSectionDescription": "Información de la app y comprobación de actualizaciones.",
   "advancedSectionDescription": "Sustitución del prompt por uno propio.",
   "modelRowDescription": "Se usa para reescribir. Elegir un modelo también selecciona su proveedor.",
   "providersGroupTitle": "Proveedores",
@@ -386,5 +385,19 @@
   "reasoningLow": "Bajo (predeterminado)",
   "reasoningMedium": "Medio",
   "reasoningHigh": "Alto",
-  "reasoningSaveFailed": "No se pudo guardar el esfuerzo de razonamiento. Inténtalo de nuevo."
+  "reasoningSaveFailed": "No se pudo guardar el esfuerzo de razonamiento. Inténtalo de nuevo.",
+  "settingsNavAbout": "Acerca de",
+  "aboutSectionDescription": "Versión instalada, canal de versiones y enlaces del proyecto.",
+  "aboutBuildLabel": "Compilación",
+  "aboutChannelLabel": "Canal de versiones",
+  "aboutLinks": "Enlaces del proyecto",
+  "aboutWhatsNew": "Novedades",
+  "aboutWhatsNewSubtitle": "Notas de la versión instalada",
+  "aboutReportIssue": "Informar de un problema",
+  "aboutReportIssueSubtitle": "Abre una incidencia nueva en GitHub con los datos de tu versión",
+  "aboutPrivacyPolicy": "Política de privacidad",
+  "aboutLicense": "Licencia",
+  "aboutOpenSourceLicenses": "Licencias de código abierto",
+  "aboutOpenSourceLicensesSubtitle": "Paquetes de terceros que usa la app",
+  "aboutLinkOpenFailed": "No se pudo abrir el enlace"
 }

@@ -1,13 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/services/update_service.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/theme/app_theme.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
-import 'package:make_it_sound_natural/widgets/app_toast.dart';
 
 /// Settings section for app updates management.
 class UpdatesSettingsSection extends StatefulWidget {
@@ -22,10 +20,6 @@ class _UpdatesSettingsSectionState extends State<UpdatesSettingsSection> {
   final _updateService = UpdateService();
 
   UpdateCheckState _updateCheckState = UpdateCheckState.idle;
-  AppVersion _appVersion = const AppVersion(
-    version: 'Unknown',
-    build: 'Unknown',
-  );
   DateTime? _lastUpdateCheck;
   bool? _automaticUpdateChecks;
   String? _updateCheckError;
@@ -49,7 +43,6 @@ class _UpdatesSettingsSectionState extends State<UpdatesSettingsSection> {
   }
 
   void _applySettingsSnapshot(UpdateSettingsSnapshot snapshot) {
-    _appVersion = snapshot.appVersion;
     _lastUpdateCheck = snapshot.lastUpdateCheck;
     _automaticUpdateChecks = snapshot.automaticUpdateChecks;
   }
@@ -176,65 +169,12 @@ class _UpdatesSettingsSectionState extends State<UpdatesSettingsSection> {
     );
   }
 
-  String _releaseChannelLabel(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return switch (_appVersion.releaseChannel) {
-      AppReleaseChannel.stable => l10n.releaseChannelStable,
-      AppReleaseChannel.beta => l10n.releaseChannelBeta,
-      AppReleaseChannel.nightly => l10n.releaseChannelNightly,
-      AppReleaseChannel.unknown => l10n.releaseChannelUnknown,
-    };
-  }
-
-  String _appDiagnosticsText(BuildContext context) {
-    return [
-      'Make It Sound Natural',
-      'Version: ${_appVersion.version}',
-      'Build: ${_appVersion.build}',
-      'Channel: ${_releaseChannelLabel(context)}',
-    ].join('\n');
-  }
-
-  void _copyAppDiagnostics(BuildContext context) {
-    unawaited(
-      Clipboard.setData(
-        ClipboardData(text: _appDiagnosticsText(context)),
-      ),
-    );
-    showAppToast(context, AppLocalizations.of(context)!.copiedToClipboard);
-  }
-
-  Widget _buildAppInformationSection(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final channelLabel = _releaseChannelLabel(context);
-
-    return AppSettingsSection(
-      title: l10n.appInformation,
-      subtitle: l10n.updatesSectionDescription,
-      children: [
-        AppSettingsRow(
-          leading: const AppSettingsRowIcon(icon: Icons.info_outline_rounded),
-          title: l10n.versionLabel(_appVersion.version),
-          subtitle: channelLabel,
-          trailing: IconButton(
-            key: const Key('copyAppDiagnostics-button'),
-            tooltip: l10n.copyAppDiagnostics,
-            onPressed: () => _copyAppDiagnostics(context),
-            icon: const Icon(Icons.copy_rounded),
-          ),
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildAppInformationSection(context),
-        const SizedBox(height: AppSpacing.lg),
         AppSettingsSection(
           title: l10n.updates,
           children: [

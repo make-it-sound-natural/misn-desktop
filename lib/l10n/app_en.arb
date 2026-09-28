@@ -974,10 +974,6 @@
   "@permissionsSectionDescription": {
     "description": "Description under the settings section header"
   },
-  "updatesSectionDescription": "App information and update checks.",
-  "@updatesSectionDescription": {
-    "description": "Description under the settings section header"
-  },
   "advancedSectionDescription": "Custom prompt override.",
   "@advancedSectionDescription": {
     "description": "Description under the settings section header"
@@ -1169,5 +1165,61 @@
   "reasoningLow": "Low (default)",
   "reasoningMedium": "Medium",
   "reasoningHigh": "High",
-  "reasoningSaveFailed": "Could not save reasoning effort. Try again."
+  "reasoningSaveFailed": "Could not save reasoning effort. Try again.",
+  "settingsNavAbout": "About",
+  "@settingsNavAbout": {
+    "description": "Sidebar label for the About settings tab"
+  },
+  "aboutSectionDescription": "Installed version, release channel and project links.",
+  "@aboutSectionDescription": {
+    "description": "Description under the About section header"
+  },
+  "aboutBuildLabel": "Build",
+  "@aboutBuildLabel": {
+    "description": "Label for the app build number"
+  },
+  "aboutChannelLabel": "Release channel",
+  "@aboutChannelLabel": {
+    "description": "Label for the release channel"
+  },
+  "aboutLinks": "Project links",
+  "@aboutLinks": {
+    "description": "Section title for About links"
+  },
+  "aboutWhatsNew": "What's new",
+  "@aboutWhatsNew": {
+    "description": "Link to the release notes for the installed version"
+  },
+  "aboutWhatsNewSubtitle": "Release notes for this version",
+  "@aboutWhatsNewSubtitle": {
+    "description": "Subtitle of the What's new link"
+  },
+  "aboutReportIssue": "Report an issue",
+  "@aboutReportIssue": {
+    "description": "Link that opens a prefilled GitHub issue"
+  },
+  "aboutReportIssueSubtitle": "Opens a new GitHub issue with your version details",
+  "@aboutReportIssueSubtitle": {
+    "description": "Subtitle of the Report an issue link"
+  },
+  "aboutPrivacyPolicy": "Privacy policy",
+  "@aboutPrivacyPolicy": {
+    "description": "Link to the privacy policy"
+  },
+  "aboutLicense": "License",
+  "@aboutLicense": {
+    "description": "Link to the license"
+  },
+  "aboutOpenSourceLicenses": "Open-source licenses",
+  "@aboutOpenSourceLicenses": {
+    "description": "Button that opens the open-source licenses page"
+  },
+  "aboutOpenSourceLicensesSubtitle": "Third-party packages used by the app",
+  "@aboutOpenSourceLicensesSubtitle": {
+    "description": "Subtitle of the open-source licenses button"
+  },
+  "aboutLinkOpenFailed": "Couldn't open the link",
+  "@aboutLinkOpenFailed": {
+    "description": "Toast shown when an About link cannot be opened"
+  }
 }

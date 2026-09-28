@@ -339,7 +339,6 @@
   "languageSectionDescription": "Целевой профиль задаёт формулировки и язык для всех вариантов.",
   "shortcutsSectionDescription": "Глобальные сочетания работают, пока приложение запущено в фоне.",
   "permissionsSectionDescription": "Этими разрешениями управляет macOS в Системных настройках.",
-  "updatesSectionDescription": "Сведения о приложении и проверка обновлений.",
   "advancedSectionDescription": "Переопределение промпта.",
   "modelRowDescription": "Используется для переписывания. Выбор модели задаёт и её провайдера.",
   "providersGroupTitle": "Провайдеры",
@@ -386,5 +385,19 @@
   "reasoningLow": "Низкая (по умолчанию)",
   "reasoningMedium": "Средняя",
   "reasoningHigh": "Высокая",
-  "reasoningSaveFailed": "Не удалось сохранить глубину рассуждений. Повторите попытку."
+  "reasoningSaveFailed": "Не удалось сохранить глубину рассуждений. Повторите попытку.",
+  "settingsNavAbout": "О приложении",
+  "aboutSectionDescription": "Установленная версия, канал выпуска и ссылки на проект.",
+  "aboutBuildLabel": "Сборка",
+  "aboutChannelLabel": "Канал выпуска",
+  "aboutLinks": "Ссылки на проект",
+  "aboutWhatsNew": "Что нового",
+  "aboutWhatsNewSubtitle": "Примечания к выпуску этой версии",
+  "aboutReportIssue": "Сообщить о проблеме",
+  "aboutReportIssueSubtitle": "Открывает новую задачу на GitHub с данными о вашей версии",
+  "aboutPrivacyPolicy": "Политика конфиденциальности",
+  "aboutLicense": "Лицензия",
+  "aboutOpenSourceLicenses": "Лицензии открытого ПО",
+  "aboutOpenSourceLicensesSubtitle": "Сторонние пакеты, которые использует приложение",
+  "aboutLinkOpenFailed": "Не удалось открыть ссылку"
 }

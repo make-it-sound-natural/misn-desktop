@@ -339,7 +339,6 @@
   "languageSectionDescription": "Le profil cible oriente la formulation et la langue de toutes les variantes.",
   "shortcutsSectionDescription": "Les raccourcis globaux fonctionnent tant que l'app tourne en arrière-plan.",
   "permissionsSectionDescription": "macOS gère ces autorisations dans Réglages Système.",
-  "updatesSectionDescription": "Informations sur l'app et recherche de mises à jour.",
   "advancedSectionDescription": "Remplacement du prompt par défaut.",
   "modelRowDescription": "Utilisé pour les réécritures. Choisir un modèle sélectionne aussi son fournisseur.",
   "providersGroupTitle": "Fournisseurs",
@@ -386,5 +385,19 @@
   "reasoningLow": "Faible (par défaut)",
   "reasoningMedium": "Moyen",
   "reasoningHigh": "Élevé",
-  "reasoningSaveFailed": "Impossible d’enregistrer l’effort de raisonnement. Réessayez."
+  "reasoningSaveFailed": "Impossible d’enregistrer l’effort de raisonnement. Réessayez.",
+  "settingsNavAbout": "À propos",
+  "aboutSectionDescription": "Version installée, canal de publication et liens du projet.",
+  "aboutBuildLabel": "Compilation",
+  "aboutChannelLabel": "Canal de publication",
+  "aboutLinks": "Liens du projet",
+  "aboutWhatsNew": "Nouveautés",
+  "aboutWhatsNewSubtitle": "Notes de version de cette version",
+  "aboutReportIssue": "Signaler un problème",
+  "aboutReportIssueSubtitle": "Ouvre un nouveau ticket GitHub avec les détails de ta version",
+  "aboutPrivacyPolicy": "Politique de confidentialité",
+  "aboutLicense": "Licence",
+  "aboutOpenSourceLicenses": "Licences open source",
+  "aboutOpenSourceLicensesSubtitle": "Paquets tiers utilisés par l'app",
+  "aboutLinkOpenFailed": "Impossible d'ouvrir le lien"
 }

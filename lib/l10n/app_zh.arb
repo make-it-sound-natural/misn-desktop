@@ -339,7 +339,6 @@
   "languageSectionDescription": "目标配置决定所有改写选项的措辞与语言。",
   "shortcutsSectionDescription": "全局快捷键在应用后台运行时依然有效。",
   "permissionsSectionDescription": "这些权限由 macOS 在「系统设置」中管理。",
-  "updatesSectionDescription": "应用信息与更新检查。",
   "advancedSectionDescription": "自定义提示词覆盖。",
   "modelRowDescription": "用于改写。选择模型时会同时选定其提供商。",
   "providersGroupTitle": "提供商",
@@ -386,5 +385,19 @@
   "reasoningLow": "低（默认）",
   "reasoningMedium": "中",
   "reasoningHigh": "高",
-  "reasoningSaveFailed": "无法保存推理深度，请重试。"
+  "reasoningSaveFailed": "无法保存推理深度，请重试。",
+  "settingsNavAbout": "关于",
+  "aboutSectionDescription": "已安装的版本、发布渠道和项目链接。",
+  "aboutBuildLabel": "构建",
+  "aboutChannelLabel": "发布渠道",
+  "aboutLinks": "项目链接",
+  "aboutWhatsNew": "更新内容",
+  "aboutWhatsNewSubtitle": "此版本的发行说明",
+  "aboutReportIssue": "报告问题",
+  "aboutReportIssueSubtitle": "打开新的 GitHub Issue 并附上版本信息",
+  "aboutPrivacyPolicy": "隐私政策",
+  "aboutLicense": "许可证",
+  "aboutOpenSourceLicenses": "开源许可证",
+  "aboutOpenSourceLicensesSubtitle": "应用使用的第三方软件包",
+  "aboutLinkOpenFailed": "无法打开链接"
 }
