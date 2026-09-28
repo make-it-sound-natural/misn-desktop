@@ -14,8 +14,9 @@ When you use the App to rewrite text:
 
 1. **Selected Text**: The text you select and submit for rewriting is sent to your configured AI provider (OpenAI or OpenRouter) for processing.
 2. **App context**: Unless you turn it off in Settings, the App also reads text from the app where you press the shortcut and sends it with the selected text. Depending on the mode, this is the app name, window title, field label, the text around your selection, and the text shown above the field, which can include other people's messages. Each part has a length cap. New installs read only the field text; the text above the field is read after you turn it on in onboarding or Settings. If you update from a version where screenshot context was on, the text above the field is read from the first launch without asking; you can turn it off in Settings. Nothing is read from password fields or from any app while a password field is focused.
-3. **Processing**: The AI provider processes your text to generate rewritten variants.
-4. **No Storage by App**: The App does not store your submitted text or the AI-generated responses on any server. All processing happens in real-time.
+3. **Screenshot context**: Off by default for new installs; an update keeps whatever you already had, off included. Once you turn it on in onboarding or Settings, the App takes a screenshot every time you run the shortcut and sends it to your configured AI provider together with the selected text, at high detail (not a shrunk, low-resolution preview), so text in the screenshot stays readable to the provider. What the screenshot shows depends on the mode you pick: the active window cropped to the area around the field you're typing in (the whole window when that area can't be found), the whole active window, or the whole active display. The screenshot is independent of App context: it is sent whenever this setting is on, whether App context is on, off, or unable to read the field, and — unlike App context — it is not skipped while a password field is focused. Screenshot context needs macOS 14 or later and Screen Recording permission (see below); without either, no screenshot is taken and the App shows a warning instead. In debug builds only, and only when a developer sets an environment variable, the App can also save captured screenshots to a local folder on disk, keeping the most recent 20; release builds never do this.
+4. **Processing**: The AI provider processes your text to generate rewritten variants.
+5. **No Storage by App**: The App does not store your submitted text or the AI-generated responses on any server. All processing happens in real-time.
 
 ### API Keys
 
@@ -83,6 +84,12 @@ The App requests accessibility permissions to:
 - Register global keyboard shortcuts
 
 These permissions are used solely for the App's core functionality. No data is collected or transmitted through these features beyond the text processing described above.
+
+## Screen Recording Permission
+
+The App requests Screen Recording permission the first time you turn on screenshot context in onboarding or Settings, so it can capture the screenshot described above. Screenshot context needs macOS 14 or later; on an older macOS, or if you don't grant the permission, no screenshot is captured and the App shows a warning instead.
+
+This permission is used solely to capture the screenshot sent with your request, as described above. No data is collected or transmitted through it beyond that.
 
 ## Auto-Updates
 
