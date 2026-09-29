@@ -392,12 +392,10 @@
   "aboutChannelLabel": "リリースチャンネル",
   "aboutLinks": "プロジェクトのリンク",
   "aboutWhatsNew": "新機能",
-  "aboutWhatsNewSubtitle": "このバージョンのリリースノート",
+  "aboutWhatsNewSubtitle": "GitHub のリリースとリリースノート",
   "aboutReportIssue": "問題を報告",
   "aboutReportIssueSubtitle": "バージョン情報を添えて新しい GitHub Issue を開きます",
   "aboutPrivacyPolicy": "プライバシーポリシー",
   "aboutLicense": "ライセンス",
-  "aboutOpenSourceLicenses": "オープンソースライセンス",
-  "aboutOpenSourceLicensesSubtitle": "アプリが使用しているサードパーティのパッケージ",
   "aboutLinkOpenFailed": "リンクを開けませんでした"
 }

@@ -69,16 +69,6 @@ class _AboutSettingsSectionState extends State<AboutSettingsSection> {
     showAppToast(context, l10n.copiedToClipboard);
   }
 
-  Uri _whatsNewUri() {
-    final knownVersion =
-        _appVersion.releaseChannel != AppReleaseChannel.unknown;
-    return Uri.parse(
-      knownVersion
-          ? '$_repositoryUrl/releases/tag/v${_appVersion.version}'
-          : '$_repositoryUrl/releases',
-    );
-  }
-
   Uri _reportIssueUri(AppLocalizations l10n) {
     return Uri.https(
       'github.com',
@@ -189,7 +179,8 @@ class _AboutSettingsSectionState extends State<AboutSettingsSection> {
               icon: Icons.campaign_outlined,
               title: l10n.aboutWhatsNew,
               subtitle: l10n.aboutWhatsNewSubtitle,
-              onTap: () => unawaited(_open(_whatsNewUri())),
+              onTap: () =>
+                  unawaited(_open(Uri.parse('$_repositoryUrl/releases'))),
             ),
             const AppSettingsDivider(),
             _linkRow(
@@ -217,27 +208,6 @@ class _AboutSettingsSectionState extends State<AboutSettingsSection> {
               title: l10n.aboutLicense,
               onTap: () => unawaited(
                 _open(Uri.parse('$_repositoryUrl/blob/master/LICENSE')),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        AppSettingsSection(
-          title: l10n.aboutOpenSourceLicenses,
-          children: [
-            AppSettingsRow(
-              key: const Key('about-openSourceLicenses'),
-              leading: const AppSettingsRowIcon(icon: Icons.code_rounded),
-              title: l10n.aboutOpenSourceLicenses,
-              subtitle: l10n.aboutOpenSourceLicensesSubtitle,
-              trailing: Icon(
-                Icons.chevron_right_rounded,
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-              onTap: () => showLicensePage(
-                context: context,
-                applicationName: _appName,
-                applicationVersion: _appVersion.version,
               ),
             ),
           ],

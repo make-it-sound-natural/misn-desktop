@@ -392,12 +392,10 @@
   "aboutChannelLabel": "Канал выпуска",
   "aboutLinks": "Ссылки на проект",
   "aboutWhatsNew": "Что нового",
-  "aboutWhatsNewSubtitle": "Примечания к выпуску этой версии",
+  "aboutWhatsNewSubtitle": "Выпуски и примечания к ним на GitHub",
   "aboutReportIssue": "Сообщить о проблеме",
   "aboutReportIssueSubtitle": "Открывает новую задачу на GitHub с данными о вашей версии",
   "aboutPrivacyPolicy": "Политика конфиденциальности",
   "aboutLicense": "Лицензия",
-  "aboutOpenSourceLicenses": "Лицензии открытого ПО",
-  "aboutOpenSourceLicensesSubtitle": "Сторонние пакеты, которые использует приложение",
   "aboutLinkOpenFailed": "Не удалось открыть ссылку"
 }

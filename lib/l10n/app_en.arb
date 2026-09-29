@@ -1188,9 +1188,9 @@
   },
   "aboutWhatsNew": "What's new",
   "@aboutWhatsNew": {
-    "description": "Link to the release notes for the installed version"
+    "description": "Link to the GitHub releases page"
   },
-  "aboutWhatsNewSubtitle": "Release notes for this version",
+  "aboutWhatsNewSubtitle": "Releases and release notes on GitHub",
   "@aboutWhatsNewSubtitle": {
     "description": "Subtitle of the What's new link"
   },
@@ -1209,14 +1209,6 @@
   "aboutLicense": "License",
   "@aboutLicense": {
     "description": "Link to the license"
-  },
-  "aboutOpenSourceLicenses": "Open-source licenses",
-  "@aboutOpenSourceLicenses": {
-    "description": "Button that opens the open-source licenses page"
-  },
-  "aboutOpenSourceLicensesSubtitle": "Third-party packages used by the app",
-  "@aboutOpenSourceLicensesSubtitle": {
-    "description": "Subtitle of the open-source licenses button"
   },
   "aboutLinkOpenFailed": "Couldn't open the link",
   "@aboutLinkOpenFailed": {

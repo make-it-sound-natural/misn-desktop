@@ -392,12 +392,10 @@
   "aboutChannelLabel": "发布渠道",
   "aboutLinks": "项目链接",
   "aboutWhatsNew": "更新内容",
-  "aboutWhatsNewSubtitle": "此版本的发行说明",
+  "aboutWhatsNewSubtitle": "GitHub 上的发行版和发行说明",
   "aboutReportIssue": "报告问题",
   "aboutReportIssueSubtitle": "打开新的 GitHub Issue 并附上版本信息",
   "aboutPrivacyPolicy": "隐私政策",
   "aboutLicense": "许可证",
-  "aboutOpenSourceLicenses": "开源许可证",
-  "aboutOpenSourceLicensesSubtitle": "应用使用的第三方软件包",
   "aboutLinkOpenFailed": "无法打开链接"
 }

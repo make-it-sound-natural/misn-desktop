@@ -169,34 +169,14 @@ void main() {
     expect(find.text('Copied to clipboard'), findsOneWidget);
   });
 
-  testWidgets("What's new opens the release page of the installed version", (
-    tester,
-  ) async {
+  testWidgets("What's new opens the releases page", (tester) async {
     await openAbout(tester);
 
     await tester.tap(find.byKey(const Key('about-whatsNew')));
     await tester.pump();
 
-    expect(
-      launchedUrls.single,
-      '$_repo/releases/tag/v1.2.3-nightly.20260603.1',
-    );
+    expect(launchedUrls.single, '$_repo/releases');
   });
-
-  testWidgets(
-    "What's new falls back to the releases list for unknown version",
-    (
-      tester,
-    ) async {
-      mockNative(version: 'Unknown');
-      await openAbout(tester);
-
-      await tester.tap(find.byKey(const Key('about-whatsNew')));
-      await tester.pump();
-
-      expect(launchedUrls.single, '$_repo/releases');
-    },
-  );
 
   testWidgets('Report an issue opens a new issue prefilled with diagnostics', (
     tester,
@@ -246,14 +226,5 @@ void main() {
     await tester.pump();
 
     expect(find.text("Couldn't open the link"), findsOneWidget);
-  });
-
-  testWidgets('Open-source licenses opens the license page', (tester) async {
-    await openAbout(tester);
-
-    await tester.tap(find.byKey(const Key('about-openSourceLicenses')));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(LicensePage), findsOneWidget);
   });
 }

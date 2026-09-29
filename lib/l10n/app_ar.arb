@@ -392,12 +392,10 @@
   "aboutChannelLabel": "قناة الإصدار",
   "aboutLinks": "روابط المشروع",
   "aboutWhatsNew": "الجديد",
-  "aboutWhatsNewSubtitle": "ملاحظات الإصدار لهذه النسخة",
+  "aboutWhatsNewSubtitle": "الإصدارات وملاحظات الإصدار على GitHub",
   "aboutReportIssue": "الإبلاغ عن مشكلة",
   "aboutReportIssueSubtitle": "يفتح مشكلة جديدة على GitHub مع تفاصيل إصدارك",
   "aboutPrivacyPolicy": "سياسة الخصوصية",
   "aboutLicense": "الترخيص",
-  "aboutOpenSourceLicenses": "تراخيص المصدر المفتوح",
-  "aboutOpenSourceLicensesSubtitle": "الحزم الخارجية التي يستخدمها التطبيق",
   "aboutLinkOpenFailed": "تعذّر فتح الرابط"
 }

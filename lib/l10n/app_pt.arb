@@ -392,12 +392,10 @@
   "aboutChannelLabel": "Canal de lançamento",
   "aboutLinks": "Links do projeto",
   "aboutWhatsNew": "Novidades",
-  "aboutWhatsNewSubtitle": "Notas de lançamento desta versão",
+  "aboutWhatsNewSubtitle": "Lançamentos e notas de lançamento no GitHub",
   "aboutReportIssue": "Relatar um problema",
   "aboutReportIssueSubtitle": "Abre uma nova issue no GitHub com os dados da sua versão",
   "aboutPrivacyPolicy": "Política de privacidade",
   "aboutLicense": "Licença",
-  "aboutOpenSourceLicenses": "Licenças de código aberto",
-  "aboutOpenSourceLicensesSubtitle": "Pacotes de terceiros usados pelo app",
   "aboutLinkOpenFailed": "Não foi possível abrir o link"
 }
