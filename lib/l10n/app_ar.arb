@@ -339,7 +339,6 @@
   "languageSectionDescription": "يوجّه الملف المستهدف الصياغة واللغة في جميع البدائل.",
   "shortcutsSectionDescription": "تعمل الاختصارات العامة ما دام التطبيق يعمل في الخلفية.",
   "permissionsSectionDescription": "يدير macOS هذه الأذونات من إعدادات النظام.",
-  "updatesSectionDescription": "معلومات التطبيق والتحقق من التحديثات.",
   "advancedSectionDescription": "استبدال المُوجّه الافتراضي.",
   "modelRowDescription": "يُستخدم لإعادة الصياغة. اختيار النموذج يحدّد مزوّده أيضًا.",
   "providersGroupTitle": "المزوّدون",
@@ -386,5 +385,17 @@
   "reasoningLow": "منخفض (افتراضي)",
   "reasoningMedium": "متوسط",
   "reasoningHigh": "عالٍ",
-  "reasoningSaveFailed": "تعذّر حفظ عمق التفكير. حاول مرة أخرى."
+  "reasoningSaveFailed": "تعذّر حفظ عمق التفكير. حاول مرة أخرى.",
+  "settingsNavAbout": "حول",
+  "aboutSectionDescription": "الإصدار المثبّت وقناة الإصدار وروابط المشروع.",
+  "aboutBuildLabel": "البناء",
+  "aboutChannelLabel": "قناة الإصدار",
+  "aboutLinks": "روابط المشروع",
+  "aboutWhatsNew": "الجديد",
+  "aboutWhatsNewSubtitle": "الإصدارات وملاحظات الإصدار على GitHub",
+  "aboutReportIssue": "الإبلاغ عن مشكلة",
+  "aboutReportIssueSubtitle": "يفتح مشكلة جديدة على GitHub مع تفاصيل إصدارك",
+  "aboutPrivacyPolicy": "سياسة الخصوصية",
+  "aboutLicense": "الترخيص",
+  "aboutLinkOpenFailed": "تعذّر فتح الرابط"
 }

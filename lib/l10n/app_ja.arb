@@ -339,7 +339,6 @@
   "languageSectionDescription": "ターゲットプロファイルは、すべての候補の言い回しと言語を決めます。",
   "shortcutsSectionDescription": "グローバルショートカットは、アプリがバックグラウンドで動作している間に使えます。",
   "permissionsSectionDescription": "これらの権限は macOS の「システム設定」で管理します。",
-  "updatesSectionDescription": "アプリ情報とアップデートの確認。",
   "advancedSectionDescription": "プロンプトの上書き。",
   "modelRowDescription": "書き換えに使用します。モデルを選ぶと、その提供元も選択されます。",
   "providersGroupTitle": "プロバイダー",
@@ -386,5 +385,17 @@
   "reasoningLow": "低（既定）",
   "reasoningMedium": "中",
   "reasoningHigh": "高",
-  "reasoningSaveFailed": "推論の深さを保存できませんでした。もう一度お試しください。"
+  "reasoningSaveFailed": "推論の深さを保存できませんでした。もう一度お試しください。",
+  "settingsNavAbout": "情報",
+  "aboutSectionDescription": "インストール済みのバージョン、リリースチャンネル、プロジェクトのリンク。",
+  "aboutBuildLabel": "ビルド",
+  "aboutChannelLabel": "リリースチャンネル",
+  "aboutLinks": "プロジェクトのリンク",
+  "aboutWhatsNew": "新機能",
+  "aboutWhatsNewSubtitle": "GitHub のリリースとリリースノート",
+  "aboutReportIssue": "問題を報告",
+  "aboutReportIssueSubtitle": "バージョン情報を添えて新しい GitHub Issue を開きます",
+  "aboutPrivacyPolicy": "プライバシーポリシー",
+  "aboutLicense": "ライセンス",
+  "aboutLinkOpenFailed": "リンクを開けませんでした"
 }

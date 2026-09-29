@@ -158,63 +158,17 @@ void main() {
       },
     );
 
-    testWidgets('displays app information with version and channel', (
-      tester,
-    ) async {
-      setupMockMethodChannel(
-        version: '1.2.3',
-        build: '42',
-        releaseChannel: 'nightly',
-      );
-
+    testWidgets('no longer shows app information', (tester) async {
       await tester.pumpWidget(createTestApp());
       await tester.pump(const Duration(milliseconds: 500));
       await tester.pump(const Duration(milliseconds: 500));
       await openUpdates(tester);
 
-      expect(find.text('App information'), findsOneWidget);
-      expect(find.text('Version 1.2.3'), findsOneWidget);
-      expect(find.text('Nightly'), findsOneWidget);
-      expect(find.text('Build 42 • Nightly'), findsNothing);
-    });
-
-    testWidgets('copies app diagnostics to clipboard', (tester) async {
-      setupMockMethodChannel(
-        version: '1.2.3-nightly.20260603.123',
-        build: '77',
-      );
-      final clipboardWrites = <String>[];
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-            if (call.method == 'Clipboard.setData') {
-              final data = call.arguments as Map<Object?, Object?>;
-              clipboardWrites.add(data['text']! as String);
-            }
-            return null;
-          });
-      addTearDown(() {
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(SystemChannels.platform, null);
-      });
-
-      await tester.pumpWidget(createTestApp());
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pump(const Duration(milliseconds: 500));
-      await openUpdates(tester);
-
-      await tester.tap(find.byKey(const Key('copyAppDiagnostics-button')));
-      await tester.pump();
-
+      expect(find.text('App information'), findsNothing);
       expect(
-        clipboardWrites.single,
-        [
-          'Make It Sound Natural',
-          'Version: 1.2.3-nightly.20260603.123',
-          'Build: 77',
-          'Channel: Nightly',
-        ].join('\n'),
+        find.byKey(const Key('copyAppDiagnostics-button')),
+        findsNothing,
       );
-      expect(find.text('Copied to clipboard'), findsOneWidget);
     });
 
     testWidgets('displays Updates section title', (tester) async {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
+import 'package:make_it_sound_natural/screens/settings/about_section.dart';
 import 'package:make_it_sound_natural/screens/settings/advanced_section.dart';
 import 'package:make_it_sound_natural/screens/settings/api_provider_section.dart';
 import 'package:make_it_sound_natural/screens/settings/appearance_section.dart';
@@ -24,6 +25,7 @@ enum _SettingsDestination {
   permissions,
   updates,
   advanced,
+  about,
 }
 
 /// Main settings screen that orchestrates all settings sections.
@@ -109,6 +111,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _SettingsDestination.advanced => const _SettingsContentFrame(
         child: AdvancedSettingsSection(),
       ),
+      _SettingsDestination.about => const _SettingsContentFrame(
+        child: AboutSettingsSection(),
+      ),
     };
   }
 }
@@ -186,6 +191,12 @@ class _SettingsSidebar extends StatelessWidget {
         label: l10n.advancedSettings,
         icon: Icons.tune_rounded,
         key: 'advanced',
+      ),
+      (
+        destination: _SettingsDestination.about,
+        label: l10n.settingsNavAbout,
+        icon: Icons.info_outline_rounded,
+        key: 'about',
       ),
     ];
 
