@@ -3,7 +3,6 @@ import XCTest
 
 final class LLMServicePayloadTests: XCTestCase {
     func testSerializedReasoningLevelsAndDefaultForEveryProvider() throws {
-        let service = LLMService()
         for provider in ["openai", "openrouter", "tokenguard", "custom-endpoint"] {
             var config = LLMService.Configuration(
                 provider: provider,
@@ -17,7 +16,7 @@ final class LLMServicePayloadTests: XCTestCase {
             XCTAssertEqual(config.reasoningEffort, .low)
             for effort in ReasoningEffort.allCases {
                 config.reasoningEffort = effort
-                let request = try XCTUnwrap(service.buildRequestForTesting(
+                let request = try XCTUnwrap(LLMWireFormatFactory.forProvider(config.provider).makeRequest(
                     text: "hello", config: config, systemInstructions: "system"
                 ))
                 let body = try XCTUnwrap(request.httpBody)
@@ -197,7 +196,6 @@ final class LLMServicePayloadTests: XCTestCase {
     }
 
     func testCustomProviderRequestUsesNormalizedUrlAndCustomKey() throws {
-        let service = LLMService()
         let config = LLMService.Configuration(
             provider: "tokenguard",
             apiKey: "openai-key",
@@ -212,7 +210,7 @@ final class LLMServicePayloadTests: XCTestCase {
             accessibilityContext: nil
         )
 
-        let request = try XCTUnwrap(service.buildRequestForTesting(
+        let request = try XCTUnwrap(LLMWireFormatFactory.forProvider(config.provider).makeRequest(
             text: "hello",
             config: config,
             systemInstructions: "system"
@@ -230,7 +228,6 @@ final class LLMServicePayloadTests: XCTestCase {
     }
 
     func testCustomProviderDoesNotDoubleAppendChatCompletions() throws {
-        let service = LLMService()
         let config = LLMService.Configuration(
             provider: "tokenguard",
             apiKey: "",
@@ -246,7 +243,7 @@ final class LLMServicePayloadTests: XCTestCase {
             accessibilityContext: nil
         )
 
-        let request = try XCTUnwrap(service.buildRequestForTesting(
+        let request = try XCTUnwrap(LLMWireFormatFactory.forProvider(config.provider).makeRequest(
             text: "hello",
             config: config,
             systemInstructions: "system"

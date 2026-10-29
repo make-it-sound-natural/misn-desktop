@@ -30,7 +30,7 @@ The App stores the following data locally on your device:
 
 - **Settings**: Your preferences (keyboard shortcuts, default variant selection, custom prompts)
 - **API Keys**: Your OpenAI, OpenRouter, and/or Anthropic API keys (stored in macOS Keychain)
-- **Context**: Optional context text you provide for better corrections (stored only in memory during the session)
+- **Context**: Optional context text you provide for better corrections (stored in the App's local settings and kept between launches until you change or clear it)
 
 No personal data is transmitted to any servers other than your configured AI provider (OpenAI, OpenRouter, or Anthropic) for text processing.
 
@@ -50,7 +50,7 @@ When using OpenAI as your AI provider:
 
 - **Training**: OpenAI does **not** use API data for training models by default
 - **Storage**: OpenAI **does store** your prompts and responses for abuse monitoring purposes
-- **Retention period**: Data is typically retained for 30 days, however due to a U.S. court order (October 2025), OpenAI is currently required to preserve API data indefinitely for standard API users
+- **Retention period**: Data is typically retained for 30 days. A U.S. court order required OpenAI to preserve API data indefinitely; that obligation ended on September 26, 2025, and OpenAI still keeps a limited set of API data from April–September 2025 for the case ([OpenAI's update](https://openai.com/index/response-to-nyt-data-demands/))
 - **Zero Data Retention**: Available only to approved enterprise/business accounts upon application to OpenAI
 
 ### OpenRouter

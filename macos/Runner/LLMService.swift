@@ -36,7 +36,7 @@ class LLMService {
             if provider == AppDefaults.openRouterProvider {
                 return openRouterApiKey
             }
-            if provider == "openai" {
+            if provider == AppDefaults.openAiProvider {
                 return apiKey
             }
             if provider == AppDefaults.anthropicProvider {
@@ -215,18 +215,6 @@ extension LLMService {
         return nil
     }
 
-    func buildRequestForTesting(
-        text: String,
-        config: Configuration,
-        systemInstructions: String
-    ) -> URLRequest? {
-        LLMWireFormatFactory.forProvider(config.provider).makeRequest(
-            text: text,
-            config: config,
-            systemInstructions: systemInstructions
-        )
-    }
-
     func appendScreenshotInstructionIfNeededForTesting(
         systemInstructions: String,
         hasScreenshot: Bool
@@ -376,14 +364,15 @@ app_context.
         provider: String,
         completion: @escaping (String?, String?) -> Void
     ) {
-        log("Error: Network error: \(error.localizedDescription)")
+        let message = "Network error: \(error.localizedDescription)"
+        log("Error: \(message)")
         delegate?.llmService(
             self,
-            didFailWithError: "Network error: \(error.localizedDescription)",
+            didFailWithError: message,
             isAuthenticationFailure: false,
             provider: provider
         )
-        completion(nil, nil)
+        completion(nil, message)
     }
 
     private func reportErrorResponse(
@@ -506,5 +495,13 @@ extension LLMService {
         } else {
             return String(content[startIndex...]).trimmingCharacters(in: .whitespacesAndNewlines)
         }
+    }
+
+    /// The variant to paste, or nil when the model left it blank: structured
+    /// output guarantees the keys, not that their values hold any text.
+    func pasteableVariant(from content: String, variant: String) -> String? {
+        let extracted = extractVariant(from: content, variant: variant)
+        return extracted.trimmingCharacters(in: .whitespacesAndNewlines)
+            .isEmpty ? nil : extracted
     }
 }

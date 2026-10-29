@@ -121,17 +121,8 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     await _syncSelectedCustomProviderConfig();
   }
 
-  Future<bool> _hasKey(LlmProviderEntry provider) async {
-    final key = switch (provider.id) {
-      AppDefaults.openRouterProvider =>
-        await _settingsService.getOpenRouterApiKey(),
-      AppDefaults.openAiProvider => await _settingsService.getApiKey(),
-      AppDefaults.anthropicProvider =>
-        await _settingsService.getAnthropicApiKey(),
-      _ => await _settingsService.getCustomProviderApiKey(provider.id),
-    };
-    return key.trim().isNotEmpty;
-  }
+  Future<bool> _hasKey(LlmProviderEntry provider) =>
+      _settingsService.hasApiKey(provider.id);
 
   /// Keeps the picker pointed at a model that still exists and is visible.
   ///

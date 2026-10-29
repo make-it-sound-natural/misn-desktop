@@ -200,8 +200,14 @@ class SettingsService {
   }
 
   /// Returns whether the selected provider has a usable API key.
-  Future<bool> hasApiKeyForActiveProvider() async {
-    final provider = await getProvider();
+  Future<bool> hasApiKeyForActiveProvider() async =>
+      hasApiKey(await getProvider());
+
+  /// Returns whether [provider] has a usable API key.
+  ///
+  /// Built-in providers keep their own keys; every other provider uses its
+  /// custom provider key.
+  Future<bool> hasApiKey(String provider) async {
     final key = switch (provider) {
       AppDefaults.openRouterProvider => await getOpenRouterApiKey(),
       AppDefaults.openAiProvider => await getApiKey(),

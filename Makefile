@@ -95,6 +95,8 @@ clean-nightly-install:
 		-a openai_api_key >/dev/null 2>&1 || true
 	@security delete-generic-password -s $(NIGHTLY_BUNDLE_ID) \
 		-a openrouter_api_key >/dev/null 2>&1 || true
+	@security delete-generic-password -s $(NIGHTLY_BUNDLE_ID) \
+		-a anthropic_api_key >/dev/null 2>&1 || true
 	@tccutil reset All $(NIGHTLY_BUNDLE_ID) >/dev/null 2>&1 || true
 	@rm -f "$$HOME/Downloads"/MakeItSoundNaturalNightly-*.dmg
 	@echo "Removed Nightly app, prefs, caches, keychain items, TCC grants, and DMGs"

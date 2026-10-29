@@ -207,17 +207,8 @@ final class AnthropicMessagesFormatTests: XCTestCase {
     }
 
     func testFactoryRoutesOnlyAnthropicProviderToMessagesApi() throws {
-        let service = LLMService()
-        let native = try XCTUnwrap(service.buildRequestForTesting(
-            text: "Selected text",
-            config: config(),
-            systemInstructions: "system"
-        ))
-        let custom = try XCTUnwrap(service.buildRequestForTesting(
-            text: "Selected text",
-            config: config(provider: "anthropic"),
-            systemInstructions: "system"
-        ))
+        let native = try XCTUnwrap(request(for: config()))
+        let custom = try XCTUnwrap(request(for: config(provider: "anthropic")))
 
         XCTAssertEqual(
             native.url?.absoluteString,
@@ -226,6 +217,14 @@ final class AnthropicMessagesFormatTests: XCTestCase {
         XCTAssertEqual(
             custom.url?.absoluteString,
             "https://api.anthropic.com/v1/chat/completions"
+        )
+    }
+
+    private func request(for config: LLMService.Configuration) -> URLRequest? {
+        LLMWireFormatFactory.forProvider(config.provider).makeRequest(
+            text: "Selected text",
+            config: config,
+            systemInstructions: "system"
         )
     }
 

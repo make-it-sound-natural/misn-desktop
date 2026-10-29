@@ -5,13 +5,13 @@ class ModelCatalogDefaults {
   ModelCatalogDefaults._();
 
   static const Map<String, List<String>> _modelsByProvider = {
-    'openai': [
+    AppDefaults.openAiProvider: [
       'gpt-5.4-nano',
       'gpt-5.4-mini',
       'gpt-5.4',
       'gpt-5.5',
     ],
-    'openrouter': [
+    AppDefaults.openRouterProvider: [
       'google/gemini-3-flash-preview',
     ],
     AppDefaults.anthropicProvider: [

@@ -436,6 +436,22 @@ void main() {
       expect(await service.hasApiKeyForActiveProvider(), isFalse);
     });
 
+    test('checks each provider against its own key', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            return switch (call.method) {
+              MethodChannelMethods.getStoredAnthropicApiKey => 'ant-key',
+              MethodChannelMethods.getStoredCustomProviderApiKey => '',
+              _ => throw MissingPluginException(),
+            };
+          });
+      final service = SettingsService();
+
+      expect(await service.hasApiKey(AppDefaults.anthropicProvider), isTrue);
+      expect(await service.hasApiKey(AppDefaults.openAiProvider), isFalse);
+      expect(await service.hasApiKey('custom-endpoint'), isFalse);
+    });
+
     test('stores custom provider API key outside shared preferences', () async {
       final secureValues = <String, String>{};
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger

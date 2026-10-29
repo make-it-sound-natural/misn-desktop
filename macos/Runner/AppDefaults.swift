@@ -3,8 +3,11 @@ enum AppDefaults {
     /// User-facing app name used by native integrations.
     static let appName = "Make It Sound Natural"
 
+    /// Provider used when none has been saved.
+    static let apiProvider = openAiProvider
+
     /// Provider id for direct OpenAI requests.
-    static let apiProvider = "openai"
+    static let openAiProvider = "openai"
 
     /// Provider id for OpenRouter requests.
     static let openRouterProvider = "openrouter"

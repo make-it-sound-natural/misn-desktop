@@ -46,7 +46,9 @@ global shortcut cannot capture and replace selected text.
 1. Open Make It Sound Natural.
 2. Open Settings.
 3. Choose OpenAI, OpenRouter, or Anthropic.
-4. Enter the matching API key.
+4. Enter the matching API key. For Anthropic, create the key for a single
+   workspace: the app sends no workspace ID, so a key that is not scoped to
+   a workspace is rejected.
 5. Choose a default model and rewrite variant.
 6. Set or confirm the global shortcut.
 7. Grant Accessibility permission in System Settings when macOS prompts.

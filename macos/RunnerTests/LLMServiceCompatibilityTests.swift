@@ -169,6 +169,32 @@ final class LLMServiceCompatibilityTests: XCTestCase {
         )
     }
 
+    func testNetworkFailureCompletesWithItsMessage() {
+        let sessionConfig = URLSessionConfiguration.ephemeral
+        sessionConfig.protocolClasses = [TimedOutURLProtocol.self]
+        let session = URLSession(configuration: sessionConfig)
+        defer { session.invalidateAndCancel() }
+        let service = LLMService(session: session)
+        let done = expectation(description: "Request completes once")
+        service.processText("Original text", config: .init(
+            provider: "tokenguard",
+            apiKey: "", openRouterApiKey: "",
+            customProviderApiKey: "custom-key",
+            customProviderBaseUrl: "https://example.test/v1",
+            model: "test-model", customPrompt: nil, context: nil,
+            targetProfileInstruction: nil, screenshotAttachment: nil,
+            accessibilityContext: nil
+        )) { content, error in
+            XCTAssertNil(content)
+            XCTAssertEqual(
+                error,
+                "Network error: \(URLError(.timedOut).localizedDescription)"
+            )
+            done.fulfill()
+        }
+        wait(for: [done], timeout: 3)
+    }
+
     private func run(
         provider: String = "tokenguard",
         responses: [(Int, String)],
@@ -253,6 +279,17 @@ private final class CompatibilityURLProtocol: URLProtocol {
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: Data(body.utf8))
         client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+}
+
+private final class TimedOutURLProtocol: URLProtocol {
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        client?.urlProtocol(self, didFailWithError: URLError(.timedOut))
     }
 
     override func stopLoading() {}

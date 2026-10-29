@@ -83,7 +83,7 @@ struct ChatCompletionsFormat: LLMWireFormat {
                 ]
             ]
         }
-        if config.provider == "openai" {
+        if config.provider == AppDefaults.openAiProvider {
             payload["service_tier"] = "priority"
         }
         return payload
@@ -132,14 +132,15 @@ struct ChatCompletionsFormat: LLMWireFormat {
     }
 
     private var isBuiltInProvider: Bool {
-        provider == AppDefaults.openRouterProvider || provider == "openai"
+        provider == AppDefaults.openRouterProvider
+            || provider == AppDefaults.openAiProvider
     }
 
     private func requestUrl(for config: LLMService.Configuration) -> URL? {
         let rawUrl: String
         if config.provider == AppDefaults.openRouterProvider {
             rawUrl = "https://openrouter.ai/api/v1/chat/completions"
-        } else if config.provider == "openai" {
+        } else if config.provider == AppDefaults.openAiProvider {
             rawUrl = "https://api.openai.com/v1/chat/completions"
         } else {
             rawUrl = normalizeChatCompletionsUrl(
