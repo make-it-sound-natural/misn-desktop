@@ -12,8 +12,8 @@ variants without copying text into a separate chat window.
 
 ## Key concepts
 
-- **Provider**: the AI service used for rewrites. The app supports OpenAI and
-  OpenRouter-compatible chat completion APIs.
+- **Provider**: the AI service used for rewrites. The app supports OpenAI,
+  OpenRouter, Anthropic, and custom OpenAI-compatible chat completion APIs.
 - **API key**: the provider credential. Keys are entered in Settings and stored
   locally in macOS Keychain.
 - **Shortcut**: the global keyboard shortcut that captures selected text and
@@ -27,7 +27,7 @@ variants without copying text into a separate chat window.
 ## Requirements
 
 - macOS 10.15 Catalina or later
-- OpenAI or OpenRouter API key
+- OpenAI, OpenRouter, or Anthropic API key
 - Accessibility permission, granted in macOS System Settings when prompted
 - Screen Recording permission only if screenshot context is enabled
 
@@ -45,7 +45,7 @@ global shortcut cannot capture and replace selected text.
 
 1. Open Make It Sound Natural.
 2. Open Settings.
-3. Choose OpenAI or OpenRouter.
+3. Choose OpenAI, OpenRouter, or Anthropic.
 4. Enter the matching API key.
 5. Choose a default model and rewrite variant.
 6. Set or confirm the global shortcut.

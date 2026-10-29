@@ -6,8 +6,9 @@ saved locally; missing or unknown saved values use Low. Lower levels favor
 speed, while higher levels allow a larger reasoning budget. Providers decide
 how to interpret the level, so this is not a latency or quality guarantee.
 
-Requests use the top-level `reasoning_effort` field. The app does not send a
-second, nested `reasoning.effort` field. OpenRouter documents the top-level
+Chat Completions providers (OpenAI, OpenRouter, and custom providers) receive
+the top-level `reasoning_effort` field. The app does not send a second, nested
+`reasoning.effort` field. OpenRouter documents the top-level
 field in its [parameter reference](https://openrouter.ai/docs/api_reference/parameters).
 TokenGuard's top-level contract and observations about rejected `none` values
 come from [MT-1087](https://www.notion.so/3dc03d59105281629ca5caf4d3b0e725).
@@ -24,6 +25,12 @@ Model, credentials, context, image attachment, and other options stay intact.
 The response-format fallback adds the existing JSON-only output instruction.
 Authentication, quota, server errors, unrelated validation failures, and
 repeated rejection of an already removed field do not trigger another retry.
+
+Anthropic receives the level as `output_config.effort` in the Messages API
+request. None maps to `low`, because thinking cannot be turned off on every
+model in the Anthropic catalog. Low, Medium, and High map to `low`, `medium`,
+and `high`. Anthropic requests have no parameter-rejection retries: every error
+is shown as returned.
 
 ## Historical latency observations
 

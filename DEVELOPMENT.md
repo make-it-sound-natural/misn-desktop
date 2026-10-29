@@ -95,10 +95,10 @@ appear for agent-style (`LSUIElement`) apps; it is usually harmless.
 
 ### Configuration
 
-There is no committed `.env` file. Configure an **OpenAI or OpenRouter API key**
-and shortcuts in the in-app **Settings** UI after launch. Grant **Accessibility**
-permissions when macOS prompts, or global shortcuts and text injection will not
-work.
+There is no committed `.env` file. Configure an **OpenAI, OpenRouter, or
+Anthropic API key** and shortcuts in the in-app **Settings** UI after launch.
+Grant **Accessibility** permissions when macOS prompts, or global shortcuts and
+text injection will not work.
 
 ## Development workflow
 
