@@ -98,6 +98,8 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 apiKey: apiKey,
                 openRouterApiKey: self.methodChannelHandler?
                     .getOpenRouterApiKey() ?? AppDefaults.apiKey,
+                anthropicApiKey: self.methodChannelHandler?
+                    .getAnthropicApiKey() ?? AppDefaults.apiKey,
                 customProviderApiKey: self.methodChannelHandler?
                     .getCustomProviderApiKey(
                         provider: self.methodChannelHandler?.getProvider()
@@ -331,6 +333,8 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                         apiKey: apiKey,
                         openRouterApiKey: self.methodChannelHandler?
                             .getOpenRouterApiKey() ?? AppDefaults.apiKey,
+                        anthropicApiKey: self.methodChannelHandler?
+                            .getAnthropicApiKey() ?? AppDefaults.apiKey,
                         customProviderApiKey: self.methodChannelHandler?
                             .getCustomProviderApiKey(provider: provider)
                             ?? AppDefaults.apiKey,
@@ -374,13 +378,18 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
             self.shortcutLlmInvocationActive = false
             self.lastShortcutLlmError = nil
 
-            guard let fullContent = fullContent else {
-                let message = savedError ?? "Request failed. Try again."
+            guard let fullContent, let variant = self.llmService.pasteableVariant(
+                from: fullContent,
+                variant: defaultVariant
+            ) else {
+                let message = fullContent == nil
+                    ? savedError ?? "Request failed. Try again."
+                    : "The model returned an empty rewrite."
                 self.contextCollector.recordResponse(
                     .init(
                         selectedText: selectedText,
                         model: config.model,
-                        fullContent: nil,
+                        fullContent: fullContent,
                         selectedVariant: nil,
                         error: message
                     ),
@@ -393,10 +402,6 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 return
             }
 
-            let variant = self.llmService.extractVariant(
-                from: fullContent,
-                variant: defaultVariant
-            )
             self.contextCollector.recordResponse(
                 .init(
                     selectedText: selectedText,

@@ -3,11 +3,23 @@ enum AppDefaults {
     /// User-facing app name used by native integrations.
     static let appName = "Make It Sound Natural"
 
+    /// Provider used when none has been saved.
+    static let apiProvider = openAiProvider
+
     /// Provider id for direct OpenAI requests.
-    static let apiProvider = "openai"
+    static let openAiProvider = "openai"
 
     /// Provider id for OpenRouter requests.
     static let openRouterProvider = "openrouter"
+
+    /// Provider id for Anthropic's native Messages API.
+    static let anthropicProvider = "anthropic-messages"
+
+    /// `anthropic-version` header sent with every Messages API request.
+    static let anthropicApiVersion = "2026-10-21"
+
+    /// Output budget for one rewrite, thinking included.
+    static let anthropicMaxTokens = 16000
 
     /// Default LLM model used when no model has been saved.
     static let model = "gpt-5.4-mini"

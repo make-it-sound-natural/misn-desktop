@@ -51,7 +51,12 @@
 		OPENAISERVIC1 /* LLMService.swift in Sources */ = {isa = PBXBuildFile; fileRef = OPENAISERVIC2 /* LLMService.swift */; };
 		LLMDBGLOG01 /* LLMService+DebugLogging.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMDBGLOG02 /* LLMService+DebugLogging.swift */; };
 		MODELSET01 /* MethodChannelHandler+ModelSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = MODELSET02 /* MethodChannelHandler+ModelSettings.swift */; };
+		ANTHKEY01 /* MethodChannelHandler+AnthropicKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = ANTHKEY02 /* MethodChannelHandler+AnthropicKey.swift */; };
 		LLMCOMPAT01 /* LLMCompatibility.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMCOMPAT02 /* LLMCompatibility.swift */; };
+		LLMWIREFMT01 /* LLMWireFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMWIREFMT02 /* LLMWireFormat.swift */; };
+		CORRVARJSON01 /* CorrectionVariantsJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CORRVARJSON02 /* CorrectionVariantsJSON.swift */; };
+		CHATCOMPFMT01 /* ChatCompletionsFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = CHATCOMPFMT02 /* ChatCompletionsFormat.swift */; };
+		ANTHMSGFMT01 /* AnthropicMessagesFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = ANTHMSGFMT02 /* AnthropicMessagesFormat.swift */; };
 		LLMERRPARS01 /* LLMErrorMessageParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMERRPARS02 /* LLMErrorMessageParser.swift */; };
 		LLMERRTEST01 /* LLMErrorMessageParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMERRTEST02 /* LLMErrorMessageParserTests.swift */; };
 		LLMAUTHTEST01 /* LLMServiceAuthFailureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */; };
@@ -80,6 +85,10 @@
 		LLMPAYTEST01 /* LLMServicePayloadTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMPAYTEST02 /* LLMServicePayloadTests.swift */; };
 		LLMPROMPTTEST01 /* LLMServicePromptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMPROMPTTEST02 /* LLMServicePromptTests.swift */; };
 		LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */; };
+		CORRVARTEST01 /* CorrectionVariantsJSONTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CORRVARTEST02 /* CorrectionVariantsJSONTests.swift */; };
+		CHATCOMPTEST01 /* ChatCompletionsFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CHATCOMPTEST02 /* ChatCompletionsFormatTests.swift */; };
+		ANTHFMTTEST01 /* AnthropicMessagesFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ANTHFMTTEST02 /* AnthropicMessagesFormatTests.swift */; };
+		LLMANTHTEST01 /* LLMServiceAnthropicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMANTHTEST02 /* LLMServiceAnthropicTests.swift */; };
 		SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */; };
 		SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */; };
 		ACCTXMODE01 /* AccessibilityContextMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACCTXMODE02 /* AccessibilityContextMode.swift */; };
@@ -191,7 +200,12 @@
 		OPENAISERVIC2 /* LLMService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LLMService.swift; sourceTree = "<group>"; };
 		LLMDBGLOG02 /* LLMService+DebugLogging.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "LLMService+DebugLogging.swift"; sourceTree = "<group>"; };
 		MODELSET02 /* MethodChannelHandler+ModelSettings.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "MethodChannelHandler+ModelSettings.swift"; sourceTree = "<group>"; };
+		ANTHKEY02 /* MethodChannelHandler+AnthropicKey.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "MethodChannelHandler+AnthropicKey.swift"; sourceTree = "<group>"; };
 		LLMCOMPAT02 /* LLMCompatibility.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "LLMCompatibility.swift"; sourceTree = "<group>"; };
+		LLMWIREFMT02 /* LLMWireFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "LLMWireFormat.swift"; sourceTree = "<group>"; };
+		CORRVARJSON02 /* CorrectionVariantsJSON.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "CorrectionVariantsJSON.swift"; sourceTree = "<group>"; };
+		CHATCOMPFMT02 /* ChatCompletionsFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ChatCompletionsFormat.swift"; sourceTree = "<group>"; };
+		ANTHMSGFMT02 /* AnthropicMessagesFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AnthropicMessagesFormat.swift"; sourceTree = "<group>"; };
 		LLMERRPARS02 /* LLMErrorMessageParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LLMErrorMessageParser.swift; sourceTree = "<group>"; };
 		LLMERRTEST02 /* LLMErrorMessageParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMErrorMessageParserTests.swift; sourceTree = "<group>"; };
 		LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceAuthFailureTests.swift; sourceTree = "<group>"; };
@@ -220,6 +234,10 @@
 		LLMPAYTEST02 /* LLMServicePayloadTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServicePayloadTests.swift; sourceTree = "<group>"; };
 		LLMPROMPTTEST02 /* LLMServicePromptTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServicePromptTests.swift; sourceTree = "<group>"; };
 		LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceCompatibilityTests.swift; sourceTree = "<group>"; };
+		CORRVARTEST02 /* CorrectionVariantsJSONTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorrectionVariantsJSONTests.swift; sourceTree = "<group>"; };
+		CHATCOMPTEST02 /* ChatCompletionsFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCompletionsFormatTests.swift; sourceTree = "<group>"; };
+		ANTHFMTTEST02 /* AnthropicMessagesFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicMessagesFormatTests.swift; sourceTree = "<group>"; };
+		LLMANTHTEST02 /* LLMServiceAnthropicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceAnthropicTests.swift; sourceTree = "<group>"; };
 		ACCTXMODE02 /* AccessibilityContextMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextMode.swift; sourceTree = "<group>"; };
 		ACCTXMODEL02 /* AccessibilityContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContext.swift; sourceTree = "<group>"; };
 		ACCTXEXCP02 /* AccessibilityFieldExcerpt.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityFieldExcerpt.swift; sourceTree = "<group>"; };
@@ -295,6 +313,10 @@
 				LLMPAYTEST02 /* LLMServicePayloadTests.swift */,
 				LLMPROMPTTEST02 /* LLMServicePromptTests.swift */,
 				LLMCOMPTEST02 /* LLMServiceCompatibilityTests.swift */,
+				CORRVARTEST02 /* CorrectionVariantsJSONTests.swift */,
+				CHATCOMPTEST02 /* ChatCompletionsFormatTests.swift */,
+				ANTHFMTTEST02 /* AnthropicMessagesFormatTests.swift */,
+				LLMANTHTEST02 /* LLMServiceAnthropicTests.swift */,
 				SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */,
 				SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */,
 				ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */,
@@ -393,7 +415,12 @@
 				OPENAISERVIC2 /* LLMService.swift */,
 				LLMDBGLOG02 /* LLMService+DebugLogging.swift */,
 				MODELSET02 /* MethodChannelHandler+ModelSettings.swift */,
+				ANTHKEY02 /* MethodChannelHandler+AnthropicKey.swift */,
 				LLMCOMPAT02 /* LLMCompatibility.swift */,
+				LLMWIREFMT02 /* LLMWireFormat.swift */,
+				CORRVARJSON02 /* CorrectionVariantsJSON.swift */,
+				CHATCOMPFMT02 /* ChatCompletionsFormat.swift */,
+				ANTHMSGFMT02 /* AnthropicMessagesFormat.swift */,
 				PROMPTTEMP002 /* PromptTemplates.swift */,
 				SHORTCUTMGR02 /* ShortcutManager.swift */,
 				SHORTCUTDISP2 /* ShortcutDispatcher.swift */,
@@ -679,6 +706,10 @@
 				LLMPAYTEST01 /* LLMServicePayloadTests.swift in Sources */,
 				LLMPROMPTTEST01 /* LLMServicePromptTests.swift in Sources */,
 				LLMCOMPTEST01 /* LLMServiceCompatibilityTests.swift in Sources */,
+				CORRVARTEST01 /* CorrectionVariantsJSONTests.swift in Sources */,
+				CHATCOMPTEST01 /* ChatCompletionsFormatTests.swift in Sources */,
+				ANTHFMTTEST01 /* AnthropicMessagesFormatTests.swift in Sources */,
+				LLMANTHTEST01 /* LLMServiceAnthropicTests.swift in Sources */,
 				SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */,
 				SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */,
 				ACCTXCAPTEST01 /* AccessibilityContextCapturerTests.swift in Sources */,
@@ -719,7 +750,12 @@
 				OPENAISERVIC1 /* LLMService.swift in Sources */,
 				LLMDBGLOG01 /* LLMService+DebugLogging.swift in Sources */,
 				MODELSET01 /* MethodChannelHandler+ModelSettings.swift in Sources */,
+				ANTHKEY01 /* MethodChannelHandler+AnthropicKey.swift in Sources */,
 				LLMCOMPAT01 /* LLMCompatibility.swift in Sources */,
+				LLMWIREFMT01 /* LLMWireFormat.swift in Sources */,
+				CORRVARJSON01 /* CorrectionVariantsJSON.swift in Sources */,
+				CHATCOMPFMT01 /* ChatCompletionsFormat.swift in Sources */,
+				ANTHMSGFMT01 /* AnthropicMessagesFormat.swift in Sources */,
 				PROMPTTEMP001 /* PromptTemplates.swift in Sources */,
 				SHORTCUTMGR01 /* ShortcutManager.swift in Sources */,
 				SHORTCUTDISP1 /* ShortcutDispatcher.swift in Sources */,

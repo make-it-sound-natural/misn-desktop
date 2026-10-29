@@ -23,6 +23,9 @@ class AppDefaults {
   /// Provider id for OpenRouter requests.
   static const String openRouterProvider = 'openrouter';
 
+  /// Provider id for native Anthropic Messages API requests.
+  static const String anthropicProvider = 'anthropic-messages';
+
   /// Default API provider used when no provider has been saved.
   static const String apiProvider = openRouterProvider;
 

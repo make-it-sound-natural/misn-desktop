@@ -20,6 +20,17 @@ void main() {
       ]);
     });
 
+    test('ships Claude models for Anthropic in order', () {
+      expect(
+        ModelCatalogDefaults.modelsForProvider(AppDefaults.anthropicProvider),
+        [
+          'claude-haiku-5-5',
+          'claude-sonnet-5-5',
+          'claude-opus-5-5',
+        ],
+      );
+    });
+
     test('returns empty list for unknown provider', () {
       expect(ModelCatalogDefaults.modelsForProvider('unknown'), isEmpty);
     });

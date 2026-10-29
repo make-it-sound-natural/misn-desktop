@@ -45,31 +45,18 @@ struct LLMResponseParser {
             return nil
         }
 
-        guard let jsonData = textContent.data(using: .utf8),
-              let variantsJson = try? JSONSerialization.jsonObject(with: jsonData) as? [String: String],
-              let balanced = variantsJson["balanced"],
-              let casual = variantsJson["casual"],
-              let formal = variantsJson["formal"],
-              let concise = variantsJson["concise"] else {
+        guard let variants = try? JSONDecoder().decode(
+            CorrectionVariantsJSON.self,
+            from: Data(textContent.utf8)
+        ) else {
             return nil
         }
 
-        let content = """
-        ---BALANCED---
-        \(balanced)
-
-        ---CASUAL---
-        \(casual)
-
-        ---FORMAL---
-        \(formal)
-
-        ---CONCISE---
-        \(concise)
-        """
-
         log("Parsed via Strategy 0: Chat Completions Structured Output")
-        return ParseResult(content: content, strategy: "Strategy 0: Structured Output")
+        return ParseResult(
+            content: variants.markerContent,
+            strategy: "Strategy 0: Structured Output"
+        )
     }
 
     // MARK: - Strategy 1: Responses API - output array with summary fields

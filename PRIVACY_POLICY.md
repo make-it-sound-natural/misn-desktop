@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** September 2026
+**Last updated:** October 2026
 
 ## Overview
 
@@ -12,7 +12,7 @@ Make It Sound Natural ("the App") is a macOS application that helps you rewrite 
 
 When you use the App to rewrite text:
 
-1. **Selected Text**: The text you select and submit for rewriting is sent to your configured AI provider (OpenAI or OpenRouter) for processing.
+1. **Selected Text**: The text you select and submit for rewriting is sent to your configured AI provider (OpenAI, OpenRouter, or Anthropic) for processing.
 2. **App context**: Unless you turn it off in Settings, the App also reads text from the app where you press the shortcut and sends it with the selected text. Depending on the mode, this is the app name, window title, field label, the text around your selection, and the text shown above the field, which can include other people's messages. Each part has a length cap. New installs read only the field text; the text above the field is read after you turn it on in onboarding or Settings. If you update from a version where screenshot context was on, the text above the field is read from the first launch without asking; you can turn it off in Settings. Nothing is read from password fields or from any app while a password field is focused.
 3. **Screenshot context**: Off by default for new installs; an update keeps whatever you already had, off included. Once you turn it on in onboarding or Settings, the App takes a screenshot every time you run the shortcut and sends it to your configured AI provider together with the selected text, at high detail (not a shrunk, low-resolution preview), so text in the screenshot stays readable to the provider. What the screenshot shows depends on the mode you pick: the active window cropped to the area around the field you're typing in (the whole window when that area can't be found), the whole active window, or the whole active display. The screenshot is independent of App context: it is sent whenever this setting is on, whether App context is on, off, or unable to read the field, and — unlike App context — it is not skipped while a password field is focused. Screenshot context needs macOS 14 or later and Screen Recording permission (see below); without either, no screenshot is taken and the App shows a warning instead. In debug builds only, and only when a developer sets an environment variable, the App can also save captured screenshots to a local folder on disk, keeping the most recent 20; release builds never do this.
 4. **Processing**: The AI provider processes your text to generate rewritten variants.
@@ -20,8 +20,8 @@ When you use the App to rewrite text:
 
 ### API Keys
 
-- Your API keys (OpenAI and/or OpenRouter) are stored locally on your device
-	using macOS Keychain.
+- Your API keys (OpenAI, OpenRouter, and/or Anthropic) are stored locally on
+	your device using macOS Keychain.
 - API keys are only used to authenticate requests to their respective services and are never transmitted to any other service.
 
 ### Local Storage
@@ -29,10 +29,10 @@ When you use the App to rewrite text:
 The App stores the following data locally on your device:
 
 - **Settings**: Your preferences (keyboard shortcuts, default variant selection, custom prompts)
-- **API Keys**: Your OpenAI and/or OpenRouter API keys (stored in macOS Keychain)
-- **Context**: Optional context text you provide for better corrections (stored only in memory during the session)
+- **API Keys**: Your OpenAI, OpenRouter, and/or Anthropic API keys (stored in macOS Keychain)
+- **Context**: Optional context text you provide for better corrections (stored in the App's local settings and kept between launches until you change or clear it)
 
-No personal data is transmitted to any servers other than your configured AI provider (OpenAI or OpenRouter) for text processing.
+No personal data is transmitted to any servers other than your configured AI provider (OpenAI, OpenRouter, or Anthropic) for text processing.
 
 ## Third-Party Services
 
@@ -50,7 +50,7 @@ When using OpenAI as your AI provider:
 
 - **Training**: OpenAI does **not** use API data for training models by default
 - **Storage**: OpenAI **does store** your prompts and responses for abuse monitoring purposes
-- **Retention period**: Data is typically retained for 30 days, however due to a U.S. court order (October 2025), OpenAI is currently required to preserve API data indefinitely for standard API users
+- **Retention period**: Data is typically retained for 30 days. A U.S. court order required OpenAI to preserve API data indefinitely; that obligation ended on September 26, 2025, and OpenAI still keeps a limited set of API data from April–September 2025 for the case ([OpenAI's update](https://openai.com/index/response-to-nyt-data-demands/))
 - **Zero Data Retention**: Available only to approved enterprise/business accounts upon application to OpenAI
 
 ### OpenRouter
@@ -68,6 +68,35 @@ When using OpenRouter as your AI provider:
 - **Prompt logging**: Available as an opt-in feature in your OpenRouter account settings
 - **Zero Data Retention**: Available to all users. When enabled, requests only route to providers that do not retain or train on your data
 - **Training**: Depends on the underlying model provider; OpenRouter allows you to configure settings to avoid providers that train on user data
+
+### Anthropic
+
+When using Anthropic as your AI provider:
+
+- Your text is sent to Anthropic's servers
+- Anthropic's [Privacy Policy](https://www.anthropic.com/legal/privacy)
+  describes how Anthropic handles personal data
+
+**Data Retention by Anthropic:**
+
+Anthropic's Privacy Center lists the Anthropic API among its commercial
+products and states the following for them:
+
+- **Training**: Anthropic does **not** use inputs or outputs from its
+  commercial products to train models by default, unless you report feedback
+  to Anthropic or otherwise allow it
+  ([source](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training))
+- **Retention period**: Anthropic deletes API inputs and outputs on its backend
+  within 30 days of receipt or generation. They are kept longer when you use a
+  service with longer retention under your control, when you and Anthropic
+  agreed otherwise, to enforce Anthropic's Usage Policy, or to comply with the
+  law
+  ([source](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data))
+- **Usage Policy violations**: When Anthropic's automated trust and safety
+  systems flag a request as violating its Usage Policy, Anthropic keeps the
+  inputs and outputs for up to 2 years and trust and safety classification
+  scores for up to 7 years
+  ([source](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data))
 
 **Privacy Recommendation**: If data privacy is a priority, OpenRouter with Zero Data Retention enabled offers stronger privacy guarantees out of the box compared to standard OpenAI API access.
 
@@ -101,7 +130,7 @@ The App uses Sparkle for automatic updates. When checking for updates:
 
 ## Data Security
 
-- All communication with AI providers (OpenAI, OpenRouter) uses HTTPS encryption
+- All communication with AI providers (OpenAI, OpenRouter, Anthropic) uses HTTPS encryption
 - Your API keys are stored in macOS Keychain and never shared
 - No analytics or tracking services are used
 

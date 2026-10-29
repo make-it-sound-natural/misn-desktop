@@ -44,6 +44,20 @@ final class RunnerTests: XCTestCase {
             MethodChannelHandler.customProviderKeychainAccount(provider: "!!!")
         )
     }
+
+    func testAnthropicKeychainAccountIsDedicated() {
+        let account = MethodChannelHandler.anthropicKeychainAccount
+
+        XCTAssertEqual(account, "anthropic_api_key")
+        XCTAssertNotEqual(
+            account,
+            MethodChannelHandler.customProviderKeychainAccount(provider: "anthropic-messages")
+        )
+        XCTAssertNotEqual(
+            account,
+            MethodChannelHandler.customProviderKeychainAccount(provider: "anthropic")
+        )
+    }
 }
 
 final class NightlySparkleVersionTests: XCTestCase {

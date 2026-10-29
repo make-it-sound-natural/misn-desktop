@@ -373,6 +373,85 @@ void main() {
       expect(prefs.getString('openrouter_api_key'), isNull);
     });
 
+    test('stores and reads Anthropic API key through the channel', () async {
+      final secureValues = <String, String>{};
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            switch (call.method) {
+              case MethodChannelMethods.storeAnthropicApiKey:
+                secureValues['anthropic'] = call.arguments as String;
+                return null;
+              case MethodChannelMethods.getStoredAnthropicApiKey:
+                return secureValues['anthropic'];
+            }
+            throw MissingPluginException();
+          });
+      final service = SettingsService();
+      await service.recordProviderAuthFailure(
+        provider: AppDefaults.anthropicProvider,
+        message: 'Invalid API key. Check settings.',
+      );
+
+      await service.setAnthropicApiKey('  ant-key  ');
+
+      expect(secureValues['anthropic'], 'ant-key');
+      expect(await service.getAnthropicApiKey(), 'ant-key');
+      expect(
+        await service.getProviderAuthFailure(AppDefaults.anthropicProvider),
+        isNull,
+      );
+    });
+
+    test('keeps Anthropic API key out of shared preferences', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            throw MissingPluginException();
+          });
+      final service = SettingsService();
+
+      await service.setAnthropicApiKey('ant-key');
+
+      expect(await service.getAnthropicApiKey(), '');
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getKeys(), isEmpty);
+    });
+
+    test('checks Anthropic key for active Anthropic provider', () async {
+      SharedPreferences.setMockInitialValues({
+        'api_provider': AppDefaults.anthropicProvider,
+      });
+      var storedKey = 'ant-key';
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == MethodChannelMethods.getStoredAnthropicApiKey) {
+              return storedKey;
+            }
+            throw MissingPluginException();
+          });
+      final service = SettingsService();
+
+      expect(await service.hasApiKeyForActiveProvider(), isTrue);
+
+      storedKey = '  ';
+      expect(await service.hasApiKeyForActiveProvider(), isFalse);
+    });
+
+    test('checks each provider against its own key', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            return switch (call.method) {
+              MethodChannelMethods.getStoredAnthropicApiKey => 'ant-key',
+              MethodChannelMethods.getStoredCustomProviderApiKey => '',
+              _ => throw MissingPluginException(),
+            };
+          });
+      final service = SettingsService();
+
+      expect(await service.hasApiKey(AppDefaults.anthropicProvider), isTrue);
+      expect(await service.hasApiKey(AppDefaults.openAiProvider), isFalse);
+      expect(await service.hasApiKey('custom-endpoint'), isFalse);
+    });
+
     test('stores custom provider API key outside shared preferences', () async {
       final secureValues = <String, String>{};
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
