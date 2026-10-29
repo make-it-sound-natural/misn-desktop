@@ -98,6 +98,8 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 apiKey: apiKey,
                 openRouterApiKey: self.methodChannelHandler?
                     .getOpenRouterApiKey() ?? AppDefaults.apiKey,
+                anthropicApiKey: self.methodChannelHandler?
+                    .getAnthropicApiKey() ?? AppDefaults.apiKey,
                 customProviderApiKey: self.methodChannelHandler?
                     .getCustomProviderApiKey(
                         provider: self.methodChannelHandler?.getProvider()
@@ -331,6 +333,8 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                         apiKey: apiKey,
                         openRouterApiKey: self.methodChannelHandler?
                             .getOpenRouterApiKey() ?? AppDefaults.apiKey,
+                        anthropicApiKey: self.methodChannelHandler?
+                            .getAnthropicApiKey() ?? AppDefaults.apiKey,
                         customProviderApiKey: self.methodChannelHandler?
                             .getCustomProviderApiKey(provider: provider)
                             ?? AppDefaults.apiKey,

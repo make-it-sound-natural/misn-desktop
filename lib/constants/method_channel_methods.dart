@@ -48,6 +48,15 @@ abstract class MethodChannelMethods {
   /// Reads the OpenRouter API key from macOS Keychain.
   static const String getStoredOpenRouterApiKey = 'getStoredOpenRouterApiKey';
 
+  /// Sets the Anthropic API key.
+  static const String setAnthropicApiKey = 'setAnthropicApiKey';
+
+  /// Stores the Anthropic API key in macOS Keychain.
+  static const String storeAnthropicApiKey = 'storeAnthropicApiKey';
+
+  /// Reads the Anthropic API key from macOS Keychain.
+  static const String getStoredAnthropicApiKey = 'getStoredAnthropicApiKey';
+
   /// Sets active custom provider config in native code.
   static const String setCustomProviderConfig = 'setCustomProviderConfig';
 

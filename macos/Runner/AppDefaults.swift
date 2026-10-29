@@ -9,6 +9,15 @@ enum AppDefaults {
     /// Provider id for OpenRouter requests.
     static let openRouterProvider = "openrouter"
 
+    /// Provider id for Anthropic's native Messages API.
+    static let anthropicProvider = "anthropic-messages"
+
+    /// `anthropic-version` header sent with every Messages API request.
+    static let anthropicApiVersion = "2026-10-21"
+
+    /// Output budget for one rewrite, thinking included.
+    static let anthropicMaxTokens = 16000
+
     /// Default LLM model used when no model has been saved.
     static let model = "gpt-5.4-mini"
 

@@ -97,7 +97,6 @@ final class LLMServicePayloadTests: XCTestCase {
     }
 
     func testTextOnlyPayloadKeepsUserContentString() throws {
-        let service = LLMService()
         let config = LLMService.Configuration(
             provider: "openai",
             apiKey: "key",
@@ -112,7 +111,7 @@ final class LLMServicePayloadTests: XCTestCase {
             accessibilityContext: nil
         )
 
-        let payload = service.buildPayloadForTesting(
+        let payload = ChatCompletionsFormat(provider: config.provider).payload(
             text: "hello",
             config: config,
             systemInstructions: "system"
@@ -124,7 +123,6 @@ final class LLMServicePayloadTests: XCTestCase {
     }
 
     func testImagePayloadUsesMultimodalUserContent() throws {
-        let service = LLMService()
         let attachment = LLMService.ScreenshotAttachment(
             mimeType: "image/jpeg",
             base64Data: "abc123"
@@ -143,7 +141,7 @@ final class LLMServicePayloadTests: XCTestCase {
             accessibilityContext: nil
         )
 
-        let payload = service.buildPayloadForTesting(
+        let payload = ChatCompletionsFormat(provider: config.provider).payload(
             text: "hello",
             config: config,
             systemInstructions: "system"
@@ -163,7 +161,6 @@ final class LLMServicePayloadTests: XCTestCase {
     }
 
     func testOpenRouterCustomSlugImagePayloadUsesMultimodalContent() throws {
-        let service = LLMService()
         let attachment = LLMService.ScreenshotAttachment(
             mimeType: "image/jpeg",
             base64Data: "abc123"
@@ -182,7 +179,7 @@ final class LLMServicePayloadTests: XCTestCase {
             accessibilityContext: nil
         )
 
-        let payload = service.buildPayloadForTesting(
+        let payload = ChatCompletionsFormat(provider: config.provider).payload(
             text: "hello",
             config: config,
             systemInstructions: "system"
@@ -262,7 +259,6 @@ final class LLMServicePayloadTests: XCTestCase {
     }
 
     func testCustomProviderFallbackPayloadOmitsResponseFormat() {
-        let service = LLMService()
         let config = LLMService.Configuration(
             provider: "tokenguard",
             apiKey: "",
@@ -277,11 +273,13 @@ final class LLMServicePayloadTests: XCTestCase {
             accessibilityContext: nil
         )
 
-        let payload = service.buildPayloadForTesting(
+        let payload = ChatCompletionsFormat(
+            provider: config.provider,
+            excludedParameters: [.responseFormat]
+        ).payload(
             text: "hello",
             config: config,
-            systemInstructions: "Return only JSON.",
-            includeResponseFormat: false
+            systemInstructions: "Return only JSON."
         )
 
         XCTAssertNil(payload["response_format"])
@@ -294,7 +292,7 @@ final class LLMServicePayloadTests: XCTestCase {
         let service = LLMService()
         let config = makeConfiguration(accessibilityContext: .slackFixture())
 
-        let payload = service.buildPayloadForTesting(
+        let payload = ChatCompletionsFormat(provider: config.provider).payload(
             text: "hello",
             config: config,
             systemInstructions: service.buildFinalSystemInstructions(
@@ -318,7 +316,7 @@ final class LLMServicePayloadTests: XCTestCase {
             accessibilityContext: .slackFixture()
         )
 
-        let payload = service.buildPayloadForTesting(
+        let payload = ChatCompletionsFormat(provider: config.provider).payload(
             text: "hello",
             config: config,
             systemInstructions: service.buildFinalSystemInstructions(

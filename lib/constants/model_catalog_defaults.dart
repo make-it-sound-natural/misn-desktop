@@ -1,3 +1,5 @@
+import 'package:make_it_sound_natural/constants/app_defaults.dart';
+
 /// Built-in LLM model catalog shipped with the app.
 class ModelCatalogDefaults {
   ModelCatalogDefaults._();
@@ -11,6 +13,11 @@ class ModelCatalogDefaults {
     ],
     'openrouter': [
       'google/gemini-3-flash-preview',
+    ],
+    AppDefaults.anthropicProvider: [
+      'claude-haiku-5-5',
+      'claude-sonnet-5-5',
+      'claude-opus-5-5',
     ],
   };
 

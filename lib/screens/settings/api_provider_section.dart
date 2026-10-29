@@ -126,6 +126,8 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
       AppDefaults.openRouterProvider =>
         await _settingsService.getOpenRouterApiKey(),
       AppDefaults.openAiProvider => await _settingsService.getApiKey(),
+      AppDefaults.anthropicProvider =>
+        await _settingsService.getAnthropicApiKey(),
       _ => await _settingsService.getCustomProviderApiKey(provider.id),
     };
     return key.trim().isNotEmpty;
@@ -279,6 +281,8 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
         await _settingsService.setOpenRouterApiKey(key);
       case AppDefaults.openAiProvider:
         await _settingsService.setApiKey(key);
+      case AppDefaults.anthropicProvider:
+        await _settingsService.setAnthropicApiKey(key);
       default:
         if (key.isEmpty) {
           await _settingsService.deleteCustomProviderApiKey(provider.id);

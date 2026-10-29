@@ -105,6 +105,12 @@ class ShortcutService {
       await setOpenRouterApiKey(openRouterApiKey);
     }
 
+    // Load and sync Anthropic API key
+    final anthropicApiKey = await settings.getAnthropicApiKey();
+    if (anthropicApiKey.isNotEmpty) {
+      await setAnthropicApiKey(anthropicApiKey);
+    }
+
     // Load and sync context
     final context = await settings.getContext();
     if (context.isNotEmpty) {
@@ -320,6 +326,18 @@ class ShortcutService {
       );
     } on PlatformException catch (e) {
       _log.warning('Failed to set OpenRouter API key: ${e.message}');
+    }
+  }
+
+  /// Sets the Anthropic API key in the native layer.
+  Future<void> setAnthropicApiKey(String apiKey) async {
+    try {
+      await _channel.invokeMethod(
+        MethodChannelMethods.setAnthropicApiKey,
+        apiKey,
+      );
+    } on PlatformException catch (e) {
+      _log.warning('Failed to set Anthropic API key: ${e.message}');
     }
   }
 

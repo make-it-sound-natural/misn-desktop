@@ -156,10 +156,24 @@ final class LLMServiceCompatibilityTests: XCTestCase {
         }
     }
 
+    func testUnparsableSuccessBodyCompletesWithParserMessage() throws {
+        _ = try run(
+            responses: [(200, #"{"choices":[]}"#)],
+            expectSuccess: false,
+            expectedError: "Invalid JSON structure"
+        )
+        _ = try run(
+            responses: [(200, "not JSON")],
+            expectSuccess: false,
+            expectedError: "JSON parsing error"
+        )
+    }
+
     private func run(
         provider: String = "tokenguard",
         responses: [(Int, String)],
-        expectSuccess: Bool = true
+        expectSuccess: Bool = true,
+        expectedError: String? = nil
     ) throws -> [URLRequest] {
         var requests: [URLRequest] = []
         CompatibilityURLProtocol.handler = { request in
@@ -208,6 +222,9 @@ final class LLMServiceCompatibilityTests: XCTestCase {
             } else {
                 XCTAssertNil(content)
                 XCTAssertNotNil(variantOrError)
+                if let expectedError {
+                    XCTAssertEqual(variantOrError, expectedError)
+                }
             }
             done.fulfill()
         }

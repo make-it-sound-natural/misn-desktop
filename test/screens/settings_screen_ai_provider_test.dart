@@ -69,6 +69,12 @@ void main() {
               case MethodChannelMethods.storeOpenRouterApiKey:
                 secureValues['openrouter'] = call.arguments as String;
                 return null;
+              case MethodChannelMethods.getStoredAnthropicApiKey:
+                return secureValues[AppDefaults.anthropicProvider];
+              case MethodChannelMethods.storeAnthropicApiKey:
+                secureValues[AppDefaults.anthropicProvider] =
+                    call.arguments as String;
+                return null;
               case MethodChannelMethods.getStoredCustomProviderApiKey:
                 final args = Map<String, Object?>.from(call.arguments! as Map);
                 return secureValues[args['provider']! as String] ?? '';
@@ -326,6 +332,45 @@ void main() {
     expect(prefs.getString('openai_model'), 'gpt-5.4-mini');
   });
 
+  testWidgets('picking a Claude model selects Anthropic and saves its key', (
+    tester,
+  ) async {
+    setupSettings();
+    await pumpSettings(tester);
+
+    await tester.tap(find.byKey(const Key('apiProvider-modelPicker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('claude-haiku-5-5').last);
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('api_provider'), AppDefaults.anthropicProvider);
+    expect(prefs.getString('openai_model'), 'claude-haiku-5-5');
+    expect(
+      methodCalls
+          .lastWhere((call) => call.method == MethodChannelMethods.setProvider)
+          .arguments,
+      AppDefaults.anthropicProvider,
+    );
+
+    await tapRowAction(
+      tester,
+      const Key('apiProvider-keyButton-anthropic-messages'),
+    );
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-keyDialogField')),
+      'sk-ant-new',
+    );
+    await tester.tap(find.byKey(const Key('apiProvider-saveKey')));
+    await tester.pumpAndSettle();
+
+    final store = methodCalls.lastWhere(
+      (call) => call.method == MethodChannelMethods.storeAnthropicApiKey,
+    );
+    expect(store.arguments, 'sk-ant-new');
+    expect(secureValues[AppDefaults.anthropicProvider], 'sk-ant-new');
+  });
+
   testWidgets('adds a custom provider without requiring a model', (
     tester,
   ) async {
@@ -518,6 +563,9 @@ void main() {
         'openai::gpt-5.4-mini',
         'openai::gpt-5.4',
         'openai::gpt-5.5',
+        'anthropic-messages::claude-haiku-5-5',
+        'anthropic-messages::claude-sonnet-5-5',
+        'anthropic-messages::claude-opus-5-5',
       ],
     );
     await pumpSettings(tester);

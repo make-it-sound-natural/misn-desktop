@@ -143,6 +143,23 @@ class SettingsService {
     await clearProviderAuthFailure(AppDefaults.openRouterProvider);
   }
 
+  /// Gets the stored Anthropic API key.
+  Future<String> getAnthropicApiKey() async {
+    return _getSecureString(
+      getMethod: MethodChannelMethods.getStoredAnthropicApiKey,
+      storeMethod: MethodChannelMethods.storeAnthropicApiKey,
+    );
+  }
+
+  /// Saves the Anthropic API key.
+  Future<void> setAnthropicApiKey(String apiKey) async {
+    await _setSecureString(
+      storeMethod: MethodChannelMethods.storeAnthropicApiKey,
+      value: apiKey.trim(),
+    );
+    await clearProviderAuthFailure(AppDefaults.anthropicProvider);
+  }
+
   /// Gets a custom provider API key from secure storage.
   Future<String> getCustomProviderApiKey(String provider) async {
     try {
@@ -188,6 +205,7 @@ class SettingsService {
     final key = switch (provider) {
       AppDefaults.openRouterProvider => await getOpenRouterApiKey(),
       AppDefaults.openAiProvider => await getApiKey(),
+      AppDefaults.anthropicProvider => await getAnthropicApiKey(),
       _ => await getCustomProviderApiKey(provider),
     };
     return key.trim().isNotEmpty;
@@ -470,15 +488,21 @@ class SettingsService {
     await setAppearancePreferences(const AppearancePreferences.defaults());
   }
 
+  /// Reads a Keychain value; a non-null [legacyKey] migrates a value saved
+  /// in SharedPreferences by older versions. Keys that never lived there
+  /// pass `null` and never touch SharedPreferences.
   Future<String> _getSecureString({
     required String getMethod,
     required String storeMethod,
-    required String legacyKey,
+    String? legacyKey,
   }) async {
     try {
       final stored = await _channel.invokeMethod<String>(getMethod);
       if (stored != null && stored.isNotEmpty) {
         return stored.trim();
+      }
+      if (legacyKey == null) {
+        return '';
       }
 
       final legacyValue = (await _readLegacyString(legacyKey)).trim();
@@ -490,20 +514,28 @@ class SettingsService {
       await _removeLegacyString(legacyKey);
       return legacyValue;
     } on MissingPluginException {
+      if (legacyKey == null) {
+        return '';
+      }
       return _readLegacyString(legacyKey);
     }
   }
 
   Future<void> _setSecureString({
     required String storeMethod,
-    required String legacyKey,
     required String value,
+    String? legacyKey,
   }) async {
     final normalized = value.trim();
     try {
       await _channel.invokeMethod<void>(storeMethod, normalized);
-      await _removeLegacyString(legacyKey);
+      if (legacyKey != null) {
+        await _removeLegacyString(legacyKey);
+      }
     } on MissingPluginException {
+      if (legacyKey == null) {
+        return;
+      }
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(legacyKey, normalized);
     }

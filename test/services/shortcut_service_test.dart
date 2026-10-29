@@ -1018,4 +1018,45 @@ void main() {
       });
     });
   });
+
+  group('ShortcutService Anthropic key sync', () {
+    late List<MethodCall> methodCalls;
+
+    setUp(() {
+      methodCalls = [];
+      SharedPreferences.setMockInitialValues({});
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async {
+              methodCalls.add(call);
+              if (call.method ==
+                  MethodChannelMethods.getStoredAnthropicApiKey) {
+                return 'ant-key';
+              }
+              return null;
+            },
+          );
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            null,
+          );
+    });
+
+    test('loadAndSyncSettings sends stored Anthropic key', () async {
+      await ShortcutService().loadAndSyncSettings();
+
+      final calls = methodCalls
+          .where(
+            (call) => call.method == MethodChannelMethods.setAnthropicApiKey,
+          )
+          .toList();
+      expect(calls, hasLength(1));
+      expect(calls.single.arguments, 'ant-key');
+    });
+  });
 }

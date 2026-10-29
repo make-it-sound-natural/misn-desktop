@@ -37,6 +37,12 @@ class ProviderCatalogService {
       baseUrl: 'https://api.openai.com/v1',
       isBuiltIn: true,
     ),
+    LlmProviderEntry(
+      id: AppDefaults.anthropicProvider,
+      displayName: 'Anthropic',
+      baseUrl: 'https://api.anthropic.com/v1',
+      isBuiltIn: true,
+    ),
   ];
 
   /// Returns built-in providers followed by user-added providers.

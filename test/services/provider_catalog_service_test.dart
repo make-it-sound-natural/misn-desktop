@@ -17,8 +17,22 @@ void main() {
       expect(providers.map((entry) => entry.id), [
         AppDefaults.openRouterProvider,
         AppDefaults.openAiProvider,
+        AppDefaults.anthropicProvider,
       ]);
       expect(providers.every((entry) => entry.isBuiltIn), isTrue);
+    });
+
+    test('lists Anthropic as a built-in Messages API provider', () async {
+      final service = ProviderCatalogService();
+
+      final provider = await service.providerById(
+        AppDefaults.anthropicProvider,
+      );
+
+      expect(provider, isNotNull);
+      expect(provider!.displayName, 'Anthropic');
+      expect(provider.baseUrl, 'https://api.anthropic.com/v1');
+      expect(provider.isBuiltIn, isTrue);
     });
 
     test('adds provider with generated id and zero models', () async {
@@ -35,6 +49,7 @@ void main() {
       expect((await service.allProviders()).map((entry) => entry.id), [
         AppDefaults.openRouterProvider,
         AppDefaults.openAiProvider,
+        AppDefaults.anthropicProvider,
         'tokenguard',
       ]);
     });
@@ -64,6 +79,30 @@ void main() {
       );
 
       expect(provider.id, 'openai-2');
+    });
+
+    // The built-in id is not the bare slug, so a custom "Anthropic" provider
+    // saved before the built-in existed keeps its id and needs no migration.
+    test('custom Anthropic provider keeps the anthropic id', () async {
+      final service = ProviderCatalogService();
+
+      final provider = await service.addCustomProvider(
+        displayName: 'Anthropic',
+        baseUrl: 'https://anthropic-proxy.example/v1',
+      );
+
+      expect(provider.id, 'anthropic');
+    });
+
+    test('custom Anthropic Messages provider gets a suffixed id', () async {
+      final service = ProviderCatalogService();
+
+      final provider = await service.addCustomProvider(
+        displayName: 'Anthropic Messages',
+        baseUrl: 'https://anthropic-proxy.example/v1',
+      );
+
+      expect(provider.id, 'anthropic-messages-2');
     });
 
     test('ignores corrupt custom provider preferences', () async {

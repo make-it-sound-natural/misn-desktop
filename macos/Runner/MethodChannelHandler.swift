@@ -27,6 +27,7 @@ class MethodChannelHandler {
     private var provider: String = AppDefaults.apiProvider
     private var apiKey: String = AppDefaults.apiKey
     private var openRouterApiKey: String = AppDefaults.apiKey
+    var anthropicApiKey: String = AppDefaults.apiKey
     private var customProviderApiKeys: [String: String] = [:]
     private var customProviderBaseUrl: String = ""
     private var context: String = AppDefaults.context
@@ -91,6 +92,9 @@ class MethodChannelHandler {
         "setOpenRouterApiKey": handleSetOpenRouterApiKey,
         "storeOpenRouterApiKey": handleStoreOpenRouterApiKey,
         "getStoredOpenRouterApiKey": handleGetStoredOpenRouterApiKey,
+        "setAnthropicApiKey": handleSetAnthropicApiKey,
+        "storeAnthropicApiKey": handleStoreAnthropicApiKey,
+        "getStoredAnthropicApiKey": handleGetStoredAnthropicApiKey,
         "setCustomProviderConfig": handleSetCustomProviderConfig,
         "storeCustomProviderApiKey": handleStoreCustomProviderApiKey,
         "getStoredCustomProviderApiKey": handleGetStoredCustomProviderApiKey,
@@ -589,6 +593,12 @@ private extension MethodChannelHandler {
         )
     }
 
+    func devSecretKey(account: String) -> String {
+        "dev_only_\(account)"
+    }
+}
+
+extension MethodChannelHandler {
     func storeKeychainValue(
         _ call: FlutterMethodCall,
         result: @escaping FlutterResult,
@@ -641,10 +651,6 @@ private extension MethodChannelHandler {
             ))
         }
         #endif
-    }
-
-    func devSecretKey(account: String) -> String {
-        "dev_only_\(account)"
     }
 }
 
