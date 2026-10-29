@@ -38,8 +38,17 @@ pub-get:
 
 # Note: "Failed to foreground app; open returned 1" is a harmless Flutter message
 # for LSUIElement (agent) apps when `open` cannot foreground the bundle.
+# Output also goes to a per-run log; start-latest.log points at the newest one.
+START_LOG_DIR = $(HOME)/Library/Logs/$(APP_NAME)
+
 start: pub-get
-	@MISN_SAVE_SCREENSHOT_CONTEXT=1 MISN_SAVE_ACCESSIBILITY_CONTEXT=1 $(FLUTTER) run -d macos --no-pub
+	@mkdir -p "$(START_LOG_DIR)"; \
+	log="$(START_LOG_DIR)/start-$$(date +%Y%m%d-%H%M%S).log"; \
+	ln -sf "$$log" "$(START_LOG_DIR)/start-latest.log"; \
+	echo "Logging to $$log"; \
+	set -o pipefail; \
+	MISN_SAVE_SCREENSHOT_CONTEXT=1 MISN_SAVE_ACCESSIBILITY_CONTEXT=1 \
+		$(FLUTTER) run -d macos --no-pub 2>&1 | tee "$$log"
 
 build: pub-get
 	@$(FLUTTER) build macos --no-pub

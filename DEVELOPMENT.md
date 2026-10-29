@@ -90,6 +90,12 @@ model's variants, under
 `~/Library/Application Support/Make It Sound Natural/`. The last 20 files are
 kept. Use `flutter run` when that text should not reach the disk.
 
+`make start` also copies its console output to
+`~/Library/Logs/Make It Sound Natural/start-<YYYYMMDD-HHMMSS>.log`, one file
+per run; `start-latest.log` in the same folder points at the newest one. In
+debug builds that output includes the model's variants, so it holds the
+rewritten text too. Old logs are not removed.
+
 The Makefile notes that **"Failed to foreground app; open returned 1"** can
 appear for agent-style (`LSUIElement`) apps; it is usually harmless.
 
