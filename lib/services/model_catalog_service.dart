@@ -1,8 +1,11 @@
 import 'dart:convert';
 
-import 'package:make_it_sound_natural/constants/model_catalog_defaults.dart';
+import 'package:make_it_sound_natural/constants/model_families.dart';
 import 'package:make_it_sound_natural/models/catalog_validation_reason.dart';
 import 'package:make_it_sound_natural/models/llm_model_entry.dart';
+import 'package:make_it_sound_natural/services/model_catalog_cache.dart';
+import 'package:make_it_sound_natural/services/model_family_resolver.dart';
+import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Error thrown when a model catalog edit is invalid.
@@ -22,27 +25,51 @@ class ModelCatalogValidationException implements Exception {
 
 /// Persists and resolves local LLM model catalogs.
 class ModelCatalogService {
-  static const String _customModelsKey = 'llm_custom_models';
-  static const String _hiddenModelsKey = 'llm_hidden_models';
+  /// Creates a catalog backed by the provider cache and local custom models.
+  ModelCatalogService({ModelCatalogCache? cache})
+    : _cache = cache ?? ModelCatalogCache();
 
-  /// Returns all built-in and custom models for a provider.
+  static const String _customModelsKey = 'llm_custom_models';
+
+  /// SharedPreferences key for hidden catalog families and custom models.
+  static const String hiddenModelsKey = 'llm_hidden_models';
+
+  final ModelCatalogCache _cache;
+
+  /// Returns provider catalog models followed by custom models.
   Future<List<LlmModelEntry>> allModels(String provider) async {
     final hidden = await _hiddenModelIds();
-    final builtIns = ModelCatalogDefaults.modelsForProvider(provider).map(
-      (slug) => LlmModelEntry(
-        provider: provider,
-        slug: slug,
-        isBuiltIn: true,
-        isHidden: hidden.contains(_modelId(provider, slug)),
-      ),
-    );
     final custom = (await _customModels())
         .where((entry) => entry.provider == provider)
         .map(
           (entry) => entry.copyWith(
             isHidden: hidden.contains(_modelId(provider, entry.slug)),
           ),
-        );
+        )
+        .toList();
+    final customSlugs = custom.map((entry) => entry.slug).toSet();
+    final cached = await _cache.read(provider);
+    final families = <String, String>{...?cached?.families};
+    if (cached == null) {
+      final settings = SettingsService();
+      if (await settings.getProvider() == provider) {
+        final slug = await settings.getModel();
+        final family = familyForSlug(provider, slug);
+        if (family != null) families[family.id] = slug;
+      }
+    }
+    final builtIns = [
+      for (final family in ModelFamilies.forProvider(provider))
+        if (families[family.id] case final String slug)
+          if (!customSlugs.contains(slug))
+            LlmModelEntry(
+              provider: provider,
+              slug: slug,
+              isBuiltIn: true,
+              familyId: family.id,
+              isHidden: hidden.contains(_familyId(provider, family.id)),
+            ),
+    ];
     return [...builtIns, ...custom];
   }
 
@@ -59,11 +86,12 @@ class ModelCatalogService {
     required String provider,
     required String selectedModel,
   }) async {
+    if (selectedModel.isEmpty) return null;
     final visible = await visibleModelSlugs(provider);
     if (visible.contains(selectedModel)) {
       return selectedModel;
     }
-    return visible.isEmpty ? null : visible.first;
+    return null;
   }
 
   /// Adds a user-managed model.
@@ -151,7 +179,8 @@ class ModelCatalogService {
     required bool hidden,
   }) async {
     final models = await allModels(provider);
-    if (!models.any((entry) => entry.slug == slug)) {
+    final model = models.where((entry) => entry.slug == slug).firstOrNull;
+    if (model == null) {
       throw const ModelCatalogValidationException(
         CatalogValidationReason.notMutable,
         'Model does not exist.',
@@ -165,7 +194,9 @@ class ModelCatalogService {
       );
     }
     final ids = await _hiddenModelIds();
-    final id = _modelId(provider, slug);
+    final id = model.familyId == null
+        ? _modelId(provider, slug)
+        : _familyId(provider, model.familyId!);
     if (hidden) {
       ids.add(id);
     } else {
@@ -203,6 +234,17 @@ class ModelCatalogService {
 
   Future<List<LlmModelEntry>> _customModels() async {
     final prefs = await SharedPreferences.getInstance();
+    return _customModelsIn(prefs);
+  }
+
+  /// Reads user-added slugs for [provider] without yielding between writes.
+  static Set<String> customSlugsIn(SharedPreferences prefs, String provider) =>
+      {
+        for (final entry in _customModelsIn(prefs))
+          if (entry.provider == provider) entry.slug,
+      };
+
+  static List<LlmModelEntry> _customModelsIn(SharedPreferences prefs) {
     final values = prefs.getStringList(_customModelsKey) ?? const [];
     return values
         .map((value) {
@@ -223,12 +265,12 @@ class ModelCatalogService {
 
   Future<Set<String>> _hiddenModelIds() async {
     final prefs = await SharedPreferences.getInstance();
-    return (prefs.getStringList(_hiddenModelsKey) ?? const []).toSet();
+    return (prefs.getStringList(hiddenModelsKey) ?? const []).toSet();
   }
 
   Future<void> _saveHiddenModelIds(Set<String> ids) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(_hiddenModelsKey, ids.toList()..sort());
+    await prefs.setStringList(hiddenModelsKey, ids.toList()..sort());
   }
 
   Future<void> _renameHiddenModelId({
@@ -255,4 +297,7 @@ class ModelCatalogService {
   }
 
   String _modelId(String provider, String slug) => '$provider::$slug';
+
+  String _familyId(String provider, String familyId) =>
+      '$provider::family:$familyId';
 }

@@ -133,7 +133,6 @@
   "showModel": "Показать модель",
   "hideModel": "Скрыть модель",
   "modelSlug": "Slug модели",
-  "builtInModel": "Встроенная",
   "customModel": "Своя",
   "deleteModelTitle": "Удалить модель?",
   "modelSlugRequired": "Slug модели обязателен.",
@@ -238,7 +237,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter и google/gemini-3-flash-preview выбраны по умолчанию. Добавьте API-ключ в настройках, когда будете готовы.",
+  "onboardingProviderDescription": "Когда будете готовы, добавьте API-ключ и выберите модель в настройках.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -363,7 +362,7 @@
   "authFailureNote": "Ошибка аутентификации ({message}) для {provider}. Обновите ключ ниже и попробуйте снова.",
   "latencyAvg": "в среднем {seconds} с",
   "noModelsYet": "Пока нет моделей",
-  "noModelsYetDescription": "Добавьте модель, чтобы запускать переписывание.",
+  "noModelsYetDescription": "Добавьте API-ключ OpenAI или Anthropic, чтобы загрузить модели, или добавьте модель вручную.",
   "deleteAction": "Удалить",
   "chooseTargetForcedSubtitle": "Выберите профиль для переписывания. Без него продолжить нельзя.",
   "variantDefaultTag": "По умолчанию",
@@ -397,5 +396,8 @@
   "aboutReportIssueSubtitle": "Открывает новую задачу на GitHub с данными о вашей версии",
   "aboutPrivacyPolicy": "Политика конфиденциальности",
   "aboutLicense": "Лицензия",
-  "aboutLinkOpenFailed": "Не удалось открыть ссылку"
+  "aboutLinkOpenFailed": "Не удалось открыть ссылку",
+  "chooseModelPlaceholder": "Выберите модель",
+  "catalogModel": "От провайдера",
+  "modelSelectionRequired": "Выберите модель в настройках, чтобы переписывать тексты."
 }

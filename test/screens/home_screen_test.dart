@@ -5,9 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/screens/home_screen.dart';
+import 'package:make_it_sound_natural/services/live_model_catalog_service.dart';
+import 'package:make_it_sound_natural/services/model_catalog_cache.dart';
+import 'package:make_it_sound_natural/services/provider_models_client.dart';
 import 'package:make_it_sound_natural/widgets/app_inline_banner.dart';
 import 'package:make_it_sound_natural/widgets/variant_card.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -324,8 +330,11 @@ void main() {
         'target_profile_selection_confirmed': true,
         'target_profile_selected_id': 'americanEnglish',
         'api_provider': 'openrouter',
-        'openai_api_key': '',
+        'openai_model': 'pinned-model',
         'openrouter_api_key': 'openrouter-key',
+        'llm_custom_models': [
+          jsonEncode({'provider': 'openrouter', 'slug': 'pinned-model'}),
+        ],
       });
 
       await pumpHomeScreen(tester);
@@ -334,7 +343,91 @@ void main() {
         find.text('Provider setup required for corrections'),
         findsNothing,
       );
+      expect(
+        find.text('Choose a model in Settings to run rewrites.'),
+        findsNothing,
+      );
     });
+
+    testWidgets(
+      'shows the choose-a-model banner when the provider has a key '
+      'but no model',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'target_profile_selection_confirmed': true,
+          'target_profile_selected_id': 'americanEnglish',
+          'api_provider': 'openrouter',
+          'openrouter_api_key': 'openrouter-key',
+        });
+
+        await pumpHomeScreen(tester);
+
+        expect(
+          find.text('Choose a model in Settings to run rewrites.'),
+          findsOneWidget,
+        );
+        expect(find.byIcon(Icons.memory_rounded), findsOneWidget);
+        expect(
+          find.text('Provider setup required for corrections'),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets(
+      'updates the banner when a refresh removes the selected family',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({
+          'target_profile_selection_confirmed': true,
+          'target_profile_selected_id': 'americanEnglish',
+          'api_provider': AppDefaults.openAiProvider,
+          'openai_model': 'gpt-6.1-sol',
+        });
+        final prefs = await SharedPreferences.getInstance();
+        await ModelCatalogCache().writeTo(
+          prefs,
+          AppDefaults.openAiProvider,
+          families: {'sol': 'gpt-6.1-sol'},
+          fetchedAt: DateTime.utc(2026, 10, 31),
+        );
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(
+              const MethodChannel(MethodChannelMethods.channelName),
+              (call) async => switch (call.method) {
+                MethodChannelMethods.checkAccessibilityPermissions => false,
+                MethodChannelMethods.getDefaultPrompt => 'Default prompt text',
+                MethodChannelMethods.getStoredApiKey => 'test-key',
+                _ => null,
+              },
+            );
+        final originalCatalog = LiveModelCatalogService.shared;
+        final catalog = LiveModelCatalogService(
+          client: ProviderModelsClient(
+            client: MockClient((_) async => http.Response('{"data":[]}', 200)),
+          ),
+        );
+        LiveModelCatalogService.shared = catalog;
+        addTearDown(() {
+          catalog.dispose();
+          LiveModelCatalogService.shared = originalCatalog;
+        });
+
+        await pumpHomeScreen(tester);
+        expect(
+          find.text('Choose a model in Settings to run rewrites.'),
+          findsNothing,
+        );
+
+        await catalog.refresh(AppDefaults.openAiProvider);
+        await tester.pumpAndSettle();
+
+        expect(prefs.getString('openai_model'), '');
+        expect(
+          find.text('Choose a model in Settings to run rewrites.'),
+          findsOneWidget,
+        );
+      },
+    );
 
     testWidgets('shows banner when OpenRouter provider has no key', (
       tester,
@@ -410,7 +503,7 @@ void main() {
       await pumpHomeScreen(tester);
 
       expect(
-        find.text('Provider setup required for corrections'),
+        find.text('Choose a model in Settings to run rewrites.'),
         findsOneWidget,
       );
     });
@@ -430,6 +523,10 @@ Formal output.
         'target_profile_selected_id': 'americanEnglish',
         'api_provider': 'openrouter',
         'openrouter_api_key': 'openrouter-key',
+        'openai_model': 'pinned-model',
+        'llm_custom_models': [
+          jsonEncode({'provider': 'openrouter', 'slug': 'pinned-model'}),
+        ],
         'default_variant': 'Formal',
       });
     });

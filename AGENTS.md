@@ -56,9 +56,11 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
 │   ├── main.dart             # App entry
 │   ├── screens/              # Home, onboarding, settings sections
 │   ├── widgets/              # Shared UI
-│   ├── services/             # OpenAI, settings, shortcuts, updates, etc.
+│   ├── services/             # Settings, shortcuts, updates, live model catalog,
+│   │                        # cache, HTTP client, and catalog migration
 │   ├── models/               # Data types (e.g. correction variants)
-│   ├── constants/            # Method channel method names, defaults, status
+│   ├── constants/            # Method channel names, defaults, model families,
+│   │                        # and status
 │   ├── theme/                # Theming
 │   ├── utils/                # Logging, formatters
 │   └── l10n/                 # ARB sources + ignored generated localizations
@@ -84,7 +86,8 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
     ├── Runner/               # Swift: app delegate, bridge, shortcuts, bubble
     │   # Key files: MethodChannelHandler, ShortcutHandler, LLMService,
     │   # ClipboardService, ShortcutManager, ContextCapturer, StatusBubble*,
-    │   # StatusBubbleControlling (test seam), VariantHandler, …
+    │   # StatusBubbleControlling (test seam), VariantHandler,
+    │   # RewritePreflight, …
     │   # LLMService sends through an LLMWireFormat (ChatCompletionsFormat,
     │   # AnthropicMessagesFormat); CorrectionVariantsJSON decodes the four
     │   # variants into marker text.
@@ -100,7 +103,8 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
     │   #   AccessibilityContextDebugSaver, DebugArtifactStore
     └── RunnerTests/          # XCTest (dispatch, LLM error parser, LLM wire
                               # formats and variants JSON, bubble policy,
-                              # App context capture and policy)
+                              # App context capture and policy,
+                              # rewrite preflight)
 ```
 
 ## Build and test commands
@@ -330,6 +334,10 @@ All Markdown in this repo **SHOULD** follow:
 - **Tables**: compact pipes if wide tables break 80 columns or linters.
 
 ### Other conventions
+
+- **Model catalogs**: load OpenAI and Anthropic models from `GET /v1/models`
+  and resolve them to the families in `lib/constants/model_families.dart`.
+  Do not bundle model slugs; adding a family requires a code change.
 
 - **Nightly versions**: allocate from the maximum published daily sequence
   across base versions and both current appcasts, retaining release tags as

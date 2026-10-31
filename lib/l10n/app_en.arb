@@ -70,7 +70,7 @@
   },
   "providerSetupRequired": "Provider setup required for corrections",
   "@providerSetupRequired": {
-    "description": "Banner text when selected provider is missing a key or visible model"
+    "description": "Banner text when selected provider is missing an API key"
   },
   "configure": "Configure",
   "@configure": {
@@ -554,10 +554,6 @@
   "@modelSlug": {
     "description": "Text field label for a provider model slug"
   },
-  "builtInModel": "Built-in",
-  "@builtInModel": {
-    "description": "Label for app-shipped model entries"
-  },
   "customModel": "Custom",
   "@customModel": {
     "description": "Label for user-added model entries"
@@ -800,7 +796,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter and google/gemini-3-flash-preview are selected by default. Add your API key in settings when you are ready.",
+  "onboardingProviderDescription": "Add an API key and choose a model in Settings when you are ready.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -1098,7 +1094,7 @@
   "@noModelsYet": {
     "description": "AI Provider settings string"
   },
-  "noModelsYetDescription": "Add a model to run rewrites.",
+  "noModelsYetDescription": "Add an OpenAI or Anthropic API key to load models, or add a model manually.",
   "@noModelsYetDescription": {
     "description": "AI Provider settings string"
   },
@@ -1213,5 +1209,17 @@
   "aboutLinkOpenFailed": "Couldn't open the link",
   "@aboutLinkOpenFailed": {
     "description": "Toast shown when an About link cannot be opened"
+  },
+  "chooseModelPlaceholder": "Choose a model",
+  "catalogModel": "From provider",
+  "@chooseModelPlaceholder": {
+    "description": "Placeholder when no rewrite model is selected"
+  },
+  "@catalogModel": {
+    "description": "Origin label for models loaded from the provider's model list"
+  },
+  "modelSelectionRequired": "Choose a model in Settings to run rewrites.",
+  "@modelSelectionRequired": {
+    "description": "Banner text when no visible model is selected for rewrites"
   }
 }

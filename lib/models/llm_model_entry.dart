@@ -6,6 +6,7 @@ class LlmModelEntry {
     required this.slug,
     this.isBuiltIn = false,
     this.isHidden = false,
+    this.familyId,
   });
 
   /// Creates an entry from persisted JSON.
@@ -15,6 +16,7 @@ class LlmModelEntry {
       slug: json['slug'] as String? ?? '',
       isBuiltIn: json['isBuiltIn'] as bool? ?? false,
       isHidden: json['isHidden'] as bool? ?? false,
+      familyId: json['familyId'] as String?,
     );
   }
 
@@ -24,8 +26,11 @@ class LlmModelEntry {
   /// Exact provider model slug.
   final String slug;
 
-  /// Whether the model is shipped by the app.
+  /// Whether the model comes from the provider's model list.
   final bool isBuiltIn;
+
+  /// Stable catalog family, or null for a custom model.
+  final String? familyId;
 
   /// Whether the model is hidden from normal model selection.
   final bool isHidden;
@@ -37,6 +42,7 @@ class LlmModelEntry {
       'slug': slug,
       'isBuiltIn': isBuiltIn,
       'isHidden': isHidden,
+      if (familyId != null) 'familyId': familyId,
     };
   }
 
@@ -46,12 +52,14 @@ class LlmModelEntry {
     String? slug,
     bool? isBuiltIn,
     bool? isHidden,
+    String? familyId,
   }) {
     return LlmModelEntry(
       provider: provider ?? this.provider,
       slug: slug ?? this.slug,
       isBuiltIn: isBuiltIn ?? this.isBuiltIn,
       isHidden: isHidden ?? this.isHidden,
+      familyId: familyId ?? this.familyId,
     );
   }
 }

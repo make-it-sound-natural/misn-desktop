@@ -84,8 +84,11 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 return
             }
 
-            if self.methodChannelHandler?.requiresTargetProfileSelection() == true {
-                let message = "Choose a target language before rewriting."
+            if let message = RewritePreflight.blockingMessage(
+                model: model,
+                requiresTargetProfileSelection: self.methodChannelHandler?
+                    .requiresTargetProfileSelection() == true
+            ) {
                 self.methodChannelHandler?.sendError(message)
                 self.methodChannelHandler?.sendOpenSettings()
                 completion(nil, message)
@@ -293,8 +296,11 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                     return
                 }
 
-                if self.methodChannelHandler?.requiresTargetProfileSelection() == true {
-                    let message = "Choose a target language before rewriting."
+                if let message = RewritePreflight.blockingMessage(
+                    model: model,
+                    requiresTargetProfileSelection: self.methodChannelHandler?
+                        .requiresTargetProfileSelection() == true
+                ) {
                     self.methodChannelHandler?.sendError(message)
                     self.methodChannelHandler?.sendOpenSettings()
                     self.handleLlmFailure(

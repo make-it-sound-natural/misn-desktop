@@ -9,6 +9,8 @@ import 'package:make_it_sound_natural/constants/app_metadata.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/screens/onboarding/onboarding_gate.dart';
 import 'package:make_it_sound_natural/services/appearance_controller.dart';
+import 'package:make_it_sound_natural/services/live_model_catalog_service.dart';
+import 'package:make_it_sound_natural/services/model_catalog_migration.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
 import 'package:make_it_sound_natural/theme/app_theme.dart';
@@ -29,6 +31,11 @@ void main() async {
   // Migrate settings schema if needed
   final settingsService = SettingsService();
   await settingsService.migrateIfNeeded();
+  try {
+    await ModelCatalogMigration().runIfNeeded();
+  } on Exception catch (e) {
+    _log.warning('Failed to migrate model catalog on startup: $e');
+  }
 
   // Initialize macOS window styling for translucency
   if (Platform.isMacOS) {
@@ -54,6 +61,7 @@ void main() async {
   } on Exception catch (e) {
     _log.warning('Failed to sync settings on startup: $e');
   }
+  unawaited(LiveModelCatalogService.shared.refreshAllIfStale());
 
   runApp(const MyApp());
 }

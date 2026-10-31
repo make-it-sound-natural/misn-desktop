@@ -21,8 +21,8 @@ enum AppDefaults {
     /// Output budget for one rewrite, thinking included.
     static let anthropicMaxTokens = 16000
 
-    /// Default LLM model used when no model has been saved.
-    static let model = "gpt-5.4-mini"
+    /// No model is selected until Flutter sends a saved or chosen model.
+    static let model = ""
 
     /// Default reasoning budget for rewrites.
     static let reasoningEffort = ReasoningEffort.low

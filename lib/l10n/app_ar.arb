@@ -133,7 +133,6 @@
   "showModel": "إظهار النموذج",
   "hideModel": "إخفاء النموذج",
   "modelSlug": "معرف النموذج",
-  "builtInModel": "مدمج",
   "customModel": "مخصص",
   "deleteModelTitle": "حذف النموذج؟",
   "modelSlugRequired": "معرف النموذج مطلوب.",
@@ -238,7 +237,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter و google/gemini-3-flash-preview محددان افتراضيًا. أضف مفتاح API في الإعدادات عندما تكون جاهزًا.",
+  "onboardingProviderDescription": "أضف مفتاح API واختر نموذجًا في الإعدادات عندما تكون مستعدًا.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -363,7 +362,7 @@
   "authFailureNote": "فشلت المصادقة ({message}) لدى {provider}. حدّث مفتاحه أدناه وأعد المحاولة.",
   "latencyAvg": "بمتوسط {seconds} ث",
   "noModelsYet": "لا توجد نماذج بعد",
-  "noModelsYetDescription": "أضف نموذجًا لتشغيل إعادة الصياغة.",
+  "noModelsYetDescription": "أضف مفتاح API من OpenAI أو Anthropic لتحميل النماذج، أو أضف نموذجًا يدويًا.",
   "deleteAction": "حذف",
   "chooseTargetForcedSubtitle": "اختر الملف المستخدم لإعادة الصياغة. مطلوب للمتابعة.",
   "variantDefaultTag": "افتراضي",
@@ -397,5 +396,8 @@
   "aboutReportIssueSubtitle": "يفتح مشكلة جديدة على GitHub مع تفاصيل إصدارك",
   "aboutPrivacyPolicy": "سياسة الخصوصية",
   "aboutLicense": "الترخيص",
-  "aboutLinkOpenFailed": "تعذّر فتح الرابط"
+  "aboutLinkOpenFailed": "تعذّر فتح الرابط",
+  "chooseModelPlaceholder": "اختر نموذجًا",
+  "catalogModel": "من مزوّد الخدمة",
+  "modelSelectionRequired": "اختر نموذجًا في الإعدادات لإعادة صياغة النصوص."
 }

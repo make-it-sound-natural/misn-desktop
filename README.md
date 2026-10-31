@@ -49,7 +49,9 @@ global shortcut cannot capture and replace selected text.
 4. Enter the matching API key. For Anthropic, create the key for a single
    workspace: the app sends no workspace ID, so a key that is not scoped to
    a workspace is rejected.
-5. Choose a default model and rewrite variant.
+5. Choose a model and rewrite variant. OpenAI and Anthropic models load after
+   you save their API key. For OpenRouter and custom providers, add a model
+   manually.
 6. Set or confirm the global shortcut.
 7. Grant Accessibility permission in System Settings when macOS prompts.
 

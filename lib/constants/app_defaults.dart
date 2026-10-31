@@ -29,8 +29,8 @@ class AppDefaults {
   /// Default API provider used when no provider has been saved.
   static const String apiProvider = openRouterProvider;
 
-  /// Default LLM model used when no model has been saved.
-  static const String model = 'google/gemini-3-flash-preview';
+  /// No model is selected until the user picks one.
+  static const String model = '';
 
   /// Default reasoning budget for rewrites.
   static const ReasoningEffort reasoningEffort = ReasoningEffort.low;
