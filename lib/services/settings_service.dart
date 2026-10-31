@@ -7,6 +7,7 @@ import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/appearance_preferences.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
+import 'package:make_it_sound_natural/models/rewrite_readiness.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,12 +19,17 @@ class SettingsService {
   static const String _schemaVersionKey = 'settings_schema_version';
 
   static const String _apiKeyKey = 'openai_api_key';
-  static const String _providerKey = 'api_provider';
+
+  /// SharedPreferences key for the selected provider.
+  static const String providerKey = 'api_provider';
+
+  /// SharedPreferences key for the selected model slug.
+  static const String modelKey = 'openai_model';
+
   static const String _openRouterApiKeyKey = 'openrouter_api_key';
   static const String _customPromptKey = 'custom_prompt';
   static const String _contextKey = 'user_context';
   static const String _reasoningEffortKey = 'reasoning_effort';
-  static const String _modelKey = 'openai_model';
   static const String _shortcutKey = 'app_shortcut';
   static const String _shortcutReplaceKey = 'app_shortcut_replace';
   static const String _shortcutAppendKey = 'app_shortcut_append';
@@ -115,13 +121,13 @@ class SettingsService {
   /// Gets the selected API provider.
   Future<String> getProvider() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_providerKey) ?? AppDefaults.apiProvider;
+    return prefs.getString(providerKey) ?? AppDefaults.apiProvider;
   }
 
   /// Saves the API provider preference.
   Future<void> setProvider(String provider) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_providerKey, provider);
+    await prefs.setString(providerKey, provider);
   }
 
   /// Gets the stored OpenRouter API key.
@@ -217,15 +223,18 @@ class SettingsService {
     return key.trim().isNotEmpty;
   }
 
-  /// Returns whether the selected provider has key and visible model.
-  Future<bool> hasReadyActiveProviderForRewrite() async {
+  /// Returns the missing setup, checking the provider key before the model.
+  Future<RewriteReadiness> rewriteReadiness() async {
     final provider = await getProvider();
-    if (!await hasApiKeyForActiveProvider()) return false;
+    if (!await hasApiKey(provider)) return RewriteReadiness.missingApiKey;
 
-    final visibleModels = await ModelCatalogService().visibleModelSlugs(
-      provider,
+    final model = await ModelCatalogService().resolveVisibleModel(
+      provider: provider,
+      selectedModel: await getModel(),
     );
-    return visibleModels.isNotEmpty;
+    return model == null
+        ? RewriteReadiness.missingModel
+        : RewriteReadiness.ready;
   }
 
   /// Records non-secret auth-failure metadata for a provider.
@@ -337,13 +346,13 @@ class SettingsService {
   /// Gets the selected LLM model.
   Future<String> getModel() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_modelKey) ?? AppDefaults.model;
+    return prefs.getString(modelKey) ?? AppDefaults.model;
   }
 
   /// Saves the LLM model preference.
   Future<void> setModel(String model) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_modelKey, model);
+    await prefs.setString(modelKey, model);
   }
 
   /// Gets the correction shortcut.

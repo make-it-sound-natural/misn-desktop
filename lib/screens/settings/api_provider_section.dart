@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
+import 'package:make_it_sound_natural/constants/model_families.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/models/catalog_validation_reason.dart';
 import 'package:make_it_sound_natural/models/llm_model_entry.dart';
@@ -9,6 +10,7 @@ import 'package:make_it_sound_natural/models/llm_provider_entry.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
 import 'package:make_it_sound_natural/screens/settings/api_provider_dialogs.dart';
 import 'package:make_it_sound_natural/screens/settings/reasoning_effort_row.dart';
+import 'package:make_it_sound_natural/services/live_model_catalog_service.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
 import 'package:make_it_sound_natural/services/provider_catalog_service.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
@@ -58,12 +60,25 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
   String _selectedProvider = AppDefaults.apiProvider;
   String _selectedModel = AppDefaults.model;
   ProviderAuthFailure? _activeAuthFailure;
+  late final LiveModelCatalogService _liveCatalog;
+  int _settingsLoadGeneration = 0;
 
   @override
   void initState() {
     super.initState();
+    _liveCatalog = LiveModelCatalogService.shared;
+    _liveCatalog.revision.addListener(_onCatalogChanged);
     unawaited(_loadSettings());
+    unawaited(_liveCatalog.refreshAllIfStale());
   }
+
+  @override
+  void dispose() {
+    _liveCatalog.revision.removeListener(_onCatalogChanged);
+    super.dispose();
+  }
+
+  void _onCatalogChanged() => unawaited(_loadSettings());
 
   List<LlmModelEntry> get _allModels => [
     for (final provider in _providers) ...?_modelsByProvider[provider.id],
@@ -73,6 +88,7 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
       _allModels.where((model) => !model.isHidden).length;
 
   Future<void> _loadSettings() async {
+    final generation = ++_settingsLoadGeneration;
     final providers = await _providerCatalogService.allProviders();
     // Each provider's lookups are independent, and `_hasKey` is a method
     // channel round trip into the Keychain — awaiting them one at a time
@@ -90,20 +106,22 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
 
     final storedProvider = await _settingsService.getProvider();
     final storedModel = await _settingsService.getModel();
-    final resolved = _resolveSelection(
-      providers.any((p) => p.id == storedProvider)
-          ? storedProvider
-          : AppDefaults.apiProvider,
-      storedModel,
-      modelsByProvider,
-    );
-    final resolvedProvider = resolved.provider;
-    final resolvedModel = resolved.model;
+    final providerExists = providers.any((p) => p.id == storedProvider);
+    final resolvedProvider = providerExists
+        ? storedProvider
+        : AppDefaults.apiProvider;
+    final resolvedModel = providerExists
+        ? await _modelCatalogService.resolveVisibleModel(
+                provider: storedProvider,
+                selectedModel: storedModel,
+              ) ??
+              ''
+        : '';
     final authFailure = await _settingsService.getProviderAuthFailure(
       resolvedProvider,
     );
     final speedStats = await _speedTrackingService.getAllStats();
-    if (!mounted) return;
+    if (!mounted || generation != _settingsLoadGeneration) return;
 
     setState(() {
       _providers = providers;
@@ -115,44 +133,11 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
       _activeAuthFailure = authFailure;
     });
 
-    if (resolvedProvider != storedProvider || resolvedModel != storedModel) {
-      await _persistSelection(resolvedProvider, resolvedModel);
-    }
     await _syncSelectedCustomProviderConfig();
   }
 
   Future<bool> _hasKey(LlmProviderEntry provider) =>
       _settingsService.hasApiKey(provider.id);
-
-  /// Keeps the picker pointed at a model that still exists and is visible.
-  ///
-  /// Returns the owning provider alongside the model. Falling back to another
-  /// provider's model while leaving the caller's provider untouched wrote a
-  /// mismatched pair to settings and to the native side, so every rewrite went
-  /// to one provider carrying a model that only exists on another.
-  ({String provider, String model}) _resolveSelection(
-    String provider,
-    String model,
-    Map<String, List<LlmModelEntry>> modelsByProvider,
-  ) {
-    final visible = (modelsByProvider[provider] ?? const <LlmModelEntry>[])
-        .where((entry) => !entry.isHidden)
-        .toList();
-    if (visible.any((entry) => entry.slug == model)) {
-      return (provider: provider, model: model);
-    }
-    if (visible.isNotEmpty) {
-      return (provider: provider, model: visible.first.slug);
-    }
-
-    for (final entry in modelsByProvider.entries) {
-      final firstVisible = entry.value.where((m) => !m.isHidden).toList();
-      if (firstVisible.isNotEmpty) {
-        return (provider: entry.key, model: firstVisible.first.slug);
-      }
-    }
-    return (provider: provider, model: '');
-  }
 
   Future<void> _persistSelection(String provider, String model) async {
     await _settingsService.setProvider(provider);
@@ -179,18 +164,13 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
       providerId,
     );
     if (!mounted) return;
+    _settingsLoadGeneration += 1;
     setState(() {
       _selectedProvider = providerId;
       _selectedModel = slug;
       _activeAuthFailure = authFailure;
     });
     await _persistSelection(providerId, slug);
-    await _syncSelectedCustomProviderConfig();
-  }
-
-  /// Reloads catalogs after an edit and re-points the picker when the current
-  /// selection disappeared.
-  Future<void> _reloadAfterCatalogChange() async {
     await _loadSettings();
   }
 
@@ -248,7 +228,7 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
             result.apiKey,
           );
         }
-        await _reloadAfterCatalogChange();
+        await _loadSettings();
         if (!mounted) return;
         showAppToast(
           context,
@@ -281,8 +261,11 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
           await _settingsService.setCustomProviderApiKey(provider.id, key);
         }
     }
+    if (key.isNotEmpty && ModelFamilies.hasProvider(provider.id)) {
+      unawaited(_liveCatalog.refresh(provider.id));
+    }
     await _settingsService.clearProviderAuthFailure(provider.id);
-    await _reloadAfterCatalogChange();
+    await _loadSettings();
     if (!mounted) return;
     showAppToast(context, key.isEmpty ? l10n.apiKeyRemoved : l10n.apiKeySaved);
   }
@@ -301,7 +284,10 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     await _modelCatalogService.deleteProviderModels(provider.id);
     await _providerCatalogService.deleteCustomProvider(provider.id);
     await _settingsService.deleteCustomProviderApiKey(provider.id);
-    await _reloadAfterCatalogChange();
+    if (_selectedProvider == provider.id) {
+      await _persistSelection(AppDefaults.apiProvider, '');
+    }
+    await _loadSettings();
     if (!mounted) return;
     showAppToast(context, l10n.providerDeleted);
   }
@@ -339,8 +325,12 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
             oldSlug: entry.slug,
             newSlug: result.slug,
           );
+          if (_selectedProvider == entry.provider &&
+              _selectedModel == entry.slug) {
+            await _persistSelection(entry.provider, result.slug);
+          }
         }
-        await _reloadAfterCatalogChange();
+        await _loadSettings();
         if (!mounted) return;
         final providerName = _providerName(result.providerId);
         showAppToast(
@@ -379,7 +369,10 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
       showAppToast(context, _localizedCatalogError(l10n, e.reason, e.message));
       return;
     }
-    await _reloadAfterCatalogChange();
+    if (_selectedProvider == model.provider && _selectedModel == model.slug) {
+      await _persistSelection(model.provider, '');
+    }
+    await _loadSettings();
     if (!mounted) return;
     showAppToast(context, l10n.modelDeleted);
   }
@@ -402,7 +395,12 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
       showAppToast(context, _localizedCatalogError(l10n, e.reason, e.message));
       return;
     }
-    await _reloadAfterCatalogChange();
+    if (!model.isHidden &&
+        _selectedProvider == model.provider &&
+        _selectedModel == model.slug) {
+      await _persistSelection(model.provider, '');
+    }
+    await _loadSettings();
     if (!mounted) return;
     showAppToast(
       context,
@@ -487,7 +485,10 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
         ),
         child: AppPopupSelect<String>(
           key: const Key('apiProvider-modelPicker'),
-          value: '$_selectedProvider$_modelValueSeparator$_selectedModel',
+          value: _selectedModel.isEmpty
+              ? null
+              : '$_selectedProvider$_modelValueSeparator$_selectedModel',
+          placeholder: l10n.chooseModelPlaceholder,
           options: options,
           monospaceLabels: true,
           onChanged: (value) {
@@ -666,7 +667,7 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
   Widget _buildModelRow(AppLocalizations l10n, LlmModelEntry model) {
     final theme = Theme.of(context);
     final latency = _latencyLabel(l10n, model.slug);
-    final origin = model.isBuiltIn ? l10n.builtInModel : l10n.customModel;
+    final origin = model.isBuiltIn ? l10n.catalogModel : l10n.customModel;
     final isLastVisible = !model.isHidden && _visibleModelCount <= 1;
 
     return AppSettingsRow(

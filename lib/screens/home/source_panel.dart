@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
+import 'package:make_it_sound_natural/models/rewrite_readiness.dart';
 import 'package:make_it_sound_natural/screens/home/rewrite_section.dart';
 import 'package:make_it_sound_natural/screens/home/rewrite_shared.dart';
 import 'package:make_it_sound_natural/services/appearance_controller.dart';
@@ -43,7 +44,7 @@ const double _dividerGripHeight = 3;
 class SourcePanel extends StatefulWidget {
   /// Creates the source column.
   const SourcePanel({
-    required this.isApiKeyMissing,
+    required this.readiness,
     required this.onConfigureApiKey,
     required this.onDismissApiKey,
     required this.textController,
@@ -59,13 +60,13 @@ class SourcePanel extends StatefulWidget {
     super.key,
   });
 
-  /// Whether the active provider still needs an API key.
-  final bool isApiKeyMissing;
+  /// Missing setup for the saved provider and model.
+  final RewriteReadiness readiness;
 
   /// Opens Settings at the provider section.
   final VoidCallback onConfigureApiKey;
 
-  /// Hides the missing-key banner for this session.
+  /// Hides the setup banner for this session.
   final VoidCallback onDismissApiKey;
 
   /// Controller for the text to rewrite.
@@ -161,8 +162,9 @@ class _SourcePanelState extends State<SourcePanel> {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (widget.isApiKeyMissing)
-                  _ApiKeyBanner(
+                if (widget.readiness != RewriteReadiness.ready)
+                  _SetupBanner(
+                    readiness: widget.readiness,
                     onConfigure: widget.onConfigureApiKey,
                     onDismiss: widget.onDismissApiKey,
                   ),
@@ -368,24 +370,29 @@ class _SourcePanelFooter extends StatelessWidget {
 }
 
 /// Warns that the active provider cannot run a rewrite yet.
-class _ApiKeyBanner extends StatelessWidget {
-  const _ApiKeyBanner({
+class _SetupBanner extends StatelessWidget {
+  const _SetupBanner({
+    required this.readiness,
     required this.onConfigure,
     required this.onDismiss,
   });
 
+  final RewriteReadiness readiness;
   final VoidCallback onConfigure;
   final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final missingKey = readiness == RewriteReadiness.missingApiKey;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: AppInlineBanner(
-        icon: Icons.key_rounded,
+        icon: missingKey ? Icons.key_rounded : Icons.memory_rounded,
         kind: AppInlineBannerKind.warning,
-        message: l10n.providerSetupRequired,
+        message: missingKey
+            ? l10n.providerSetupRequired
+            : l10n.modelSelectionRequired,
         actions: [
           // Tinted with its own status, matching the error banner. The
           // theme's accent here made a secondary link the only saturated

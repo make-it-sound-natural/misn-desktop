@@ -102,12 +102,6 @@ All requests use `service_tier: "priority"` for:
 - 📊 More consistent latency
 - 🎯 Better for user-facing interactions
 
-### Default Model: gpt-5.4-mini
-- **Cost-effective**: $0.20/1M input tokens, $1.25/1M output tokens
-- **Fast**: Optimized for quick responses and high-volume tasks
-- **Large context**: 400K tokens
-- **Perfect for**: Text correction and refinement
-
 ## Usage Recommendations
 
 ### Context Strategy

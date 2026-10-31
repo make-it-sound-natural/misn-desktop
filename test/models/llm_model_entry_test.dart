@@ -3,6 +3,29 @@ import 'package:make_it_sound_natural/models/llm_model_entry.dart';
 
 void main() {
   group('LlmModelEntry', () {
+    test('keeps familyId out of custom model JSON', () {
+      const entry = LlmModelEntry(provider: 'openai', slug: 'pinned-model');
+      final json = entry.toJson();
+
+      expect(json.containsKey('familyId'), isFalse);
+      final restored = LlmModelEntry.fromJson(json);
+      expect(restored.familyId, isNull);
+      expect(restored.toJson(), json);
+    });
+
+    test('copyWith keeps and replaces familyId', () {
+      const entry = LlmModelEntry(
+        provider: 'openai',
+        slug: 'gpt-6-sol',
+        isBuiltIn: true,
+        familyId: 'sol',
+      );
+
+      expect(entry.copyWith(isHidden: true).familyId, 'sol');
+      expect(entry.copyWith(familyId: 'terra').familyId, 'terra');
+      expect(LlmModelEntry.fromJson(entry.toJson()).familyId, 'sol');
+    });
+
     test('serializes custom OpenRouter model to json', () {
       const entry = LlmModelEntry(
         provider: 'openrouter',

@@ -30,7 +30,7 @@ class OnboardingService {
     if (completed ?? false) return false;
     if (completed != null) return true;
 
-    if (await _hasExistingSetup(prefs)) {
+    if (await hasExistingSetup()) {
       await markCompleted();
       return false;
     }
@@ -79,7 +79,9 @@ class OnboardingService {
     return saveState(const OnboardingSetupState.completed());
   }
 
-  Future<bool> _hasExistingSetup(SharedPreferences prefs) async {
+  /// Returns whether saved settings or a provider key predate onboarding.
+  Future<bool> hasExistingSetup() async {
+    final prefs = await SharedPreferences.getInstance();
     const savedSettingKeys = [
       'api_provider',
       'openai_model',

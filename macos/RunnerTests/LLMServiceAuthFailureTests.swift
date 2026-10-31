@@ -28,7 +28,7 @@ final class LLMServiceAuthFailureTests: XCTestCase {
             openRouterApiKey: "bad-openrouter-key",
             customProviderApiKey: "",
             customProviderBaseUrl: nil,
-            model: AppDefaults.model,
+            model: "google/gemini-3-flash-preview",
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: "Rewrite naturally.",

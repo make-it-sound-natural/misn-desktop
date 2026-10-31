@@ -133,7 +133,6 @@
   "showModel": "Modell anzeigen",
   "hideModel": "Modell ausblenden",
   "modelSlug": "Modell-Slug",
-  "builtInModel": "Integriert",
   "customModel": "Benutzerdefiniert",
   "deleteModelTitle": "Modell löschen?",
   "modelSlugRequired": "Modell-Slug ist erforderlich.",
@@ -238,7 +237,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter und google/gemini-3-flash-preview sind standardmäßig ausgewählt. Füge deinen API-Schlüssel in den Einstellungen hinzu, wenn du bereit bist.",
+  "onboardingProviderDescription": "Füge einen API-Schlüssel hinzu und wähle ein Modell in den Einstellungen aus, wenn du bereit bist.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -363,7 +362,7 @@
   "authFailureNote": "Authentifizierung fehlgeschlagen ({message}) für {provider}. Aktualisiere unten den Schlüssel und versuche es erneut.",
   "latencyAvg": "Ø {seconds} s",
   "noModelsYet": "Noch keine Modelle",
-  "noModelsYetDescription": "Füge ein Modell hinzu, um Umformulierungen zu starten.",
+  "noModelsYetDescription": "Füge einen OpenAI- oder Anthropic-API-Schlüssel hinzu, um Modelle zu laden, oder füge ein Modell manuell hinzu.",
   "deleteAction": "Löschen",
   "chooseTargetForcedSubtitle": "Wähle das Profil für Umformulierungen. Ohne Auswahl geht es nicht weiter.",
   "variantDefaultTag": "Standard",
@@ -397,5 +396,8 @@
   "aboutReportIssueSubtitle": "Öffnet ein neues GitHub-Issue mit deinen Versionsdaten",
   "aboutPrivacyPolicy": "Datenschutzerklärung",
   "aboutLicense": "Lizenz",
-  "aboutLinkOpenFailed": "Der Link konnte nicht geöffnet werden"
+  "aboutLinkOpenFailed": "Der Link konnte nicht geöffnet werden",
+  "chooseModelPlaceholder": "Modell auswählen",
+  "catalogModel": "Vom Anbieter",
+  "modelSelectionRequired": "Wähle in den Einstellungen ein Modell zum Umschreiben aus."
 }

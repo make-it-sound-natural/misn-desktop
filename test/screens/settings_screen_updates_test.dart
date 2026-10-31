@@ -119,7 +119,7 @@ void main() {
     });
 
     testWidgets(
-      'falls back to a valid model when stored model is removed',
+      'shows Choose a model for a stored model that no longer exists',
       (tester) async {
         SharedPreferences.setMockInitialValues({
           'api_provider': 'openrouter',
@@ -147,13 +147,13 @@ void main() {
         );
         expect(
           modelPicker.value,
-          equals('openrouter::google/gemini-3-flash-preview'),
+          isNull,
         );
 
         final prefs = await SharedPreferences.getInstance();
         expect(
           prefs.getString('openai_model'),
-          equals('google/gemini-3-flash-preview'),
+          equals('minimax/minimax-m2.7'),
         );
       },
     );

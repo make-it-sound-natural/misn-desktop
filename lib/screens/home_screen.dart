@@ -7,12 +7,14 @@ import 'package:make_it_sound_natural/constants/shortcut_status.dart';
 import 'package:make_it_sound_natural/l10n/correction_variant_localizations.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/models/correction_variant.dart';
+import 'package:make_it_sound_natural/models/rewrite_readiness.dart';
 import 'package:make_it_sound_natural/models/target_profile.dart';
 import 'package:make_it_sound_natural/screens/home/home_shortcut_listeners.dart';
 import 'package:make_it_sound_natural/screens/home/source_panel.dart';
 import 'package:make_it_sound_natural/screens/home/variants_panel.dart';
 import 'package:make_it_sound_natural/screens/home_flow_state.dart';
 import 'package:make_it_sound_natural/screens/settings_screen.dart';
+import 'package:make_it_sound_natural/services/live_model_catalog_service.dart';
 import 'package:make_it_sound_natural/services/openai_service.dart';
 import 'package:make_it_sound_natural/services/provider_catalog_service.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
@@ -43,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final _providerCatalogService = ProviderCatalogService();
   final _contextController = TextEditingController();
   final _textToImproveController = TextEditingController();
+  late final LiveModelCatalogService _liveCatalog;
 
   HomeFlowState _flow = const HomeFlowState.empty();
   late final HomeShortcutListeners _listeners = HomeShortcutListeners(
@@ -54,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     onError: _handleShortcutError,
   );
 
-  bool _isApiKeyMissing = false;
+  RewriteReadiness _readiness = RewriteReadiness.ready;
   bool _isWindowVisible = true;
 
   /// Bumped whenever a run starts or is cancelled, so a reply that arrives
@@ -70,10 +73,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _liveCatalog = LiveModelCatalogService.shared;
+    _liveCatalog.revision.addListener(_onCatalogChanged);
     WidgetsBinding.instance.addObserver(this);
     HardwareKeyboard.instance.addHandler(_handleGlobalKeyEvent);
     unawaited(_loadContext());
-    unawaited(_checkApiKey());
+    unawaited(_checkRewriteReadiness());
     unawaited(_loadAutoApplyVariant());
     unawaited(_loadShortcut());
     _listeners.start();
@@ -139,10 +144,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     await ShortcutService().setDefaultVariant(variant);
   }
 
-  Future<void> _checkApiKey() async {
-    final hasApiKey = await _settingsService.hasReadyActiveProviderForRewrite();
+  void _onCatalogChanged() => unawaited(_checkRewriteReadiness());
+
+  Future<void> _checkRewriteReadiness() async {
+    final readiness = await _settingsService.rewriteReadiness();
     if (mounted) {
-      setState(() => _isApiKeyMissing = !hasApiKey);
+      setState(() => _readiness = readiness);
     }
   }
 
@@ -458,6 +465,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _liveCatalog.revision.removeListener(_onCatalogChanged);
     WidgetsBinding.instance.removeObserver(this);
     HardwareKeyboard.instance.removeHandler(_handleGlobalKeyEvent);
     unawaited(_listeners.dispose());
@@ -496,10 +504,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     children: [
                       Expanded(
                         child: SourcePanel(
-                          isApiKeyMissing: _isApiKeyMissing,
+                          readiness: _readiness,
                           onConfigureApiKey: _openSettings,
-                          onDismissApiKey: () =>
-                              setState(() => _isApiKeyMissing = false),
+                          onDismissApiKey: () => setState(
+                            () => _readiness = RewriteReadiness.ready,
+                          ),
                           textController: _textToImproveController,
                           contextController: _contextController,
                           isProcessing: _flow.isProcessing,
@@ -549,7 +558,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           reverseTransitionDuration: Duration.zero,
         ),
       ).then((_) {
-        unawaited(_checkApiKey());
+        unawaited(_checkRewriteReadiness());
         unawaited(_loadAutoApplyVariant());
         unawaited(_loadShortcut());
       }),

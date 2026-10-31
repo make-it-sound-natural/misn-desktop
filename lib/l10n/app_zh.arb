@@ -133,7 +133,6 @@
   "showModel": "显示模型",
   "hideModel": "隐藏模型",
   "modelSlug": "模型 slug",
-  "builtInModel": "内置",
   "customModel": "自定义",
   "deleteModelTitle": "删除模型？",
   "modelSlugRequired": "模型 slug 为必填项。",
@@ -238,7 +237,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "默认选择 OpenRouter 和 google/gemini-3-flash-preview。准备好后可在设置中添加 API 密钥。",
+  "onboardingProviderDescription": "准备好后，请在设置中添加 API 密钥并选择模型。",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -363,7 +362,7 @@
   "authFailureNote": "{provider} 认证失败（{message}）。请在下方更新其密钥后重试。",
   "latencyAvg": "平均 {seconds} 秒",
   "noModelsYet": "尚无模型",
-  "noModelsYetDescription": "添加模型后即可运行改写。",
+  "noModelsYetDescription": "添加 OpenAI 或 Anthropic API 密钥以加载模型，或手动添加模型。",
   "deleteAction": "删除",
   "chooseTargetForcedSubtitle": "请选择用于改写的配置，必须选择后才能继续。",
   "variantDefaultTag": "默认",
@@ -397,5 +396,8 @@
   "aboutReportIssueSubtitle": "打开新的 GitHub Issue 并附上版本信息",
   "aboutPrivacyPolicy": "隐私政策",
   "aboutLicense": "许可证",
-  "aboutLinkOpenFailed": "无法打开链接"
+  "aboutLinkOpenFailed": "无法打开链接",
+  "chooseModelPlaceholder": "选择模型",
+  "catalogModel": "来自提供商",
+  "modelSelectionRequired": "请在设置中选择模型以改写文本。"
 }

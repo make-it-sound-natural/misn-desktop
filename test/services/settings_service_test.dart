@@ -7,6 +7,7 @@ import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/appearance_preferences.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
+import 'package:make_it_sound_natural/models/rewrite_readiness.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -32,7 +33,7 @@ void main() {
       final service = SettingsService();
 
       expect(AppDefaults.apiProvider, AppDefaults.openRouterProvider);
-      expect(AppDefaults.model, 'google/gemini-3-flash-preview');
+      expect(AppDefaults.model, '');
       expect(await service.getProvider(), AppDefaults.apiProvider);
       expect(await service.getModel(), AppDefaults.model);
       expect(await service.getDefaultVariant(), AppDefaults.variant);
@@ -548,46 +549,57 @@ void main() {
       expect(await service.hasApiKeyForActiveProvider(), isTrue);
     });
 
+    test('reports a missing API key before a missing model', () async {
+      expect(
+        await SettingsService().rewriteReadiness(),
+        RewriteReadiness.missingApiKey,
+      );
+    });
+
+    test('reports a missing model when nothing is selected', () async {
+      SharedPreferences.setMockInitialValues({
+        'api_provider': AppDefaults.openRouterProvider,
+        'openrouter_api_key': 'test-key',
+      });
+
+      expect(
+        await SettingsService().rewriteReadiness(),
+        RewriteReadiness.missingModel,
+      );
+    });
+
+    test('reports a missing model when the saved model is hidden', () async {
+      SharedPreferences.setMockInitialValues({
+        'api_provider': AppDefaults.openRouterProvider,
+        'openrouter_api_key': 'test-key',
+        'openai_model': 'pinned-model',
+        'llm_custom_models': [
+          jsonEncode({
+            'provider': AppDefaults.openRouterProvider,
+            'slug': 'pinned-model',
+          }),
+          jsonEncode({
+            'provider': AppDefaults.openRouterProvider,
+            'slug': 'visible-model',
+          }),
+        ],
+        'llm_hidden_models': ['openrouter::pinned-model'],
+      });
+
+      expect(
+        await SettingsService().rewriteReadiness(),
+        RewriteReadiness.missingModel,
+      );
+    });
+
     test(
-      'requires visible model for active custom provider readiness',
+      'reports ready for a custom provider with key and selected model',
       () async {
         SharedPreferences.setMockInitialValues({
           'api_provider': 'tokenguard',
-          'llm_custom_providers': [
-            jsonEncode({
-              'id': 'tokenguard',
-              'displayName': 'TokenGuard',
-              'baseUrl': 'https://tokenguard.int.agrd.dev/api/v1',
-              'isBuiltIn': false,
-            }),
-          ],
-        });
-        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-            .setMockMethodCallHandler(channel, (call) async {
-              if (call.method ==
-                  MethodChannelMethods.getStoredCustomProviderApiKey) {
-                return 'custom-key';
-              }
-              throw MissingPluginException();
-            });
-        final service = SettingsService();
-
-        expect(await service.hasReadyActiveProviderForRewrite(), isFalse);
-      },
-    );
-
-    test(
-      'accepts custom provider readiness with key and visible model',
-      () async {
-        SharedPreferences.setMockInitialValues({
-          'api_provider': 'tokenguard',
+          'openai_model': 'kimi-k2.6',
           'llm_custom_models': [
-            jsonEncode({
-              'provider': 'tokenguard',
-              'slug': 'kimi-k2.6',
-              'isBuiltIn': false,
-              'isHidden': false,
-            }),
+            jsonEncode({'provider': 'tokenguard', 'slug': 'kimi-k2.6'}),
           ],
         });
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -598,11 +610,32 @@ void main() {
               }
               throw MissingPluginException();
             });
-        final service = SettingsService();
 
-        expect(await service.hasReadyActiveProviderForRewrite(), isTrue);
+        expect(
+          await SettingsService().rewriteReadiness(),
+          RewriteReadiness.ready,
+        );
       },
     );
+
+    test('reports ready for an unfetched Anthropic family slug', () async {
+      SharedPreferences.setMockInitialValues({
+        'api_provider': AppDefaults.anthropicProvider,
+        'openai_model': 'claude-sonnet-5-5',
+      });
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            if (call.method == MethodChannelMethods.getStoredAnthropicApiKey) {
+              return 'anthropic-test-key';
+            }
+            throw MissingPluginException();
+          });
+
+      expect(
+        await SettingsService().rewriteReadiness(),
+        RewriteReadiness.ready,
+      );
+    });
 
     test('records provider auth failure without storing the API key', () async {
       final service = SettingsService();

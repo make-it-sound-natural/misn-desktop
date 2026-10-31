@@ -57,6 +57,7 @@
 		CORRVARJSON01 /* CorrectionVariantsJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = CORRVARJSON02 /* CorrectionVariantsJSON.swift */; };
 		CHATCOMPFMT01 /* ChatCompletionsFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = CHATCOMPFMT02 /* ChatCompletionsFormat.swift */; };
 		ANTHMSGFMT01 /* AnthropicMessagesFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = ANTHMSGFMT02 /* AnthropicMessagesFormat.swift */; };
+		PREFLIGHT01 /* RewritePreflight.swift in Sources */ = {isa = PBXBuildFile; fileRef = PREFLIGHT02 /* RewritePreflight.swift */; };
 		LLMERRPARS01 /* LLMErrorMessageParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMERRPARS02 /* LLMErrorMessageParser.swift */; };
 		LLMERRTEST01 /* LLMErrorMessageParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMERRTEST02 /* LLMErrorMessageParserTests.swift */; };
 		LLMAUTHTEST01 /* LLMServiceAuthFailureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */; };
@@ -88,6 +89,7 @@
 		CORRVARTEST01 /* CorrectionVariantsJSONTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CORRVARTEST02 /* CorrectionVariantsJSONTests.swift */; };
 		CHATCOMPTEST01 /* ChatCompletionsFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CHATCOMPTEST02 /* ChatCompletionsFormatTests.swift */; };
 		ANTHFMTTEST01 /* AnthropicMessagesFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ANTHFMTTEST02 /* AnthropicMessagesFormatTests.swift */; };
+		PREFLIGHTTEST01 /* RewritePreflightTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = PREFLIGHTTEST02 /* RewritePreflightTests.swift */; };
 		LLMANTHTEST01 /* LLMServiceAnthropicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMANTHTEST02 /* LLMServiceAnthropicTests.swift */; };
 		SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */; };
 		SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */; };
@@ -206,6 +208,7 @@
 		CORRVARJSON02 /* CorrectionVariantsJSON.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "CorrectionVariantsJSON.swift"; sourceTree = "<group>"; };
 		CHATCOMPFMT02 /* ChatCompletionsFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ChatCompletionsFormat.swift"; sourceTree = "<group>"; };
 		ANTHMSGFMT02 /* AnthropicMessagesFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "AnthropicMessagesFormat.swift"; sourceTree = "<group>"; };
+		PREFLIGHT02 /* RewritePreflight.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RewritePreflight.swift; sourceTree = "<group>"; };
 		LLMERRPARS02 /* LLMErrorMessageParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LLMErrorMessageParser.swift; sourceTree = "<group>"; };
 		LLMERRTEST02 /* LLMErrorMessageParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMErrorMessageParserTests.swift; sourceTree = "<group>"; };
 		LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceAuthFailureTests.swift; sourceTree = "<group>"; };
@@ -237,6 +240,7 @@
 		CORRVARTEST02 /* CorrectionVariantsJSONTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CorrectionVariantsJSONTests.swift; sourceTree = "<group>"; };
 		CHATCOMPTEST02 /* ChatCompletionsFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCompletionsFormatTests.swift; sourceTree = "<group>"; };
 		ANTHFMTTEST02 /* AnthropicMessagesFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnthropicMessagesFormatTests.swift; sourceTree = "<group>"; };
+		PREFLIGHTTEST02 /* RewritePreflightTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewritePreflightTests.swift; sourceTree = "<group>"; };
 		LLMANTHTEST02 /* LLMServiceAnthropicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceAnthropicTests.swift; sourceTree = "<group>"; };
 		ACCTXMODE02 /* AccessibilityContextMode.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContextMode.swift; sourceTree = "<group>"; };
 		ACCTXMODEL02 /* AccessibilityContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AccessibilityContext.swift; sourceTree = "<group>"; };
@@ -316,6 +320,7 @@
 				CORRVARTEST02 /* CorrectionVariantsJSONTests.swift */,
 				CHATCOMPTEST02 /* ChatCompletionsFormatTests.swift */,
 				ANTHFMTTEST02 /* AnthropicMessagesFormatTests.swift */,
+				PREFLIGHTTEST02 /* RewritePreflightTests.swift */,
 				LLMANTHTEST02 /* LLMServiceAnthropicTests.swift */,
 				SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */,
 				SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */,
@@ -421,6 +426,7 @@
 				CORRVARJSON02 /* CorrectionVariantsJSON.swift */,
 				CHATCOMPFMT02 /* ChatCompletionsFormat.swift */,
 				ANTHMSGFMT02 /* AnthropicMessagesFormat.swift */,
+				PREFLIGHT02 /* RewritePreflight.swift */,
 				PROMPTTEMP002 /* PromptTemplates.swift */,
 				SHORTCUTMGR02 /* ShortcutManager.swift */,
 				SHORTCUTDISP2 /* ShortcutDispatcher.swift */,
@@ -709,6 +715,7 @@
 				CORRVARTEST01 /* CorrectionVariantsJSONTests.swift in Sources */,
 				CHATCOMPTEST01 /* ChatCompletionsFormatTests.swift in Sources */,
 				ANTHFMTTEST01 /* AnthropicMessagesFormatTests.swift in Sources */,
+				PREFLIGHTTEST01 /* RewritePreflightTests.swift in Sources */,
 				LLMANTHTEST01 /* LLMServiceAnthropicTests.swift in Sources */,
 				SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */,
 				SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */,
@@ -756,6 +763,7 @@
 				CORRVARJSON01 /* CorrectionVariantsJSON.swift in Sources */,
 				CHATCOMPFMT01 /* ChatCompletionsFormat.swift in Sources */,
 				ANTHMSGFMT01 /* AnthropicMessagesFormat.swift in Sources */,
+				PREFLIGHT01 /* RewritePreflight.swift in Sources */,
 				PROMPTTEMP001 /* PromptTemplates.swift in Sources */,
 				SHORTCUTMGR01 /* ShortcutManager.swift in Sources */,
 				SHORTCUTDISP1 /* ShortcutDispatcher.swift in Sources */,

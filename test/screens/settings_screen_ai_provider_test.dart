@@ -1,14 +1,20 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
 import 'package:make_it_sound_natural/screens/settings_screen.dart';
+import 'package:make_it_sound_natural/services/live_model_catalog_service.dart';
+import 'package:make_it_sound_natural/services/model_catalog_cache.dart';
+import 'package:make_it_sound_natural/services/provider_models_client.dart';
 import 'package:make_it_sound_natural/widgets/app_popup_select.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,6 +23,52 @@ void main() {
 
   late List<MethodCall> methodCalls;
   late Map<String, String> secureValues;
+  late LiveModelCatalogService originalCatalog;
+  late List<http.Request> requests;
+  late Future<http.Response> Function(http.Request) respond;
+
+  const openAiFamilies = {
+    'luna': 'gpt-6-luna',
+    'terra': 'gpt-6.1-terra',
+    'sol': 'gpt-6.1-sol',
+    'astra': 'gpt-6-astra',
+  };
+  const anthropicFamilies = {
+    'opus': 'claude-opus-5-5',
+    'sonnet': 'claude-sonnet-5-5',
+    'haiku': 'claude-haiku-5-5',
+    'fable': 'claude-fable-5-1',
+  };
+  const migratedModel =
+      '{"provider":"openrouter",'
+      '"slug":"google/gemini-3-flash-preview"}';
+
+  setUp(() {
+    requests = [];
+    respond = (request) async => http.Response(
+      jsonEncode({
+        'data': [
+          for (final slug
+              in (request.url.host == 'api.openai.com'
+                      ? openAiFamilies
+                      : anthropicFamilies)
+                  .values)
+            {'id': slug},
+        ],
+        'has_more': false,
+      }),
+      200,
+    );
+    originalCatalog = LiveModelCatalogService.shared;
+    LiveModelCatalogService.shared = LiveModelCatalogService(
+      client: ProviderModelsClient(
+        client: MockClient((request) async {
+          requests.add(request);
+          return respond(request);
+        }),
+      ),
+    );
+  });
 
   void setupSettings({
     String? provider = 'openrouter',
@@ -24,6 +76,9 @@ void main() {
     String openAiKey = 'openai-key',
     String openRouterKey = 'openrouter-key',
     String customProviderKey = 'custom-key',
+    String anthropicKey = '',
+    bool seedCatalog = true,
+    bool seedOpenRouterModel = true,
     List<String> customProviders = const [],
     List<String> customModels = const [],
     List<String> hiddenModels = const [],
@@ -33,6 +88,7 @@ void main() {
       'openai': openAiKey,
       'openrouter': openRouterKey,
       'tokenguard': customProviderKey,
+      AppDefaults.anthropicProvider: anthropicKey,
     };
     final initialValues = <String, Object>{
       'app_shortcut': AppDefaults.correctionShortcut,
@@ -43,7 +99,22 @@ void main() {
       'target_profile_selection_confirmed': true,
       'target_profile_selected_id': 'americanEnglish',
       if (customProviders.isNotEmpty) 'llm_custom_providers': customProviders,
-      if (customModels.isNotEmpty) 'llm_custom_models': customModels,
+      if (seedOpenRouterModel || customModels.isNotEmpty)
+        'llm_custom_models': [
+          if (seedOpenRouterModel) migratedModel,
+          ...customModels,
+        ],
+      if (seedCatalog)
+        ModelCatalogCache.storageKey: jsonEncode({
+          for (final entry in {
+            AppDefaults.openAiProvider: openAiFamilies,
+            AppDefaults.anthropicProvider: anthropicFamilies,
+          }.entries)
+            entry.key: {
+              'fetchedAt': DateTime.now().toUtc().toIso8601String(),
+              'families': entry.value,
+            },
+        }),
       if (hiddenModels.isNotEmpty) 'llm_hidden_models': hiddenModels,
     };
     if (provider != null) {
@@ -130,6 +201,8 @@ void main() {
   }
 
   tearDown(() {
+    LiveModelCatalogService.shared.dispose();
+    LiveModelCatalogService.shared = originalCatalog;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
           const MethodChannel(MethodChannelMethods.channelName),
@@ -227,16 +300,223 @@ void main() {
     expect(find.byKey(const Key('apiProvider-providerSelector')), findsNothing);
   });
 
-  testWidgets('defaults a clean install to OpenRouter and Gemini flash', (
+  testWidgets(
+    'a clean install shows Choose a model and the empty Models hint',
+    (
+      tester,
+    ) async {
+      setupSettings(
+        provider: null,
+        model: null,
+        openAiKey: '',
+        openRouterKey: '',
+        seedCatalog: false,
+        seedOpenRouterModel: false,
+      );
+      await pumpSettings(tester);
+
+      final picker = tester.widget<AppPopupSelect<String>>(
+        find.byKey(const Key('apiProvider-modelPicker')),
+      );
+      expect(picker.value, isNull);
+      expect(find.text('Choose a model'), findsOneWidget);
+      expect(find.text('No models yet'), findsOneWidget);
+      expect(
+        find.text(
+          'Add an OpenAI or Anthropic API key to load models, '
+          'or add a model manually.',
+        ),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets('catalog rows are labelled From provider', (tester) async {
+    setupSettings();
+    await pumpSettings(tester);
+    expect(find.text('OpenAI · From provider'), findsNWidgets(4));
+    expect(find.text('Anthropic · From provider'), findsNWidgets(4));
+  });
+
+  testWidgets('opening AI provider settings loads a missing model list', (
     tester,
   ) async {
-    setupSettings(provider: null, model: null);
-    await pumpSettings(tester);
-
-    final picker = tester.widget<AppPopupSelect<String>>(
-      find.byKey(const Key('apiProvider-modelPicker')),
+    setupSettings(
+      seedCatalog: false,
+      openAiKey: '',
+      anthropicKey: 'anthropic-test-key',
     );
-    expect(picker.value, '${AppDefaults.apiProvider}::${AppDefaults.model}');
+    await pumpSettings(tester);
+    await tester.pumpAndSettle();
+
+    expect(requests, hasLength(1));
+    expect(requests.single.url.host, 'api.anthropic.com');
+    expect(find.text('claude-opus-5-5'), findsOneWidget);
+    expect(find.text('claude-fable-5-1'), findsOneWidget);
+  });
+
+  testWidgets('a delayed settings load keeps the refreshed catalog', (
+    tester,
+  ) async {
+    setupSettings(provider: 'openai', model: 'gpt-6.1-sol');
+    final firstKey = Completer<String>();
+    var delayedFirstKey = false;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel(MethodChannelMethods.channelName),
+          (call) async {
+            methodCalls.add(call);
+            switch (call.method) {
+              case MethodChannelMethods.getStoredOpenRouterApiKey:
+                if (!delayedFirstKey) {
+                  delayedFirstKey = true;
+                  return firstKey.future;
+                }
+                return secureValues['openrouter'];
+              case MethodChannelMethods.getStoredApiKey:
+                return secureValues['openai'];
+              case MethodChannelMethods.getStoredAnthropicApiKey:
+                return '';
+              case MethodChannelMethods.checkAccessibilityPermissions:
+                return true;
+              case MethodChannelMethods.getDefaultPrompt:
+                return 'Default prompt';
+              case 'getAppVersion':
+                return {'version': '1.0.0', 'build': '1'};
+              default:
+                return null;
+            }
+          },
+        );
+    await pumpSettings(tester);
+    expect(delayedFirstKey, isTrue);
+
+    respond = (_) async => http.Response(
+      jsonEncode({
+        'data': [
+          {'id': 'gpt-6.2-sol'},
+        ],
+      }),
+      200,
+    );
+    await LiveModelCatalogService.shared.refresh(AppDefaults.openAiProvider);
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(requests, hasLength(1));
+    final pickerFinder = find.byKey(const Key('apiProvider-modelPicker'));
+    expect(
+      tester.widget<AppPopupSelect<String>>(pickerFinder).value,
+      'openai::gpt-6.2-sol',
+    );
+
+    firstKey.complete('openrouter-key');
+    await tester.pumpAndSettle();
+
+    final picker = tester.widget<AppPopupSelect<String>>(pickerFinder);
+    expect(picker.value, 'openai::gpt-6.2-sol');
+    expect(
+      picker.options.whereType<AppPopupOption<String>>().map((o) => o.value),
+      contains('openai::gpt-6.2-sol'),
+    );
+    expect(find.text('gpt-6.1-sol'), findsNothing);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('openai_model'), 'gpt-6.2-sol');
+  });
+
+  testWidgets('saving an Anthropic key loads its models', (tester) async {
+    setupSettings(seedCatalog: false, openAiKey: '');
+    await pumpSettings(tester);
+    expect(find.text('claude-opus-5-5'), findsNothing);
+
+    await tapRowAction(
+      tester,
+      const Key('apiProvider-keyButton-anthropic-messages'),
+    );
+    await tester.enterText(
+      find.byKey(const Key('apiProvider-keyDialogField')),
+      'anthropic-test-key',
+    );
+    await tester.tap(find.byKey(const Key('apiProvider-saveKey')));
+    await tester.pumpAndSettle();
+
+    expect(requests, hasLength(1));
+    expect(find.text('claude-opus-5-5'), findsOneWidget);
+    expect(find.text('claude-fable-5-1'), findsOneWidget);
+  });
+
+  testWidgets(
+    'an existing Anthropic selection stays selected before the first fetch',
+    (tester) async {
+      setupSettings(
+        provider: AppDefaults.anthropicProvider,
+        model: 'claude-sonnet-5-5',
+        seedCatalog: false,
+        openAiKey: '',
+        anthropicKey: 'anthropic-test-key',
+      );
+      respond = (_) async => throw http.ClientException('offline');
+      await pumpSettings(tester);
+      await tester.pumpAndSettle();
+
+      final picker = tester.widget<AppPopupSelect<String>>(
+        find.byKey(const Key('apiProvider-modelPicker')),
+      );
+      expect(picker.value, 'anthropic-messages::claude-sonnet-5-5');
+      expect(find.text('claude-sonnet-5-5'), findsWidgets);
+      final prefs = await SharedPreferences.getInstance();
+      expect(prefs.getString('api_provider'), AppDefaults.anthropicProvider);
+      expect(prefs.getString('openai_model'), 'claude-sonnet-5-5');
+    },
+  );
+
+  testWidgets('hiding the selected model clears the selection', (
+    tester,
+  ) async {
+    setupSettings(provider: 'openai', model: 'gpt-6.1-sol');
+    await pumpSettings(tester);
+    await tapRowAction(
+      tester,
+      const Key('apiProvider-visibility-openai-gpt-6.1-sol'),
+    );
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('api_provider'), 'openai');
+    expect(prefs.getString('openai_model'), '');
+    expect(
+      methodCalls
+          .lastWhere(
+            (call) => call.method == MethodChannelMethods.setModel,
+          )
+          .arguments,
+      '',
+    );
+  });
+
+  testWidgets('deleting the selected custom model clears the selection', (
+    tester,
+  ) async {
+    setupSettings(
+      model: 'acme/writer',
+      customModels: const ['{"provider":"openrouter","slug":"acme/writer"}'],
+    );
+    await pumpSettings(tester);
+    await tapRowAction(
+      tester,
+      const Key('apiProvider-deleteModel-openrouter-acme/writer'),
+    );
+    await tester.tap(find.text('Delete'));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('api_provider'), 'openrouter');
+    expect(prefs.getString('openai_model'), '');
+    expect(
+      methodCalls
+          .lastWhere(
+            (call) => call.method == MethodChannelMethods.setModel,
+          )
+          .arguments,
+      '',
+    );
   });
 
   testWidgets('provider rows show key status inline', (tester) async {
@@ -324,12 +604,12 @@ void main() {
 
     await tester.tap(find.byKey(const Key('apiProvider-modelPicker')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('gpt-5.4-mini').last);
+    await tester.tap(find.text('gpt-6.1-sol').last);
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('api_provider'), 'openai');
-    expect(prefs.getString('openai_model'), 'gpt-5.4-mini');
+    expect(prefs.getString('openai_model'), 'gpt-6.1-sol');
   });
 
   testWidgets('picking a Claude model selects Anthropic and saves its key', (
@@ -461,14 +741,32 @@ void main() {
 
     final prefs = await SharedPreferences.getInstance();
     expect(find.text('TokenGuard'), findsNothing);
-    expect(prefs.getStringList('llm_custom_models') ?? const [], isEmpty);
-    // The picker re-points at a model that still exists.
-    expect(prefs.getString('openai_model'), isNot('acme/custom-writer-1'));
-    expect(prefs.getString('openai_model'), isNotEmpty);
+    expect(
+      prefs.getStringList('llm_custom_models'),
+      isNot(contains(contains('tokenguard'))),
+    );
+    expect(prefs.getString('api_provider'), AppDefaults.apiProvider);
+    expect(prefs.getString('openai_model'), '');
+    expect(
+      methodCalls
+          .lastWhere(
+            (call) => call.method == MethodChannelMethods.setProvider,
+          )
+          .arguments,
+      AppDefaults.apiProvider,
+    );
+    expect(
+      methodCalls
+          .lastWhere(
+            (call) => call.method == MethodChannelMethods.setModel,
+          )
+          .arguments,
+      '',
+    );
   });
 
   testWidgets('adds a model through the shared dialog', (tester) async {
-    setupSettings();
+    setupSettings(seedOpenRouterModel: false);
     await pumpSettings(tester);
 
     await openAddModelDialog(tester);
@@ -517,6 +815,7 @@ void main() {
 
   testWidgets('deletes a custom model after confirmation', (tester) async {
     setupSettings(
+      seedOpenRouterModel: false,
       customModels: [
         jsonEncode({
           'provider': 'openrouter',
@@ -539,33 +838,34 @@ void main() {
     expect(prefs.getStringList('llm_custom_models') ?? const [], isEmpty);
   });
 
-  testWidgets('eye toggles picker visibility for a model', (tester) async {
+  testWidgets('hiding a catalog model stores its family id', (tester) async {
     setupSettings();
     await pumpSettings(tester);
 
     await tapRowAction(
       tester,
-      const Key('apiProvider-visibility-openai-gpt-5.4-mini'),
+      const Key('apiProvider-visibility-openai-gpt-6.1-sol'),
     );
 
     final prefs = await SharedPreferences.getInstance();
     expect(
       prefs.getStringList('llm_hidden_models'),
-      contains('openai::gpt-5.4-mini'),
+      contains('openai::family:sol'),
     );
   });
 
   testWidgets('keeps at least one model visible', (tester) async {
-    // Every model hidden except the single remaining OpenRouter built-in.
+    // Every model is hidden except the migrated OpenRouter model.
     setupSettings(
       hiddenModels: const [
-        'openai::gpt-5.4-nano',
-        'openai::gpt-5.4-mini',
-        'openai::gpt-5.4',
-        'openai::gpt-5.5',
-        'anthropic-messages::claude-haiku-5-5',
-        'anthropic-messages::claude-sonnet-5-5',
-        'anthropic-messages::claude-opus-5-5',
+        'openai::family:luna',
+        'openai::family:sol',
+        'openai::family:terra',
+        'openai::family:astra',
+        'anthropic-messages::family:haiku',
+        'anthropic-messages::family:sonnet',
+        'anthropic-messages::family:opus',
+        'anthropic-messages::family:fable',
       ],
     );
     await pumpSettings(tester);
@@ -605,80 +905,53 @@ void main() {
   });
 
   group('stale persisted selection', () {
-    // Regression: these three fallbacks ship in `_resolveSelection`, and the
-    // suite lost their coverage when this screen was restructured. A stale
-    // save must repair itself rather than leave the picker blank.
-    testWidgets('falls back when the stored model is gone', (tester) async {
-      setupSettings(model: 'removed/model');
-      await pumpSettings(tester);
+    for (final scenario in ['gone', 'hidden', 'provider']) {
+      final title = switch (scenario) {
+        'gone' => 'shows Choose a model when the stored model is gone',
+        'hidden' => 'shows Choose a model when the stored model is hidden',
+        _ => 'shows Choose a model when the stored provider is gone',
+      };
+      testWidgets(title, (tester) async {
+        final provider = scenario == 'provider' ? 'gone' : 'openrouter';
+        final model = scenario == 'gone'
+            ? 'removed/model'
+            : 'google/gemini-3-flash-preview';
+        setupSettings(
+          provider: provider,
+          model: model,
+          hiddenModels: scenario == 'hidden'
+              ? const ['openrouter::google/gemini-3-flash-preview']
+              : const [],
+        );
+        await pumpSettings(tester);
 
-      final picker = tester.widget<AppPopupSelect<String>>(
-        find.byKey(const Key('apiProvider-modelPicker')),
-      );
-      expect(picker.value, 'openrouter::google/gemini-3-flash-preview');
+        final picker = tester.widget<AppPopupSelect<String>>(
+          find.byKey(const Key('apiProvider-modelPicker')),
+        );
+        expect(picker.value, isNull);
+        expect(find.text('Choose a model'), findsOneWidget);
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('api_provider'), provider);
+        expect(prefs.getString('openai_model'), model);
+      });
+    }
+  });
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('openai_model'), 'google/gemini-3-flash-preview');
-    });
+  testWidgets('loading settings never writes the selection', (tester) async {
+    setupSettings(provider: 'openai', model: 'removed/model');
+    await pumpSettings(tester);
 
-    testWidgets('falls back when the stored model is hidden', (tester) async {
-      // OpenRouter ships exactly one built-in model, so hiding it leaves that
-      // provider with nothing visible and the fallback has to cross providers.
-      setupSettings(
-        hiddenModels: const ['openrouter::google/gemini-3-flash-preview'],
-      );
-      await pumpSettings(tester);
-
-      final picker = tester.widget<AppPopupSelect<String>>(
-        find.byKey(const Key('apiProvider-modelPicker')),
-      );
-      expect(picker.value, 'openai::gpt-5.4-nano');
-
-      // The provider must travel with the model it fell back to.
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('api_provider'), 'openai');
-      expect(prefs.getString('openai_model'), 'gpt-5.4-nano');
-    });
-
-    testWidgets('keeps the provider when the same provider still has one', (
-      tester,
-    ) async {
-      setupSettings(
-        provider: 'openai',
-        model: 'gpt-5.4-mini',
-        hiddenModels: const ['openai::gpt-5.4-mini'],
-      );
-      await pumpSettings(tester);
-
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('api_provider'), 'openai');
-      expect(prefs.getString('openai_model'), 'gpt-5.4-nano');
-    });
-
-    testWidgets('falls back when the stored provider is gone', (tester) async {
-      setupSettings(provider: 'gone');
-      await pumpSettings(tester);
-
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('api_provider'), AppDefaults.apiProvider);
-    });
-
-    testWidgets('never persists a model from another provider', (
-      tester,
-    ) async {
-      // `_resolveSelection` may cross providers to find a visible model; when
-      // it does, the provider it writes must be that model's owner.
-      setupSettings(provider: 'openai', model: 'removed/model');
-      await pumpSettings(tester);
-
-      final prefs = await SharedPreferences.getInstance();
-      final provider = prefs.getString('api_provider')!;
-      final model = prefs.getString('openai_model')!;
-      final picker = tester.widget<AppPopupSelect<String>>(
-        find.byKey(const Key('apiProvider-modelPicker')),
-      );
-      expect(picker.value, '$provider::$model');
-    });
+    expect(
+      methodCalls.where(
+        (call) =>
+            call.method == MethodChannelMethods.setProvider ||
+            call.method == MethodChannelMethods.setModel,
+      ),
+      isEmpty,
+    );
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('api_provider'), 'openai');
+    expect(prefs.getString('openai_model'), 'removed/model');
   });
 
   testWidgets('picking a model pushes the pair to the native side', (
@@ -689,7 +962,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('apiProvider-modelPicker')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('gpt-5.4-mini').last);
+    await tester.tap(find.text('gpt-6.1-sol').last);
     await tester.pumpAndSettle();
 
     // Dropping either call leaves the native LLM path on the old provider
@@ -701,7 +974,7 @@ void main() {
       (call) => call.method == MethodChannelMethods.setModel,
     );
     expect(setProvider.arguments, 'openai');
-    expect(setModel.arguments, 'gpt-5.4-mini');
+    expect(setModel.arguments, 'gpt-6.1-sol');
   });
 
   group('edit paths', () {
@@ -742,12 +1015,13 @@ void main() {
       );
     });
 
-    testWidgets('renaming the selected model keeps the picker valid', (
+    testWidgets('editing the selected custom model keeps it selected', (
       tester,
     ) async {
       setupSettings(
         provider: 'tokenguard',
         model: 'acme/writer',
+        seedOpenRouterModel: false,
         customProviders: const [tokenGuard],
         customModels: const [
           '{"provider":"tokenguard","slug":"acme/writer"}',
@@ -773,6 +1047,14 @@ void main() {
       );
       // The picker must still point at something that exists.
       expect(prefs.getString('openai_model'), 'acme/writer-v2');
+      expect(
+        methodCalls
+            .lastWhere(
+              (call) => call.method == MethodChannelMethods.setModel,
+            )
+            .arguments,
+        'acme/writer-v2',
+      );
       final picker = tester.widget<AppPopupSelect<String>>(
         find.byKey(const Key('apiProvider-modelPicker')),
       );

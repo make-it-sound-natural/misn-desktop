@@ -133,7 +133,6 @@
   "showModel": "Mostrar modelo",
   "hideModel": "Ocultar modelo",
   "modelSlug": "Slug del modelo",
-  "builtInModel": "Integrado",
   "customModel": "Personalizado",
   "deleteModelTitle": "¿Eliminar modelo?",
   "modelSlugRequired": "El slug del modelo es obligatorio.",
@@ -238,7 +237,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter y google/gemini-3-flash-preview están seleccionados de forma predeterminada. Añade tu clave API en ajustes cuando estés listo.",
+  "onboardingProviderDescription": "Añade una clave API y elige un modelo en Ajustes cuando estés listo.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -363,7 +362,7 @@
   "authFailureNote": "Fallo de autenticación ({message}) en {provider}. Actualiza su clave abajo e inténtalo de nuevo.",
   "latencyAvg": "media {seconds} s",
   "noModelsYet": "Aún no hay modelos",
-  "noModelsYetDescription": "Añade un modelo para poder reescribir.",
+  "noModelsYetDescription": "Añade una clave API de OpenAI o Anthropic para cargar modelos, o añade un modelo manualmente.",
   "deleteAction": "Eliminar",
   "chooseTargetForcedSubtitle": "Elige el perfil que se usará para reescribir. Es necesario para continuar.",
   "variantDefaultTag": "Predeterminada",
@@ -397,5 +396,8 @@
   "aboutReportIssueSubtitle": "Abre una incidencia nueva en GitHub con los datos de tu versión",
   "aboutPrivacyPolicy": "Política de privacidad",
   "aboutLicense": "Licencia",
-  "aboutLinkOpenFailed": "No se pudo abrir el enlace"
+  "aboutLinkOpenFailed": "No se pudo abrir el enlace",
+  "chooseModelPlaceholder": "Elige un modelo",
+  "catalogModel": "Del proveedor",
+  "modelSelectionRequired": "Elige un modelo en Ajustes para reescribir textos."
 }
