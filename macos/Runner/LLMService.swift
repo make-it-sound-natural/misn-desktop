@@ -26,6 +26,7 @@ class LLMService {
         let screenshotAttachment: ScreenshotAttachment?
         let accessibilityContext: AccessibilityContext?
         var reasoningEffort: ReasoningEffort = AppDefaults.reasoningEffort
+        var requestSpeed: RequestSpeed = AppDefaults.requestSpeed
         /// Why the Accessibility read could not serve as context. Only
         /// reported in debug logs; it never reaches the prompt.
         var accessibilityFallbackReason: AccessibilityContext.UnusableReason?
@@ -111,11 +112,13 @@ class LLMService {
         debugLog("═══════════════════════════════════════════")
         #endif
 
+        let format = LLMWireFormatFactory.forProvider(provider)
+        log("Wire format: \(type(of: format))")
         executeRequest(
             text: text,
             config: config,
             systemInstructions: finalInstructions,
-            format: LLMWireFormatFactory.forProvider(provider),
+            format: format,
             completion: completion
         )
     }

@@ -32,6 +32,9 @@ struct LLMResponseFailure: Error {
 /// protocol extension on the protocol itself.
 enum LLMWireFormatFactory {
     static func forProvider(_ provider: String) -> LLMWireFormat {
+        if provider == AppDefaults.openAiProvider {
+            return OpenAIResponsesFormat()
+        }
         if provider == AppDefaults.anthropicProvider {
             return AnthropicMessagesFormat()
         }

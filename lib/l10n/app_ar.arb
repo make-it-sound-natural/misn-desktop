@@ -397,5 +397,25 @@
   "aboutReportIssueSubtitle": "يفتح مشكلة جديدة على GitHub مع تفاصيل إصدارك",
   "aboutPrivacyPolicy": "سياسة الخصوصية",
   "aboutLicense": "الترخيص",
-  "aboutLinkOpenFailed": "تعذّر فتح الرابط"
+  "aboutLinkOpenFailed": "تعذّر فتح الرابط",
+  "requestSpeed": "السرعة",
+  "requestSpeedDescription": "تستجيب المستويات الأسرع في وقت أقصر وبتكلفة أعلى.",
+  "requestSpeedStandard": "القياسية",
+  "requestSpeedFast": "السريعة",
+  "requestSpeedUltrafast": "فائقة السرعة",
+  "requestSpeedFastOption": "السريعة · ضعف السعر",
+  "requestSpeedUltrafastOption": "فائقة السرعة · 6 أضعاف السعر",
+  "requestSpeedRunsAt": "يعمل {model} بالمستوى {level}",
+  "requestSpeedUnavailable": "متاحة لـ OpenAI وAnthropic",
+  "requestSpeedSaveFailed": "تعذر حفظ السرعة. حاول مرة أخرى.",
+  "@requestSpeedRunsAt": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -1,47 +1,100 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
-import 'package:make_it_sound_natural/constants/model_catalog_defaults.dart';
 import 'package:make_it_sound_natural/models/llm_model_entry.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  group('ModelCatalogDefaults', () {
-    test('keeps current built-in provider model ordering', () {
-      expect(ModelCatalogDefaults.modelsForProvider('openai'), [
-        'gpt-5.4-nano',
-        'gpt-5.4-mini',
-        'gpt-5.4',
-        'gpt-5.5',
-      ]);
-
-      expect(ModelCatalogDefaults.modelsForProvider('openrouter'), [
-        'google/gemini-3-flash-preview',
-      ]);
-    });
-
-    test('ships Claude models for Anthropic in order', () {
-      expect(
-        ModelCatalogDefaults.modelsForProvider(AppDefaults.anthropicProvider),
-        [
-          'claude-haiku-5-5',
-          'claude-sonnet-5-5',
-          'claude-opus-5-5',
-        ],
-      );
-    });
-
-    test('returns empty list for unknown provider', () {
-      expect(ModelCatalogDefaults.modelsForProvider('unknown'), isEmpty);
-    });
-  });
-
   group('ModelCatalogService', () {
     const customOpenRouterSlug = 'openai/gpt-5-mini:nitro';
 
     setUp(() {
       SharedPreferences.setMockInitialValues({});
     });
+
+    test('lists built-in OpenAI models from the catalog', () async {
+      final models = await ModelCatalogService().allModels(
+        AppDefaults.openAiProvider,
+      );
+
+      expect(models.map((model) => model.slug), [
+        'gpt-6-luna',
+        'gpt-6.1-terra',
+        'gpt-6.1-sol',
+        'gpt-6-astra',
+      ]);
+      expect(models.every((model) => model.isBuiltIn), isTrue);
+    });
+
+    test(
+      'hiddenSlugs lists hidden slugs of one provider, including slugs '
+      'with no model',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'llm_hidden_models': [
+            'openai::gpt-6-luna',
+            'openai::gpt-5.4-nano',
+            'openrouter::gpt-6-luna',
+          ],
+        });
+
+        expect(await ModelCatalogService().hiddenSlugs('openai'), {
+          'gpt-6-luna',
+          'gpt-5.4-nano',
+        });
+      },
+    );
+
+    test('removeCustomEntries keeps hidden ids', () async {
+      final service = ModelCatalogService();
+      await service.addCustomModel(provider: 'openai', slug: 'custom-model');
+      await service.addCustomModel(
+        provider: 'openrouter',
+        slug: 'custom-model',
+      );
+      await service.setModelHidden(
+        provider: 'openai',
+        slug: 'custom-model',
+        hidden: true,
+      );
+
+      await service.removeCustomEntries(
+        provider: 'openai',
+        slugs: {'custom-model'},
+      );
+
+      expect(
+        (await service.allModels('openai')).map((entry) => entry.slug),
+        isNot(contains('custom-model')),
+      );
+      expect(await service.hiddenSlugs('openai'), {'custom-model'});
+      expect(
+        await service.visibleModelSlugs('openrouter'),
+        contains('custom-model'),
+      );
+    });
+
+    test(
+      'forgetHiddenSlugs drops only the named ids of that provider',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'llm_hidden_models': [
+            'openai::gpt-5.4-nano',
+            'openai::gpt-6-luna',
+            'openrouter::gpt-5.4-nano',
+          ],
+        });
+        final service = ModelCatalogService();
+
+        await service.forgetHiddenSlugs(
+          provider: 'openai',
+          slugs: {'gpt-5.4-nano'},
+        );
+
+        expect(await service.hiddenSlugs('openai'), {'gpt-6-luna'});
+        expect(await service.hiddenSlugs('openrouter'), {'gpt-5.4-nano'});
+      },
+    );
 
     test('adds trimmed custom OpenRouter model and persists it', () async {
       final service = ModelCatalogService();

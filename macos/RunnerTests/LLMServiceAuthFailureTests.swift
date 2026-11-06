@@ -28,7 +28,7 @@ final class LLMServiceAuthFailureTests: XCTestCase {
             openRouterApiKey: "bad-openrouter-key",
             customProviderApiKey: "",
             customProviderBaseUrl: nil,
-            model: AppDefaults.model,
+            model: "test-model",
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: "Rewrite naturally.",

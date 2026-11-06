@@ -2,9 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/constants/shortcut_status.dart';
 import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
+import 'package:make_it_sound_natural/models/reasoning_effort.dart';
+import 'package:make_it_sound_natural/models/request_speed.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
@@ -387,6 +390,193 @@ void main() {
           );
           expect(call.arguments, value == 'retired-level' ? 'low' : value);
         }
+      },
+    );
+
+    test('loadAndSyncSettings sends the effective speed once', () async {
+      for (final savedSpeed in ['ultrafast', 'retired-tier']) {
+        SharedPreferences.setMockInitialValues({
+          'api_provider': AppDefaults.openAiProvider,
+          'openai_model': 'gpt-6-luna',
+          'request_speed': savedSpeed,
+        });
+        methodCalls.clear();
+
+        await ShortcutService().loadAndSyncSettings();
+
+        final call = methodCalls.singleWhere(
+          (call) => call.method == MethodChannelMethods.setRequestSpeed,
+        );
+        expect(call.arguments, savedSpeed == 'ultrafast' ? 'fast' : 'standard');
+      }
+    });
+
+    test(
+      'setModel sends effective speed and reasoning for the saved selection',
+      () async {
+        for (final (provider, model, speed, effectiveSpeed, reasoning) in [
+          (
+            AppDefaults.openAiProvider,
+            'gpt-6.1-sol',
+            'ultrafast',
+            'ultrafast',
+            'low',
+          ),
+          (
+            AppDefaults.anthropicProvider,
+            'claude-sonnet-5-5',
+            'fast',
+            'standard',
+            'low',
+          ),
+          (
+            AppDefaults.openRouterProvider,
+            'google/gemini-3-flash-preview',
+            'ultrafast',
+            'standard',
+            'none',
+          ),
+        ]) {
+          SharedPreferences.setMockInitialValues({
+            'api_provider': provider,
+            'openai_model': model,
+            'request_speed': speed,
+            'reasoning_effort': 'none',
+          });
+          methodCalls.clear();
+
+          await ShortcutService().setProvider(provider);
+          await ShortcutService().setModel(model);
+
+          expect(
+            methodCalls.map((call) => call.method),
+            [
+              MethodChannelMethods.setProvider,
+              MethodChannelMethods.setModel,
+              MethodChannelMethods.setReasoningEffort,
+              MethodChannelMethods.setRequestSpeed,
+            ],
+          );
+          expect(
+            methodCalls
+                .singleWhere(
+                  (call) => call.method == MethodChannelMethods.setRequestSpeed,
+                )
+                .arguments,
+            effectiveSpeed,
+          );
+          expect(
+            methodCalls
+                .singleWhere(
+                  (call) =>
+                      call.method == MethodChannelMethods.setReasoningEffort,
+                )
+                .arguments,
+            reasoning,
+          );
+        }
+      },
+    );
+
+    test('setModel sends the chosen speed for a custom OpenAI model', () async {
+      SharedPreferences.setMockInitialValues({
+        'api_provider': AppDefaults.openAiProvider,
+        'openai_model': 'custom-openai-model',
+        'request_speed': 'ultrafast',
+      });
+
+      await ShortcutService().setModel('custom-openai-model');
+
+      expect(
+        methodCalls
+            .singleWhere(
+              (call) => call.method == MethodChannelMethods.setRequestSpeed,
+            )
+            .arguments,
+        'ultrafast',
+      );
+    });
+
+    test(
+      'setModel sends fast for a custom Anthropic model set to ultrafast',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'api_provider': AppDefaults.anthropicProvider,
+          'openai_model': 'custom-anthropic-model',
+          'request_speed': 'ultrafast',
+        });
+
+        await ShortcutService().setModel('custom-anthropic-model');
+
+        expect(
+          methodCalls
+              .singleWhere(
+                (call) => call.method == MethodChannelMethods.setRequestSpeed,
+              )
+              .arguments,
+          'fast',
+        );
+      },
+    );
+
+    test(
+      'setRequestSpeed sends the effective level for the saved model',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'api_provider': AppDefaults.openAiProvider,
+          'openai_model': 'gpt-6-luna',
+        });
+
+        await ShortcutService().setRequestSpeed(RequestSpeed.ultrafast);
+
+        expect(methodCalls, hasLength(1));
+        expect(methodCalls.single.method, MethodChannelMethods.setRequestSpeed);
+        expect(methodCalls.single.arguments, 'fast');
+        expect(
+          await SettingsService().getRequestSpeed(),
+          RequestSpeed.standard,
+        );
+      },
+    );
+
+    test('setRequestSpeed rethrows a native failure', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async => throw PlatformException(
+              code: 'SAVE_FAILED',
+              message: 'Native speed update failed',
+            ),
+          );
+
+      await expectLater(
+        ShortcutService().setRequestSpeed(RequestSpeed.fast),
+        throwsA(
+          isA<PlatformException>().having(
+            (error) => error.code,
+            'code',
+            'SAVE_FAILED',
+          ),
+        ),
+      );
+    });
+
+    test(
+      'setReasoningEffort sends low for models without none support',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'api_provider': AppDefaults.openAiProvider,
+          'openai_model': 'gpt-6.1-sol',
+        });
+
+        await ShortcutService().setReasoningEffort(ReasoningEffort.none);
+
+        expect(methodCalls, hasLength(1));
+        expect(
+          methodCalls.single.method,
+          MethodChannelMethods.setReasoningEffort,
+        );
+        expect(methodCalls.single.arguments, 'low');
       },
     );
 

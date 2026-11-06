@@ -18,7 +18,7 @@ final class LLMServiceCompatibilityTests: XCTestCase {
     }
 
     func testReasoningFallbackForEveryProviderPreservesRequest() throws {
-        for provider in ["openai", "openrouter", "tokenguard", "custom-endpoint"] {
+        for provider in ["openrouter", "tokenguard", "custom-endpoint"] {
             let requests = try run(
                 provider: provider,
                 responses: [(400, reasoningError), (200, success)]
@@ -146,7 +146,7 @@ final class LLMServiceCompatibilityTests: XCTestCase {
     }
 
     func testBuiltInResponseFormatPolicyIsUnchanged() throws {
-        for provider in ["openai", "openrouter"] {
+        for provider in ["openrouter"] {
             let requests = try run(
                 provider: provider,
                 responses: [(400, formatError)],

@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
+import 'package:make_it_sound_natural/constants/model_catalog.dart';
 import 'package:make_it_sound_natural/constants/shortcut_status.dart';
 import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
+import 'package:make_it_sound_natural/models/request_speed.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/models/target_profile.dart';
@@ -120,7 +122,6 @@ class ShortcutService {
     // Load and sync model
     final model = await settings.getModel();
     await setModel(model);
-    await setReasoningEffort(await settings.getReasoningEffort());
 
     final providerCatalog = ProviderCatalogService();
     final providerEntry = await providerCatalog.providerById(provider);
@@ -369,18 +370,56 @@ class ShortcutService {
   }
 
   /// Applies the reasoning budget to native rewrites and global shortcuts.
-  Future<void> setReasoningEffort(ReasoningEffort effort) async {
+  Future<void> setReasoningEffort(ReasoningEffort requested) async {
+    final settings = SettingsService();
+    final effort = ModelCatalog.effectiveReasoning(
+      provider: await settings.getProvider(),
+      model: await settings.getModel(),
+      requested: requested,
+    );
     await _channel.invokeMethod<void>(
       MethodChannelMethods.setReasoningEffort,
       effort.name,
     );
   }
 
+  /// Applies the processing tier supported by the saved provider and model.
+  Future<void> setRequestSpeed(RequestSpeed requested) async {
+    final settings = SettingsService();
+    final provider = await settings.getProvider();
+    final model = await settings.getModel();
+    final speed = ModelCatalog.effectiveSpeed(
+      provider: provider,
+      model: model,
+      requested: requested,
+      isBuiltIn: ModelCatalog.find(provider, model) != null,
+    );
+    await _channel.invokeMethod<void>(
+      MethodChannelMethods.setRequestSpeed,
+      speed.name,
+    );
+  }
+
+  Future<void> _syncRequestSettings() async {
+    final settings = SettingsService();
+    try {
+      await setReasoningEffort(await settings.getReasoningEffort());
+      await setRequestSpeed(await settings.getRequestSpeed());
+    } on PlatformException catch (e) {
+      _log.warning('Failed to sync request settings: ${e.message}');
+    } on MissingPluginException catch (e) {
+      _log.warning('Request settings channel unavailable: $e');
+    }
+  }
+
   /// Sets the LLM model in the native layer.
+  /// Callers save provider and model first because this syncs settings from
+  /// the saved selection.
   Future<void> setModel(String model) async {
     try {
       _log.info('Sending setModel to native: $model');
       await _channel.invokeMethod(MethodChannelMethods.setModel, model);
+      await _syncRequestSettings();
     } on PlatformException catch (e) {
       _log.warning('Failed to set model: ${e.message}');
     }

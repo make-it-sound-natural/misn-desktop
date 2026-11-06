@@ -397,5 +397,25 @@
   "aboutReportIssueSubtitle": "打开新的 GitHub Issue 并附上版本信息",
   "aboutPrivacyPolicy": "隐私政策",
   "aboutLicense": "许可证",
-  "aboutLinkOpenFailed": "无法打开链接"
+  "aboutLinkOpenFailed": "无法打开链接",
+  "requestSpeed": "速度",
+  "requestSpeedDescription": "更快的档位响应更早，费用也更高。",
+  "requestSpeedStandard": "标准",
+  "requestSpeedFast": "快速",
+  "requestSpeedUltrafast": "极速",
+  "requestSpeedFastOption": "快速 · 2倍价格",
+  "requestSpeedUltrafastOption": "极速 · 6倍价格",
+  "requestSpeedRunsAt": "{model}使用{level}档位",
+  "requestSpeedUnavailable": "适用于OpenAI和Anthropic",
+  "requestSpeedSaveFailed": "无法保存速度。请重试。",
+  "@requestSpeedRunsAt": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  }
 }

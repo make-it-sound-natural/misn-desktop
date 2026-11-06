@@ -1213,5 +1213,25 @@
   "aboutLinkOpenFailed": "Couldn't open the link",
   "@aboutLinkOpenFailed": {
     "description": "Toast shown when an About link cannot be opened"
+  },
+  "requestSpeed": "Speed",
+  "requestSpeedDescription": "Faster tiers answer sooner and cost more.",
+  "requestSpeedStandard": "Standard",
+  "requestSpeedFast": "Fast",
+  "requestSpeedUltrafast": "Ultrafast",
+  "requestSpeedFastOption": "Fast · 2× price",
+  "requestSpeedUltrafastOption": "Ultrafast · 6× price",
+  "requestSpeedRunsAt": "{model} runs at {level}",
+  "requestSpeedUnavailable": "Available for OpenAI and Anthropic",
+  "requestSpeedSaveFailed": "Could not save speed. Try again.",
+  "@requestSpeedRunsAt": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
   }
 }

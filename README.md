@@ -14,6 +14,8 @@ variants without copying text into a separate chat window.
 
 - **Provider**: the AI service used for rewrites. The app supports OpenAI,
   OpenRouter, Anthropic, and custom OpenAI-compatible chat completion APIs.
+- **Speed** controls response speed and price for OpenAI and Anthropic.
+  See [Request Speed](docs/request-speed.md) for supported levels and models.
 - **API key**: the provider credential. Keys are entered in Settings and stored
   locally in macOS Keychain.
 - **Shortcut**: the global keyboard shortcut that captures selected text and
@@ -103,7 +105,7 @@ use App context.
 
 ### Configure variants and profiles
 
-Use Settings to change the default variant, provider, model, shortcuts,
+Use Settings to change the default variant, provider, model, speed, shortcuts,
 appearance, App context, screenshot context behavior, and target profiles.
 Settings are stored locally on the Mac.
 

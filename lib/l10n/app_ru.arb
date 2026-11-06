@@ -397,5 +397,25 @@
   "aboutReportIssueSubtitle": "Открывает новую задачу на GitHub с данными о вашей версии",
   "aboutPrivacyPolicy": "Политика конфиденциальности",
   "aboutLicense": "Лицензия",
-  "aboutLinkOpenFailed": "Не удалось открыть ссылку"
+  "aboutLinkOpenFailed": "Не удалось открыть ссылку",
+  "requestSpeed": "Скорость",
+  "requestSpeedDescription": "Более быстрые режимы отвечают раньше и стоят дороже.",
+  "requestSpeedStandard": "Стандартная",
+  "requestSpeedFast": "Быстрая",
+  "requestSpeedUltrafast": "Сверхбыстрая",
+  "requestSpeedFastOption": "Быстрая · цена ×2",
+  "requestSpeedUltrafastOption": "Сверхбыстрая · цена ×6",
+  "requestSpeedRunsAt": "{model} работает на скорости «{level}»",
+  "requestSpeedUnavailable": "Доступно для OpenAI и Anthropic",
+  "requestSpeedSaveFailed": "Не удалось сохранить скорость. Попробуйте ещё раз.",
+  "@requestSpeedRunsAt": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  }
 }

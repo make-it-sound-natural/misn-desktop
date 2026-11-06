@@ -397,5 +397,25 @@
   "aboutReportIssueSubtitle": "バージョン情報を添えて新しい GitHub Issue を開きます",
   "aboutPrivacyPolicy": "プライバシーポリシー",
   "aboutLicense": "ライセンス",
-  "aboutLinkOpenFailed": "リンクを開けませんでした"
+  "aboutLinkOpenFailed": "リンクを開けませんでした",
+  "requestSpeed": "速度",
+  "requestSpeedDescription": "高速なプランほど応答が早く、料金も高くなります。",
+  "requestSpeedStandard": "標準",
+  "requestSpeedFast": "高速",
+  "requestSpeedUltrafast": "超高速",
+  "requestSpeedFastOption": "高速 · 料金2倍",
+  "requestSpeedUltrafastOption": "超高速 · 料金6倍",
+  "requestSpeedRunsAt": "{model}は「{level}」で動作します",
+  "requestSpeedUnavailable": "OpenAIとAnthropicで利用可能",
+  "requestSpeedSaveFailed": "速度を保存できませんでした。もう一度お試しください。",
+  "@requestSpeedRunsAt": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  }
 }

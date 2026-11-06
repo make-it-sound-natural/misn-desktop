@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:make_it_sound_natural/constants/model_catalog_defaults.dart';
+import 'package:make_it_sound_natural/constants/model_catalog.dart';
 import 'package:make_it_sound_natural/models/catalog_validation_reason.dart';
 import 'package:make_it_sound_natural/models/llm_model_entry.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,12 +28,12 @@ class ModelCatalogService {
   /// Returns all built-in and custom models for a provider.
   Future<List<LlmModelEntry>> allModels(String provider) async {
     final hidden = await _hiddenModelIds();
-    final builtIns = ModelCatalogDefaults.modelsForProvider(provider).map(
-      (slug) => LlmModelEntry(
+    final builtIns = ModelCatalog.builtInModels(provider).map(
+      (model) => LlmModelEntry(
         provider: provider,
-        slug: slug,
+        slug: model.slug,
         isBuiltIn: true,
-        isHidden: hidden.contains(_modelId(provider, slug)),
+        isHidden: hidden.contains(_modelId(provider, model.slug)),
       ),
     );
     final custom = (await _customModels())
@@ -44,6 +44,44 @@ class ModelCatalogService {
           ),
         );
     return [...builtIns, ...custom];
+  }
+
+  /// Returns hidden slugs, including models no longer in the catalog.
+  Future<Set<String>> hiddenSlugs(String provider) async {
+    final prefix = '$provider::';
+    return (await _hiddenModelIds())
+        .where((id) => id.startsWith(prefix))
+        .map((id) => id.substring(prefix.length))
+        .toSet();
+  }
+
+  /// Removes custom entries while preserving shared model visibility.
+  Future<void> removeCustomEntries({
+    required String provider,
+    required Set<String> slugs,
+  }) async {
+    final custom = await _customModels();
+    final remaining = custom
+        .where(
+          (entry) => entry.provider != provider || !slugs.contains(entry.slug),
+        )
+        .toList();
+    if (remaining.length != custom.length) {
+      await _saveCustomModels(remaining);
+    }
+  }
+
+  /// Forgets named hidden slugs without requiring a current model entry.
+  Future<void> forgetHiddenSlugs({
+    required String provider,
+    required Set<String> slugs,
+  }) async {
+    final ids = await _hiddenModelIds();
+    final removedIds = slugs.map((slug) => _modelId(provider, slug)).toSet();
+    if (ids.intersection(removedIds).isNotEmpty) {
+      ids.removeAll(removedIds);
+      await _saveHiddenModelIds(ids);
+    }
   }
 
   /// Returns visible model slugs for active selection.

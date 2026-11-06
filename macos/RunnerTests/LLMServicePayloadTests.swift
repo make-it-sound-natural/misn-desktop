@@ -3,7 +3,7 @@ import XCTest
 
 final class LLMServicePayloadTests: XCTestCase {
     func testSerializedReasoningLevelsAndDefaultForEveryProvider() throws {
-        for provider in ["openai", "openrouter", "tokenguard", "custom-endpoint"] {
+        for provider in ["openrouter", "tokenguard", "custom-endpoint"] {
             var config = LLMService.Configuration(
                 provider: provider,
                 apiKey: "key", openRouterApiKey: "router-key",
@@ -37,12 +37,12 @@ final class LLMServicePayloadTests: XCTestCase {
             base64Data: "abc123"
         )
         let config = LLMService.Configuration(
-            provider: "openai",
+            provider: "openrouter",
             apiKey: "key",
             openRouterApiKey: "",
             customProviderApiKey: "",
             customProviderBaseUrl: nil,
-            model: "gpt-5.4-mini",
+            model: "test-model",
             customPrompt: nil,
             context: "Slack thread about pnpm and axios security",
             targetProfileInstruction: nil,
@@ -76,12 +76,12 @@ final class LLMServicePayloadTests: XCTestCase {
             environment: ["MISN_LOG_FULL_LLM_CONTEXT": "1"]
         )
         let config = LLMService.Configuration(
-            provider: "openai",
+            provider: "openrouter",
             apiKey: "key",
             openRouterApiKey: "",
             customProviderApiKey: "",
             customProviderBaseUrl: nil,
-            model: "gpt-5.4-mini",
+            model: "test-model",
             customPrompt: nil,
             context: "private context",
             targetProfileInstruction: nil,
@@ -97,12 +97,12 @@ final class LLMServicePayloadTests: XCTestCase {
 
     func testTextOnlyPayloadKeepsUserContentString() throws {
         let config = LLMService.Configuration(
-            provider: "openai",
+            provider: "openrouter",
             apiKey: "key",
             openRouterApiKey: "",
             customProviderApiKey: "",
             customProviderBaseUrl: nil,
-            model: "gpt-5.4-mini",
+            model: "test-model",
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: nil,
@@ -127,12 +127,12 @@ final class LLMServicePayloadTests: XCTestCase {
             base64Data: "abc123"
         )
         let config = LLMService.Configuration(
-            provider: "openai",
+            provider: "openrouter",
             apiKey: "key",
             openRouterApiKey: "",
             customProviderApiKey: "",
             customProviderBaseUrl: nil,
-            model: "gpt-5.4-mini",
+            model: "test-model",
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: nil,
@@ -387,12 +387,12 @@ final class LLMServicePayloadTests: XCTestCase {
         accessibilityContext: AccessibilityContext? = nil
     ) -> LLMService.Configuration {
         LLMService.Configuration(
-            provider: "openai",
+            provider: "openrouter",
             apiKey: "key",
             openRouterApiKey: "",
             customProviderApiKey: "",
             customProviderBaseUrl: nil,
-            model: "gpt-5.4-mini",
+            model: "test-model",
             customPrompt: nil,
             context: nil,
             targetProfileInstruction: nil,

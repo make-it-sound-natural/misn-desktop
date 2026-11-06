@@ -27,7 +27,7 @@ struct AnthropicMessagesFormat: LLMWireFormat {
         )
         request.setValue("application/json", forHTTPHeaderField: "content-type")
 
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "model": config.model,
             "max_tokens": AppDefaults.anthropicMaxTokens,
             "system": systemInstructions,
@@ -48,6 +48,14 @@ struct AnthropicMessagesFormat: LLMWireFormat {
                 ]
             ]
         ]
+
+        if config.requestSpeed == .fast {
+            body["speed"] = RequestSpeed.fast.rawValue
+            request.setValue(
+                AppDefaults.anthropicFastModeBeta,
+                forHTTPHeaderField: "anthropic-beta"
+            )
+        }
 
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)

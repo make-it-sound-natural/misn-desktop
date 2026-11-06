@@ -1,8 +1,7 @@
 import Foundation
 import os.log
 
-/// OpenAI-compatible Chat Completions, used by OpenAI, OpenRouter, and
-/// custom providers.
+/// OpenAI-compatible Chat Completions for OpenRouter and custom providers.
 struct ChatCompletionsFormat: LLMWireFormat {
     let provider: String
     /// Parameters a provider rejected earlier; they stay removed on every
@@ -83,9 +82,6 @@ struct ChatCompletionsFormat: LLMWireFormat {
                 ]
             ]
         }
-        if config.provider == AppDefaults.openAiProvider {
-            payload["service_tier"] = "priority"
-        }
         return payload
     }
 
@@ -133,15 +129,12 @@ struct ChatCompletionsFormat: LLMWireFormat {
 
     private var isBuiltInProvider: Bool {
         provider == AppDefaults.openRouterProvider
-            || provider == AppDefaults.openAiProvider
     }
 
     private func requestUrl(for config: LLMService.Configuration) -> URL? {
         let rawUrl: String
         if config.provider == AppDefaults.openRouterProvider {
             rawUrl = "https://openrouter.ai/api/v1/chat/completions"
-        } else if config.provider == AppDefaults.openAiProvider {
-            rawUrl = "https://api.openai.com/v1/chat/completions"
         } else {
             rawUrl = normalizeChatCompletionsUrl(
                 config.customProviderBaseUrl ?? ""

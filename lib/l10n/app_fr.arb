@@ -397,5 +397,25 @@
   "aboutReportIssueSubtitle": "Ouvre un nouveau ticket GitHub avec les détails de ta version",
   "aboutPrivacyPolicy": "Politique de confidentialité",
   "aboutLicense": "Licence",
-  "aboutLinkOpenFailed": "Impossible d'ouvrir le lien"
+  "aboutLinkOpenFailed": "Impossible d'ouvrir le lien",
+  "requestSpeed": "Vitesse",
+  "requestSpeedDescription": "Les niveaux plus rapides répondent plus tôt et coûtent plus cher.",
+  "requestSpeedStandard": "Standard",
+  "requestSpeedFast": "Rapide",
+  "requestSpeedUltrafast": "Ultrarapide",
+  "requestSpeedFastOption": "Rapide · prix ×2",
+  "requestSpeedUltrafastOption": "Ultrarapide · prix ×6",
+  "requestSpeedRunsAt": "{model} utilise le niveau {level}",
+  "requestSpeedUnavailable": "Disponible pour OpenAI et Anthropic",
+  "requestSpeedSaveFailed": "Impossible d’enregistrer la vitesse. Réessayez.",
+  "@requestSpeedRunsAt": {
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  }
 }

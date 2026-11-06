@@ -1,6 +1,6 @@
 # Privacy Policy
 
-**Last updated:** October 2026
+**Last updated:** November 2026
 
 ## Overview
 
@@ -42,7 +42,9 @@ The App supports multiple AI providers. Depending on your configuration, your te
 
 When using OpenAI as your AI provider:
 
-- Your text is sent to OpenAI's servers
+- Your text is sent to OpenAI's Responses API with `store: false`, which
+  turns off response storage. OpenAI's abuse-monitoring retention still
+  applies.
 - OpenAI processes the text according to their [Privacy Policy](https://openai.com/policies/privacy-policy)
 - OpenAI's [API Data Usage Policy](https://openai.com/policies/api-data-usage-policies) applies
 

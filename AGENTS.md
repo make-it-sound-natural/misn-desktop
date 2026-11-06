@@ -71,6 +71,7 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
 │   └── tool/                 # Dart CLI and Python nightly policy tests
 ├── docs/
 │   ├── design-system.md      # Compact desktop UI layout rules and tokens
+│   ├── request-speed.md      # Speed levels, model support, and migration
 │   ├── nightly-versioning.md # Nightly allocation and migration constraints
 │   └── ci-cd-setup.md        # CI/CD overview
 ├── .github/workflows/        # CI/CD workflows
@@ -85,8 +86,9 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
     │   # Key files: MethodChannelHandler, ShortcutHandler, LLMService,
     │   # ClipboardService, ShortcutManager, ContextCapturer, StatusBubble*,
     │   # StatusBubbleControlling (test seam), VariantHandler, …
-    │   # LLMService sends through an LLMWireFormat (ChatCompletionsFormat,
-    │   # AnthropicMessagesFormat); CorrectionVariantsJSON decodes the four
+    │   # LLMService sends through an LLMWireFormat (OpenAIResponsesFormat,
+    │   # ChatCompletionsFormat, AnthropicMessagesFormat);
+    │   # CorrectionVariantsJSON decodes the four
     │   # variants into marker text.
     │   # MethodChannelHandler+AnthropicKey stores and syncs the Anthropic key.
     │   # App context (text read through Accessibility and sent with a

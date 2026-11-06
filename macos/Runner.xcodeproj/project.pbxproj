@@ -111,6 +111,9 @@
 		MCHAXCTX01 /* MethodChannelHandler+AccessibilityContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = MCHAXCTX02 /* MethodChannelHandler+AccessibilityContext.swift */; };
 		CTXSRCPOLTEST01 /* ContextSourcePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCPOLTEST02 /* ContextSourcePolicyTests.swift */; };
 		CTXSRCCOLTEST01 /* ContextSourceCollectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CTXSRCCOLTEST02 /* ContextSourceCollectorTests.swift */; };
+		OAIRESPTEST01 /* OpenAIResponsesFormatTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OAIRESPTEST02 /* OpenAIResponsesFormatTests.swift */; };
+		LLMOAIRESPTEST01 /* LLMServiceOpenAIResponsesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMOAIRESPTEST02 /* LLMServiceOpenAIResponsesTests.swift */; };
+		OAIRESPFMT01 /* OpenAIResponsesFormat.swift in Sources */ = {isa = PBXBuildFile; fileRef = OAIRESPFMT02 /* OpenAIResponsesFormat.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -260,6 +263,9 @@
 		MCHAXCTX02 /* MethodChannelHandler+AccessibilityContext.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "MethodChannelHandler+AccessibilityContext.swift"; sourceTree = "<group>"; };
 		CTXSRCPOLTEST02 /* ContextSourcePolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextSourcePolicyTests.swift; sourceTree = "<group>"; };
 		CTXSRCCOLTEST02 /* ContextSourceCollectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContextSourceCollectorTests.swift; sourceTree = "<group>"; };
+		OAIRESPTEST02 /* OpenAIResponsesFormatTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIResponsesFormatTests.swift; sourceTree = "<group>"; };
+		LLMOAIRESPTEST02 /* LLMServiceOpenAIResponsesTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceOpenAIResponsesTests.swift; sourceTree = "<group>"; };
+		OAIRESPFMT02 /* OpenAIResponsesFormat.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "OpenAIResponsesFormat.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -317,6 +323,8 @@
 				CHATCOMPTEST02 /* ChatCompletionsFormatTests.swift */,
 				ANTHFMTTEST02 /* AnthropicMessagesFormatTests.swift */,
 				LLMANTHTEST02 /* LLMServiceAnthropicTests.swift */,
+				LLMOAIRESPTEST02 /* LLMServiceOpenAIResponsesTests.swift */,
+				OAIRESPTEST02 /* OpenAIResponsesFormatTests.swift */,
 				SHOTCAPTEST02 /* ScreenshotCapturerTests.swift */,
 				SHOTDBGTEST02 /* ScreenshotDebugSaverTests.swift */,
 				ACCTXCAPTEST02 /* AccessibilityContextCapturerTests.swift */,
@@ -421,6 +429,7 @@
 				CORRVARJSON02 /* CorrectionVariantsJSON.swift */,
 				CHATCOMPFMT02 /* ChatCompletionsFormat.swift */,
 				ANTHMSGFMT02 /* AnthropicMessagesFormat.swift */,
+				OAIRESPFMT02 /* OpenAIResponsesFormat.swift */,
 				PROMPTTEMP002 /* PromptTemplates.swift */,
 				SHORTCUTMGR02 /* ShortcutManager.swift */,
 				SHORTCUTDISP2 /* ShortcutDispatcher.swift */,
@@ -710,6 +719,8 @@
 				CHATCOMPTEST01 /* ChatCompletionsFormatTests.swift in Sources */,
 				ANTHFMTTEST01 /* AnthropicMessagesFormatTests.swift in Sources */,
 				LLMANTHTEST01 /* LLMServiceAnthropicTests.swift in Sources */,
+				LLMOAIRESPTEST01 /* LLMServiceOpenAIResponsesTests.swift in Sources */,
+				OAIRESPTEST01 /* OpenAIResponsesFormatTests.swift in Sources */,
 				SHOTCAPTEST01 /* ScreenshotCapturerTests.swift in Sources */,
 				SHOTDBGTEST01 /* ScreenshotDebugSaverTests.swift in Sources */,
 				ACCTXCAPTEST01 /* AccessibilityContextCapturerTests.swift in Sources */,
@@ -756,6 +767,7 @@
 				CORRVARJSON01 /* CorrectionVariantsJSON.swift in Sources */,
 				CHATCOMPFMT01 /* ChatCompletionsFormat.swift in Sources */,
 				ANTHMSGFMT01 /* AnthropicMessagesFormat.swift in Sources */,
+				OAIRESPFMT01 /* OpenAIResponsesFormat.swift in Sources */,
 				PROMPTTEMP001 /* PromptTemplates.swift in Sources */,
 				SHORTCUTMGR01 /* ShortcutManager.swift in Sources */,
 				SHORTCUTDISP1 /* ShortcutDispatcher.swift in Sources */,

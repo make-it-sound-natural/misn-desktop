@@ -7,6 +7,7 @@ import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/appearance_preferences.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
+import 'package:make_it_sound_natural/models/request_speed.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -35,6 +36,7 @@ void main() {
       expect(AppDefaults.model, 'google/gemini-3-flash-preview');
       expect(await service.getProvider(), AppDefaults.apiProvider);
       expect(await service.getModel(), AppDefaults.model);
+      expect(await service.getRequestSpeed(), AppDefaults.requestSpeed);
       expect(await service.getDefaultVariant(), AppDefaults.variant);
       expect(await service.getShortcut(), AppDefaults.correctionShortcut);
       expect(await service.getReplaceShortcut(), AppDefaults.replaceShortcut);
@@ -70,6 +72,23 @@ void main() {
         final prefs = await SharedPreferences.getInstance();
         expect(prefs.getString('reasoning_effort'), effort.name);
         expect(await SettingsService().getReasoningEffort(), effort);
+      }
+    });
+
+    test('falls back to standard for an unknown request speed', () async {
+      SharedPreferences.setMockInitialValues({'request_speed': 'retired-tier'});
+
+      expect(await SettingsService().getRequestSpeed(), RequestSpeed.standard);
+    });
+
+    test('persists every request speed', () async {
+      final service = SettingsService();
+      for (final speed in RequestSpeed.values) {
+        await service.setRequestSpeed(speed);
+
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('request_speed'), speed.name);
+        expect(await service.getRequestSpeed(), speed);
       }
     });
 

@@ -96,17 +96,11 @@ Token estimation - System: 1500, User: 500, Context: 300000, Total: 302000, Limi
 
 ## API Configuration
 
-### Priority Processing
-All requests use `service_tier: "priority"` for:
-- ⚡ Faster response times
-- 📊 More consistent latency
-- 🎯 Better for user-facing interactions
+### Request Speed and Model Selection
 
-### Default Model: gpt-5.4-mini
-- **Cost-effective**: $0.20/1M input tokens, $1.25/1M output tokens
-- **Fast**: Optimized for quick responses and high-volume tasks
-- **Large context**: 400K tokens
-- **Perfect for**: Text correction and refinement
+The model always comes from the Dart settings. Speed levels, provider support,
+request fields, and pricing are described in
+[Request Speed](request-speed.md).
 
 ## Usage Recommendations
 

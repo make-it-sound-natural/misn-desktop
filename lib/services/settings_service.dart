@@ -7,6 +7,7 @@ import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/appearance_preferences.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
+import 'package:make_it_sound_natural/models/request_speed.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,6 +24,7 @@ class SettingsService {
   static const String _customPromptKey = 'custom_prompt';
   static const String _contextKey = 'user_context';
   static const String _reasoningEffortKey = 'reasoning_effort';
+  static const String _requestSpeedKey = 'request_speed';
   static const String _modelKey = 'openai_model';
   static const String _shortcutKey = 'app_shortcut';
   static const String _shortcutReplaceKey = 'app_shortcut_replace';
@@ -332,6 +334,22 @@ class SettingsService {
   Future<void> setReasoningEffort(ReasoningEffort effort) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_reasoningEffortKey, effort.name);
+  }
+
+  /// Returns the saved processing tier, defaulting for absent or stale values.
+  Future<RequestSpeed> getRequestSpeed() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getString(_requestSpeedKey);
+    return RequestSpeed.values
+            .where((speed) => speed.name == value)
+            .firstOrNull ??
+        AppDefaults.requestSpeed;
+  }
+
+  /// Saves the requested processing tier for all rewrite entry points.
+  Future<void> setRequestSpeed(RequestSpeed speed) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_requestSpeedKey, speed.name);
   }
 
   /// Gets the selected LLM model.

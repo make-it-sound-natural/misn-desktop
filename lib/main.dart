@@ -9,6 +9,7 @@ import 'package:make_it_sound_natural/constants/app_metadata.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/screens/onboarding/onboarding_gate.dart';
 import 'package:make_it_sound_natural/services/appearance_controller.dart';
+import 'package:make_it_sound_natural/services/model_catalog_migration.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
 import 'package:make_it_sound_natural/theme/app_theme.dart';
@@ -29,6 +30,7 @@ void main() async {
   // Migrate settings schema if needed
   final settingsService = SettingsService();
   await settingsService.migrateIfNeeded();
+  await ModelCatalogMigration().run();
 
   // Initialize macOS window styling for translucency
   if (Platform.isMacOS) {

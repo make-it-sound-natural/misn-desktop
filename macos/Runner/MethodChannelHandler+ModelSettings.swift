@@ -19,6 +19,23 @@ extension MethodChannelHandler {
         result(nil)
     }
 
+    func handleSetRequestSpeed(
+        _ call: FlutterMethodCall,
+        result: @escaping FlutterResult
+    ) {
+        guard let value = call.arguments as? String,
+              let speed = RequestSpeed(rawValue: value) else {
+            result(FlutterError(
+                code: "INVALID_ARGUMENT",
+                message: "Unknown request speed",
+                details: nil
+            ))
+            return
+        }
+        requestSpeed = speed
+        result(nil)
+    }
+
     func handleSetModel(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         guard let mdl = call.arguments as? String else {
             result(FlutterError(code: "INVALID_ARGUMENT", message: "Model must be a string", details: nil))
@@ -32,6 +49,7 @@ extension MethodChannelHandler {
     }
 
     func getReasoningEffort() -> ReasoningEffort { reasoningEffort }
+    func getRequestSpeed() -> RequestSpeed { requestSpeed }
     func getModel() -> String {
         #if DEBUG
         print("MethodChannelHandler: getModel returning: \(model)")

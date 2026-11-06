@@ -114,7 +114,9 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                 screenshotAttachment: nil,
                 accessibilityContext: nil,
                 reasoningEffort: self.methodChannelHandler?.getReasoningEffort()
-                    ?? AppDefaults.reasoningEffort
+                    ?? AppDefaults.reasoningEffort,
+                requestSpeed: self.methodChannelHandler?.getRequestSpeed()
+                    ?? AppDefaults.requestSpeed
             )
 
             // Surface the failure instead of reporting an empty success:
@@ -348,6 +350,8 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
                         accessibilityContext: collected.accessibilityContext,
                         reasoningEffort: self.methodChannelHandler?
                             .getReasoningEffort() ?? AppDefaults.reasoningEffort,
+                        requestSpeed: self.methodChannelHandler?
+                            .getRequestSpeed() ?? AppDefaults.requestSpeed,
                         accessibilityFallbackReason:
                             collected.accessibilityFallbackReason
                     )

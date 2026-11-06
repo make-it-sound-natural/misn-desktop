@@ -5,6 +5,15 @@ enum LLMCompatibility {
     enum Parameter: String, CaseIterable {
         case reasoningEffort = "reasoning_effort"
         case responseFormat = "response_format"
+
+        var fieldNames: [String] {
+            switch self {
+            case .reasoningEffort:
+                return [rawValue, "reasoning", "reasoning.effort"]
+            case .responseFormat:
+                return [rawValue]
+            }
+        }
     }
 
     static func rejectedParameters(
@@ -31,7 +40,7 @@ enum LLMCompatibility {
         let isRejection = rejectionPhrases.contains { message.contains($0) }
         return Set(Parameter.allCases.filter { parameter in
             if let field = error.param {
-                guard field == parameter.rawValue else { return false }
+                guard parameter.fieldNames.contains(field) else { return false }
                 return rejectionCodes.contains(error.code ?? "") || isRejection
             }
             return explicitlyRejects(parameter, in: message)
@@ -44,7 +53,10 @@ enum LLMCompatibility {
     ) -> Bool {
         // Tie the rejection to the field, not another error elsewhere in the
         // message (for example an invalid model mentioning request settings).
-        let field = "[\"'`]?\\b" + parameter.rawValue + "\\b[\"'`]?"
+        let names = parameter.fieldNames
+            .map { NSRegularExpression.escapedPattern(for: $0) }
+            .joined(separator: "|")
+        let field = "[\"'`]?\\b(?:" + names + ")\\b(?!\\.)[\"'`]?"
         let before = "(?:unsupported|invalid)(?: value| parameter)?" +
             "|unknown parameter|unrecognized (?:parameter|request argument)|" +
             "does not support|doesn't support"
