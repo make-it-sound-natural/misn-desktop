@@ -30,6 +30,10 @@ The system supports multiple models with different context windows:
 
 | Model | Context Window | Max Output | Usable Input |
 |-------|---------------|------------|--------------|
+| gpt-6-luna | 1,050,000 | 128,000 | ~921,000 |
+| gpt-6.1-terra | 1,050,000 | 128,000 | ~921,000 |
+| gpt-6.1-sol | 1,050,000 | 128,000 | ~921,000 |
+| gpt-6-astra | 1,050,000 | 128,000 | ~921,000 |
 | gpt-5.4-nano | 400,000 | 128,000 | ~271,000 |
 | gpt-5.4-mini | 400,000 | 128,000 | ~271,000 |
 | gpt-5.4 | 1,050,000 | 128,000 | ~921,000 |
@@ -42,6 +46,9 @@ The system supports multiple models with different context windows:
 | anthropic/claude-haiku-4.5 | 200,000 | 64,000 | ~135,000 |
 
 **Usable Input** = Context Window - Max Output - 1,000 (safety margin)
+
+Models missing from this table, manually added ones included, use a
+128,000-token context window and 16,384 output tokens.
 
 ### Smart Context Truncation
 

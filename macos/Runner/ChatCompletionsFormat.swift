@@ -8,10 +8,6 @@ struct ChatCompletionsFormat: LLMWireFormat {
     /// later attempt.
     var excludedParameters: Set<LLMCompatibility.Parameter> = []
 
-    /// Low detail shrinks the image to 512 px, and the text in a window
-    /// becomes unreadable.
-    static let screenshotDetail = "high"
-
     private static let logger = OSLog(
         subsystem: "com.makeitsoundnatural.macos",
         category: "ChatCompletionsFormat"
@@ -116,7 +112,7 @@ struct ChatCompletionsFormat: LLMWireFormat {
             data: data,
             statusCode: statusCode
         ).subtracting(excludedParameters).filter {
-            $0 != .responseFormat || !isBuiltInProvider
+            $0 != .responseFormat || !isOpenRouter
         }
         guard !rejected.isEmpty else { return nil }
 
@@ -127,7 +123,7 @@ struct ChatCompletionsFormat: LLMWireFormat {
         return copy
     }
 
-    private var isBuiltInProvider: Bool {
+    private var isOpenRouter: Bool {
         provider == AppDefaults.openRouterProvider
     }
 
@@ -195,7 +191,7 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
                 "type": "image_url",
                 "image_url": [
                     "url": screenshotAttachment.dataURL,
-                    "detail": Self.screenshotDetail
+                    "detail": LLMService.ScreenshotAttachment.detail
                 ]
             ]
         ]

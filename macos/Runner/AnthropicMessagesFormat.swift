@@ -49,8 +49,8 @@ struct AnthropicMessagesFormat: LLMWireFormat {
             ]
         ]
 
-        if config.requestSpeed == .fast {
-            body["speed"] = RequestSpeed.fast.rawValue
+        if let speed = Self.speed(for: config.requestSpeed) {
+            body["speed"] = speed
             request.setValue(
                 AppDefaults.anthropicFastModeBeta,
                 forHTTPHeaderField: "anthropic-beta"
@@ -115,8 +115,21 @@ struct AnthropicMessagesFormat: LLMWireFormat {
         nil
     }
 
-    /// Thinking cannot be turned off on every catalog model, so None sends
-    /// the lowest effort instead.
+    /// Anthropic's `speed` value; `nil` sends no speed field, which is
+    /// standard processing.
+    private static func speed(for speed: RequestSpeed) -> String? {
+        switch speed {
+        case .standard:
+            return nil
+        // Dart never sends Ultrafast for Anthropic; the case only keeps the
+        // switch exhaustive.
+        case .fast, .ultrafast:
+            return "fast"
+        }
+    }
+
+    /// Anthropic's effort has no `none`, and Dart already resolves None to
+    /// Low for Anthropic; the `.none` case only keeps the switch exhaustive.
     private static func effort(for level: ReasoningEffort) -> String {
         switch level {
         case .none, .low:

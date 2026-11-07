@@ -121,7 +121,7 @@ class ShortcutService {
 
     // Load and sync model
     final model = await settings.getModel();
-    await setModel(model);
+    await setModel(provider: provider, model: model);
 
     final providerCatalog = ProviderCatalogService();
     final providerEntry = await providerCatalog.providerById(provider);
@@ -369,12 +369,16 @@ class ShortcutService {
     }
   }
 
-  /// Applies the reasoning budget to native rewrites and global shortcuts.
-  Future<void> setReasoningEffort(ReasoningEffort requested) async {
-    final settings = SettingsService();
+  /// Applies the reasoning budget [provider] and [model] support to native
+  /// rewrites and global shortcuts.
+  Future<void> setReasoningEffort(
+    ReasoningEffort requested, {
+    required String provider,
+    required String model,
+  }) async {
     final effort = ModelCatalog.effectiveReasoning(
-      provider: await settings.getProvider(),
-      model: await settings.getModel(),
+      provider: provider,
+      model: model,
       requested: requested,
     );
     await _channel.invokeMethod<void>(
@@ -383,16 +387,16 @@ class ShortcutService {
     );
   }
 
-  /// Applies the processing tier supported by the saved provider and model.
-  Future<void> setRequestSpeed(RequestSpeed requested) async {
-    final settings = SettingsService();
-    final provider = await settings.getProvider();
-    final model = await settings.getModel();
+  /// Applies the processing tier [provider] and [model] support.
+  Future<void> setRequestSpeed(
+    RequestSpeed requested, {
+    required String provider,
+    required String model,
+  }) async {
     final speed = ModelCatalog.effectiveSpeed(
       provider: provider,
       model: model,
       requested: requested,
-      isBuiltIn: ModelCatalog.find(provider, model) != null,
     );
     await _channel.invokeMethod<void>(
       MethodChannelMethods.setRequestSpeed,
@@ -400,11 +404,22 @@ class ShortcutService {
     );
   }
 
-  Future<void> _syncRequestSettings() async {
+  Future<void> _syncRequestSettings({
+    required String provider,
+    required String model,
+  }) async {
     final settings = SettingsService();
     try {
-      await setReasoningEffort(await settings.getReasoningEffort());
-      await setRequestSpeed(await settings.getRequestSpeed());
+      await setReasoningEffort(
+        await settings.getReasoningEffort(),
+        provider: provider,
+        model: model,
+      );
+      await setRequestSpeed(
+        await settings.getRequestSpeed(),
+        provider: provider,
+        model: model,
+      );
     } on PlatformException catch (e) {
       _log.warning('Failed to sync request settings: ${e.message}');
     } on MissingPluginException catch (e) {
@@ -412,14 +427,16 @@ class ShortcutService {
     }
   }
 
-  /// Sets the LLM model in the native layer.
-  /// Callers save provider and model first because this syncs settings from
-  /// the saved selection.
-  Future<void> setModel(String model) async {
+  /// Sets the LLM model in the native layer, with the reasoning and speed
+  /// the [provider]'s [model] supports.
+  Future<void> setModel({
+    required String provider,
+    required String model,
+  }) async {
     try {
       _log.info('Sending setModel to native: $model');
       await _channel.invokeMethod(MethodChannelMethods.setModel, model);
-      await _syncRequestSettings();
+      await _syncRequestSettings(provider: provider, model: model);
     } on PlatformException catch (e) {
       _log.warning('Failed to set model: ${e.message}');
     }

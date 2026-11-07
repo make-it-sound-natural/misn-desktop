@@ -15,7 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Service for managing application settings persistence.
 class SettingsService {
   // Schema version for settings migration
-  static const int _currentSchemaVersion = 2;
+  static const int _currentSchemaVersion = 3;
   static const String _schemaVersionKey = 'settings_schema_version';
 
   static const String _apiKeyKey = 'openai_api_key';
@@ -84,15 +84,14 @@ class SettingsService {
       await prefs.setString(_accessibilityContextModeKey, mode.value);
     }
 
-    // Example future migration (v2 -> v3):
-    // if (fromVersion < 3) {
-    //   // Transform data format
-    //   final oldFormat = prefs.getString('some_key');
-    //   if (oldFormat != null) {
-    //     final newFormat = transformData(oldFormat);
-    //     await prefs.setString('some_key', newFormat);
-    //   }
-    // }
+    // Migration v2 -> v3: OpenAI requests always went out with the priority
+    // tier, now called fast. OpenAI installs keep it; everyone else, fresh
+    // installs included (no provider saved yet), starts at standard.
+    if (fromVersion < 3 &&
+        !prefs.containsKey(_requestSpeedKey) &&
+        prefs.getString(_providerKey) == AppDefaults.openAiProvider) {
+      await prefs.setString(_requestSpeedKey, RequestSpeed.fast.name);
+    }
   }
 
   /// Gets the stored OpenAI API key.
@@ -340,10 +339,7 @@ class SettingsService {
   Future<RequestSpeed> getRequestSpeed() async {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getString(_requestSpeedKey);
-    return RequestSpeed.values
-            .where((speed) => speed.name == value)
-            .firstOrNull ??
-        AppDefaults.requestSpeed;
+    return RequestSpeed.values.asNameMap()[value] ?? AppDefaults.requestSpeed;
   }
 
   /// Saves the requested processing tier for all rewrite entry points.

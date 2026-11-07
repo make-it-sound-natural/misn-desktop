@@ -60,6 +60,7 @@
 		LLMERRPARS01 /* LLMErrorMessageParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMERRPARS02 /* LLMErrorMessageParser.swift */; };
 		LLMERRTEST01 /* LLMErrorMessageParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMERRTEST02 /* LLMErrorMessageParserTests.swift */; };
 		LLMAUTHTEST01 /* LLMServiceAuthFailureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */; };
+		LLMTESTSUP01 /* LLMServiceTestSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = LLMTESTSUP02 /* LLMServiceTestSupport.swift */; };
 		PROMPTTEMP001 /* PromptTemplates.swift in Sources */ = {isa = PBXBuildFile; fileRef = PROMPTTEMP002 /* PromptTemplates.swift */; };
 		SHORTCUTMGR01 /* ShortcutManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = SHORTCUTMGR02 /* ShortcutManager.swift */; };
 		TEXTREPLACER1 /* TextReplacer.swift in Sources */ = {isa = PBXBuildFile; fileRef = TEXTREPLACER2 /* TextReplacer.swift */; };
@@ -212,6 +213,7 @@
 		LLMERRPARS02 /* LLMErrorMessageParser.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LLMErrorMessageParser.swift; sourceTree = "<group>"; };
 		LLMERRTEST02 /* LLMErrorMessageParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMErrorMessageParserTests.swift; sourceTree = "<group>"; };
 		LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceAuthFailureTests.swift; sourceTree = "<group>"; };
+		LLMTESTSUP02 /* LLMServiceTestSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LLMServiceTestSupport.swift; sourceTree = "<group>"; };
 		PROMPTTEMP002 /* PromptTemplates.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PromptTemplates.swift; sourceTree = "<group>"; };
 		SHORTCUTMGR02 /* ShortcutManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ShortcutManager.swift; sourceTree = "<group>"; };
 		TEXTREPLACER2 /* TextReplacer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TextReplacer.swift; sourceTree = "<group>"; };
@@ -313,6 +315,7 @@
 				NATIVELOCTEST02 /* NativeLocalizationTests.swift */,
 				LLMERRTEST02 /* LLMErrorMessageParserTests.swift */,
 				LLMAUTHTEST02 /* LLMServiceAuthFailureTests.swift */,
+				LLMTESTSUP02 /* LLMServiceTestSupport.swift */,
 				SHORTCUTDTEST2 /* ShortcutDispatchTests.swift */,
 				VARTEST002 /* ShortcutHandlerVariantCompletionTests.swift */,
 				PROMPTTEST02 /* PromptTemplatesTests.swift */,
@@ -709,6 +712,7 @@
 				NATIVELOCTEST01 /* NativeLocalizationTests.swift in Sources */,
 				LLMERRTEST01 /* LLMErrorMessageParserTests.swift in Sources */,
 				LLMAUTHTEST01 /* LLMServiceAuthFailureTests.swift in Sources */,
+				LLMTESTSUP01 /* LLMServiceTestSupport.swift in Sources */,
 				SHORTCUTDTEST /* ShortcutDispatchTests.swift in Sources */,
 				VARTEST001 /* ShortcutHandlerVariantCompletionTests.swift in Sources */,
 				PROMPTTEST01 /* PromptTemplatesTests.swift in Sources */,

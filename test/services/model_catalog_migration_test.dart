@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/constants/app_defaults.dart';
+import 'package:make_it_sound_natural/constants/model_catalog.dart';
 import 'package:make_it_sound_natural/models/llm_model_entry.dart';
 import 'package:make_it_sound_natural/services/model_catalog_migration.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
@@ -221,4 +222,96 @@ void main() {
       expect(await ModelCatalogService().hiddenSlugs(provider), {'gpt-5.5'});
     });
   }
+
+  group('plan', () {
+    final openAi = ModelCatalog.builtInModels(AppDefaults.openAiProvider);
+
+    test('a custom successor keeps its own hidden state', () {
+      final plan = ModelCatalogMigration.plan(
+        builtIns: openAi,
+        customSlugs: {'gpt-6.1-sol', 'gpt-6-luna'},
+        hiddenSlugs: {'gpt-5.4', 'gpt-5.5', 'gpt-5.4-nano'},
+        selectedModel: 'gpt-6.1-sol',
+      );
+
+      expect(plan.hiddenSuccessors, isEmpty);
+      expect(plan.forgottenHiddenSlugs, {'gpt-5.4', 'gpt-5.5', 'gpt-5.4-nano'});
+      expect(plan.removedDuplicates, {'gpt-6.1-sol', 'gpt-6-luna'});
+      expect(plan.selectedModel, isNull);
+    });
+
+    test('hides a successor whose replaced models were all hidden', () {
+      final plan = ModelCatalogMigration.plan(
+        builtIns: openAi,
+        customSlugs: const {},
+        hiddenSlugs: {'gpt-5.4', 'gpt-5.5', 'gpt-5.4-mini', 'gpt-5.4-nano'},
+      );
+
+      expect(plan.hiddenSuccessors, {
+        'gpt-6-luna',
+        'gpt-6.1-terra',
+        'gpt-6.1-sol',
+      });
+    });
+
+    test('ignores a replaced slug the user added as a custom model', () {
+      final plan = ModelCatalogMigration.plan(
+        builtIns: openAi,
+        customSlugs: {'gpt-5.5'},
+        hiddenSlugs: {'gpt-5.5'},
+        selectedModel: 'gpt-5.5',
+      );
+
+      expect(plan.hiddenSuccessors, isEmpty);
+      expect(plan.forgottenHiddenSlugs, isEmpty);
+      expect(plan.selectedModel, isNull);
+    });
+
+    test('selects the successor of a replaced selected model', () {
+      final plan = ModelCatalogMigration.plan(
+        builtIns: openAi,
+        customSlugs: const {},
+        hiddenSlugs: const {},
+        selectedModel: 'gpt-5.4-mini',
+      );
+
+      expect(plan.selectedModel, 'gpt-6.1-terra');
+    });
+
+    test('plans nothing for up-to-date state', () {
+      final plan = ModelCatalogMigration.plan(
+        builtIns: openAi,
+        customSlugs: {'my-model'},
+        hiddenSlugs: {'gpt-6-astra'},
+        selectedModel: 'gpt-6-luna',
+      );
+
+      expect(plan.removedDuplicates, isEmpty);
+      expect(plan.hiddenSuccessors, isEmpty);
+      expect(plan.forgottenHiddenSlugs, isEmpty);
+      expect(plan.selectedModel, isNull);
+    });
+  });
+
+  test('keeps a visible custom successor selected and visible', () async {
+    SharedPreferences.setMockInitialValues({
+      'api_provider': 'openai',
+      'openai_model': 'gpt-6.1-sol',
+      'llm_custom_models': [
+        jsonEncode(
+          const LlmModelEntry(provider: 'openai', slug: 'gpt-6.1-sol').toJson(),
+        ),
+      ],
+      'llm_hidden_models': ['openai::gpt-5.4', 'openai::gpt-5.5'],
+    });
+
+    await ModelCatalogMigration().run();
+
+    expect(await SettingsService().getModel(), 'gpt-6.1-sol');
+    expect(
+      await ModelCatalogService().visibleModelSlugs('openai'),
+      contains('gpt-6.1-sol'),
+    );
+    expect(await ModelCatalogService().hiddenSlugs('openai'), isEmpty);
+  });
 }

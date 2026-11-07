@@ -380,7 +380,8 @@
   "contextShortcutHintAppend": "чтобы дополнить его.",
   "reasoningEffort": "Глубина рассуждений",
   "reasoningDescription": "Ниже — быстрее, выше — более глубокое обдумывание.",
-  "reasoningCompatibility": "Для всех моделей. Если уровень не поддерживается, используется настройка провайдера.",
+  "reasoningFallback": "Для всех моделей. Модели без варианта «Без рассуждений» используют «Низкая»; если модель не принимает настройку, используется настройка провайдера.",
+  "reasoningRunsAtLow": "{model} работает с глубиной «Низкая»",
   "reasoningNone": "Без рассуждений",
   "reasoningLow": "Низкая (по умолчанию)",
   "reasoningMedium": "Средняя",
@@ -401,21 +402,12 @@
   "requestSpeed": "Скорость",
   "requestSpeedDescription": "Более быстрые режимы отвечают раньше и стоят дороже.",
   "requestSpeedStandard": "Стандартная",
+  "requestSpeedStandardOption": "Стандартная (по умолчанию)",
   "requestSpeedFast": "Быстрая",
   "requestSpeedUltrafast": "Сверхбыстрая",
   "requestSpeedFastOption": "Быстрая · цена ×2",
   "requestSpeedUltrafastOption": "Сверхбыстрая · цена ×6",
   "requestSpeedRunsAt": "{model} работает на скорости «{level}»",
   "requestSpeedUnavailable": "Доступно для OpenAI и Anthropic",
-  "requestSpeedSaveFailed": "Не удалось сохранить скорость. Попробуйте ещё раз.",
-  "@requestSpeedRunsAt": {
-    "placeholders": {
-      "model": {
-        "type": "String"
-      },
-      "level": {
-        "type": "String"
-      }
-    }
-  }
+  "requestSpeedSaveFailed": "Не удалось сохранить скорость. Попробуйте ещё раз."
 }

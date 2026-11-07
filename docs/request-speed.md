@@ -12,7 +12,9 @@ from both the main window and global shortcuts.
 | Ultrafast | 6× |
 
 Faster tiers answer sooner and cost more. Standard is the default, including
-when a saved speed value is missing or unknown.
+when a saved speed value is missing or unknown. Installs that had OpenAI
+selected before this setting existed start at Fast once, because their
+requests always used that tier (then called `priority`).
 
 ## Built-in model support
 
@@ -32,7 +34,8 @@ level. For example, choosing Ultrafast with `gpt-6-luna` sends Fast. The row
 shows `gpt-6-luna runs at Fast`. The saved choice remains Ultrafast, so
 switching to `gpt-6.1-sol` uses Ultrafast.
 
-Anthropic Fast mode is a research preview.
+Fast mode on `claude-opus-5-5` is generally available. On Claude Opus 5 and
+Opus 4.8, which can be added as manual models, it is a research preview.
 
 ## Manually added models and providers
 
@@ -50,7 +53,8 @@ Ultrafast set `service_tier` to `fast` and `ultrafast`, respectively. Requests
 use strict structured output and `store: false`.
 
 Anthropic Fast requests set the body field `speed` to `fast` and the
-`anthropic-beta` header to `fast-mode-2026-02-01`.
+`anthropic-beta` header to `fast-mode-2026-02-01`. Only Opus 5 and Opus 4.8
+require the header; `claude-opus-5-5` accepts it.
 
 Standard requests omit both `service_tier` and `speed`. OpenRouter and custom
 providers use Chat Completions without either field.
@@ -76,5 +80,6 @@ Hidden models transfer their hidden state to the successor. A shared
 successor is hidden only when all eligible previous models were hidden, and
 it stays visible if hiding it would leave no visible model. Custom entries
 that duplicate current built-in slugs are removed while their hidden state
-is preserved. Manually added models carrying previous GPT slugs stay as they
-are. Running the migration again makes no further changes.
+is preserved, and hidden previous models do not hide them. Manually added
+models carrying previous GPT slugs stay as they are. Each change is logged.
+Running the migration again makes no further changes.

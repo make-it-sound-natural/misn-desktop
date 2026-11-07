@@ -108,42 +108,58 @@ abstract final class ModelCatalog {
     return null;
   }
 
+  /// Fastest tier each provider accepts. Providers missing here only run at
+  /// standard.
+  static const Map<String, RequestSpeed> _speedCeilings = {
+    AppDefaults.openAiProvider: RequestSpeed.ultrafast,
+    AppDefaults.anthropicProvider: RequestSpeed.fast,
+  };
+
+  /// Providers whose reasoning control has no `none` level on any model.
+  static const Set<String> _providersWithoutNoReasoning = {
+    AppDefaults.anthropicProvider,
+  };
+
   /// Whether the provider supports choosing a processing tier.
   static bool offersSpeed(String provider) =>
-      provider == AppDefaults.openAiProvider ||
-      provider == AppDefaults.anthropicProvider;
+      _speedCeilings.containsKey(provider);
 
   /// Resolves the requested tier against provider and model capabilities.
+  ///
+  /// A shipped model gets the fastest tier it supports up to the request; a
+  /// manually added model gets the request, capped at the provider's
+  /// fastest tier.
   static RequestSpeed effectiveSpeed({
     required String provider,
     required String model,
     required RequestSpeed requested,
-    required bool isBuiltIn,
   }) {
-    if (!offersSpeed(provider)) return RequestSpeed.standard;
-    final builtIn = isBuiltIn ? find(provider, model) : null;
-    if (builtIn == null) {
-      return provider == AppDefaults.anthropicProvider &&
-              requested == RequestSpeed.ultrafast
-          ? RequestSpeed.fast
-          : requested;
-    }
+    final ceiling = _speedCeilings[provider];
+    if (ceiling == null) return RequestSpeed.standard;
+    final supported = find(provider, model)?.speeds;
     return RequestSpeed.values.lastWhere(
       (speed) =>
-          speed.index <= requested.index && builtIn.speeds.contains(speed),
+          speed.index <= requested.index &&
+          speed.index <= ceiling.index &&
+          (supported?.contains(speed) ?? true),
     );
   }
 
-  /// Resolves reasoning effort against a shipped model's capabilities.
+  /// Resolves reasoning effort against provider and model capabilities.
+  ///
+  /// None becomes low where the provider or the shipped model has no `none`
+  /// level; manually added models of other providers get the request.
   static ReasoningEffort effectiveReasoning({
     required String provider,
     required String model,
     required ReasoningEffort requested,
-  }) =>
-      requested == ReasoningEffort.none &&
-          find(provider, model)?.supportsNoReasoning == false
-      ? ReasoningEffort.low
-      : requested;
+  }) {
+    if (requested != ReasoningEffort.none) return requested;
+    final supportsNone =
+        !_providersWithoutNoReasoning.contains(provider) &&
+        (find(provider, model)?.supportsNoReasoning ?? true);
+    return supportsNone ? requested : ReasoningEffort.low;
+  }
 
   /// Returns the shipped successor for a previously shipped model slug.
   static String? successorOf(String provider, String slug) {

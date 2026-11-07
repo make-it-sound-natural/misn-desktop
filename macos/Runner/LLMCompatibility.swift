@@ -56,6 +56,9 @@ enum LLMCompatibility {
         let names = parameter.fieldNames
             .map { NSRegularExpression.escapedPattern(for: $0) }
             .joined(separator: "|")
+        // `(?!\.)` keeps `reasoning` from matching a dotted sub-field such
+        // as `reasoning.summary`; that error is about something else and
+        // must not drop the whole object.
         let field = "[\"'`]?\\b(?:" + names + ")\\b(?!\\.)[\"'`]?"
         let before = "(?:unsupported|invalid)(?: value| parameter)?" +
             "|unknown parameter|unrecognized (?:parameter|request argument)|" +

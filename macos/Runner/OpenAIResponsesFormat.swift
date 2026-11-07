@@ -1,8 +1,14 @@
 import Foundation
+import os.log
 
 /// OpenAI Responses with strict four-variant output and response storage off.
 struct OpenAIResponsesFormat: LLMWireFormat {
     private var omitsReasoning = false
+
+    private static let logger = OSLog(
+        subsystem: "com.makeitsoundnatural.macos",
+        category: "OpenAIResponsesFormat"
+    )
 
     func makeRequest(
         text: String,
@@ -25,7 +31,7 @@ struct OpenAIResponsesFormat: LLMWireFormat {
             content.append([
                 "type": "input_image",
                 "image_url": screenshot.dataURL,
-                "detail": "high"
+                "detail": LLMService.ScreenshotAttachment.detail
             ])
         }
         var body: [String: Any] = [
@@ -43,8 +49,8 @@ struct OpenAIResponsesFormat: LLMWireFormat {
         if !omitsReasoning {
             body["reasoning"] = ["effort": config.reasoningEffort.rawValue]
         }
-        if config.requestSpeed != .standard {
-            body["service_tier"] = config.requestSpeed.rawValue
+        if let serviceTier = Self.serviceTier(for: config.requestSpeed) {
+            body["service_tier"] = serviceTier
         }
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         return request.httpBody == nil ? nil : request
@@ -56,7 +62,7 @@ struct OpenAIResponsesFormat: LLMWireFormat {
         guard let response = try? JSONDecoder().decode(
             OpenAIResponse.self, from: data
         ) else {
-            return .failure(.init(message: "Unexpected response from OpenAI."))
+            return unexpectedResponse(data)
         }
         let content = response.output.flatMap { $0.content ?? [] }
         if let refusal = content.first(where: { $0.type == "refusal" }) {
@@ -82,7 +88,7 @@ struct OpenAIResponsesFormat: LLMWireFormat {
         guard let variants = try? JSONDecoder().decode(
             CorrectionVariantsJSON.self, from: Data(text.utf8)
         ) else {
-            return .failure(.init(message: "Unexpected response from OpenAI."))
+            return unexpectedResponse(data)
         }
         return .success(variants.markerContent)
     }
@@ -97,9 +103,41 @@ struct OpenAIResponsesFormat: LLMWireFormat {
               ).contains(.reasoningEffort)
         else { return nil }
 
+        Self.log("Retrying without: reasoning")
         var copy = self
         copy.omitsReasoning = true
         return copy
+    }
+
+    /// OpenAI's `service_tier` value; `nil` sends no tier, which is
+    /// Standard processing.
+    private static func serviceTier(for speed: RequestSpeed) -> String? {
+        switch speed {
+        case .standard:
+            return nil
+        case .fast:
+            return "fast"
+        case .ultrafast:
+            return "ultrafast"
+        }
+    }
+
+    private func unexpectedResponse(
+        _ data: Data
+    ) -> Result<String, LLMResponseFailure> {
+        Self.log(
+            "Error: Unexpected response body: " +
+            (String(data: data, encoding: .utf8) ?? "<\(data.count) bytes>")
+        )
+        return .failure(.init(message: "Unexpected response from OpenAI."))
+    }
+
+    private static func log(_ message: String) {
+        os_log("%{private}@", log: logger, type: .debug, message)
+        #if DEBUG
+        let timestamp = Date().timeIntervalSince1970
+        print("⏱️ [\(String(format: "%.3f", timestamp))] \(message)")
+        #endif
     }
 }
 

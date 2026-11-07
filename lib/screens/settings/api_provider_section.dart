@@ -159,7 +159,7 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     await _settingsService.setProvider(provider);
     await _shortcutService.setProvider(provider);
     await _settingsService.setModel(model);
-    await _shortcutService.setModel(model);
+    await _shortcutService.setModel(provider: provider, model: model);
   }
 
   Future<void> _syncSelectedCustomProviderConfig() async {
@@ -437,21 +437,14 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
           children: [
             _buildModelPickerRow(l10n),
             const AppSettingsDivider(),
-            const ReasoningEffortRow(),
+            ReasoningEffortRow(
+              provider: _selectedProvider,
+              model: _selectedModel,
+            ),
             const AppSettingsDivider(),
             RequestSpeedRow(
               provider: _selectedProvider,
               model: _selectedModel,
-              isBuiltIn:
-                  _allModels
-                      .where(
-                        (entry) =>
-                            entry.provider == _selectedProvider &&
-                            entry.slug == _selectedModel,
-                      )
-                      .firstOrNull
-                      ?.isBuiltIn ??
-                  false,
             ),
           ],
         ),

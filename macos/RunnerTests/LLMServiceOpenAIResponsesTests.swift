@@ -2,11 +2,6 @@ import XCTest
 @testable import Make_It_Sound_Natural
 
 final class LLMServiceOpenAIResponsesTests: XCTestCase {
-    override func tearDown() {
-        ResponsesURLProtocol.handler = nil
-        super.tearDown()
-    }
-
     private let success = #"""
     {
       "status": "completed",
@@ -72,8 +67,8 @@ final class LLMServiceOpenAIResponsesTests: XCTestCase {
                 )
                 XCTAssertEqual(outcome.requests.count, 2)
                 guard outcome.requests.count == 2 else { continue }
-                let first = try payload(outcome.requests[0])
-                let second = try payload(outcome.requests[1])
+                let first = try jsonBody(outcome.requests[0])
+                let second = try jsonBody(outcome.requests[1])
                 XCTAssertEqual(
                     first["reasoning"] as? [String: String], ["effort": "none"]
                 )
@@ -88,6 +83,35 @@ final class LLMServiceOpenAIResponsesTests: XCTestCase {
         }
     }
 
+    func testRejectedReasoningStaysOffForTheSameModelAndEffort() throws {
+        let error = #"{"error":{"param":"reasoning","code":"unsupported_parameter"}}"#
+        let transport = ScriptedLLMTransport(responses: [
+            (400, error), (200, success), (200, success),
+            (200, success), (200, success)
+        ])
+        defer { transport.invalidate() }
+        let service = LLMService(session: transport.session)
+
+        for (model, effort) in [
+            ("gpt-4.1", ReasoningEffort.none), ("gpt-4.1", .none),
+            ("gpt-6.1-sol", .none), ("gpt-4.1", .low)
+        ] {
+            let result = processTextAndWait(
+                service, config: config(model: model, effort: effort)
+            )
+            XCTAssertEqual(result.variantOrError, "b")
+        }
+
+        XCTAssertEqual(transport.requests.count, 5)
+        guard transport.requests.count == 5 else { return }
+        let reasoning = try transport.requests.map {
+            try jsonBody($0)["reasoning"] as? [String: String]
+        }
+        XCTAssertEqual(reasoning, [
+            ["effort": "none"], nil, nil, ["effort": "none"], ["effort": "low"]
+        ])
+    }
+
     func testSecondReasoningRejectionIsShownWithoutAnotherRetry() throws {
         let message = "Unsupported value for reasoning.effort"
         let error = """
@@ -98,7 +122,7 @@ final class LLMServiceOpenAIResponsesTests: XCTestCase {
 
         XCTAssertEqual(outcome.requests.count, 2)
         if outcome.requests.count == 2 {
-            XCTAssertNil(try payload(outcome.requests[1])["reasoning"])
+            XCTAssertNil(try jsonBody(outcome.requests[1])["reasoning"])
         }
         XCTAssertNil(outcome.content)
         XCTAssertEqual(outcome.variantOrError, message)
@@ -111,14 +135,17 @@ final class LLMServiceOpenAIResponsesTests: XCTestCase {
         {"error":{"param":"service_tier","code":"unsupported_value",
         "message":"\(message)"}}
         """
-        for speed in [RequestSpeed.fast, .ultrafast] {
+        let tiers: [(RequestSpeed, String)] = [
+            (.fast, "fast"), (.ultrafast, "ultrafast")
+        ]
+        for (speed, tier) in tiers {
             for status in [400, 422] {
                 let outcome = run(responses: [(status, error)], speed: speed)
                 XCTAssertEqual(outcome.requests.count, 1)
                 let request = try XCTUnwrap(outcome.requests.first)
                 XCTAssertEqual(
-                    try payload(request)["service_tier"] as? String,
-                    speed.rawValue
+                    try jsonBody(request)["service_tier"] as? String,
+                    tier
                 )
                 XCTAssertNil(outcome.content)
                 XCTAssertEqual(outcome.variantOrError, message)
@@ -127,18 +154,11 @@ final class LLMServiceOpenAIResponsesTests: XCTestCase {
         }
     }
 
-    private func payload(_ request: URLRequest) throws -> [String: Any] {
-        let body = try XCTUnwrap(request.httpBody)
-        return try XCTUnwrap(
-            JSONSerialization.jsonObject(with: body) as? [String: Any]
-        )
-    }
-
     private struct Outcome {
         let requests: [URLRequest]
         let content: String?
         let variantOrError: String?
-        let delegate: ResponsesCapturingDelegate
+        let delegate: CapturingLLMDelegate
     }
 
     private func run(
@@ -146,98 +166,32 @@ final class LLMServiceOpenAIResponsesTests: XCTestCase {
         speed: RequestSpeed = .standard,
         model: String = "gpt-6.1-sol"
     ) -> Outcome {
-        var requests: [URLRequest] = []
-        ResponsesURLProtocol.handler = { request in
-            var captured = request
-            if captured.httpBody == nil, let stream = request.httpBodyStream {
-                stream.open()
-                defer { stream.close() }
-                var data = Data()
-                var buffer = [UInt8](repeating: 0, count: 4096)
-                while stream.hasBytesAvailable {
-                    let count = stream.read(&buffer, maxLength: buffer.count)
-                    guard count > 0 else { break }
-                    data.append(buffer, count: count)
-                }
-                captured.httpBody = data
-            }
-            requests.append(captured)
-            let index = requests.count - 1
-            guard index < responses.count else {
-                XCTFail("Unexpected extra request")
-                return (500, "{}")
-            }
-            return responses[index]
-        }
-        let sessionConfig = URLSessionConfiguration.ephemeral
-        sessionConfig.protocolClasses = [ResponsesURLProtocol.self]
-        let session = URLSession(configuration: sessionConfig)
-        defer { session.invalidateAndCancel() }
-        let service = LLMService(session: session)
-        let delegate = ResponsesCapturingDelegate()
+        let transport = ScriptedLLMTransport(responses: responses)
+        defer { transport.invalidate() }
+        let service = LLMService(session: transport.session)
+        let delegate = CapturingLLMDelegate()
         service.delegate = delegate
-        var content: String?
-        var variantOrError: String?
-        let done = expectation(description: "Request completes once")
-        done.assertForOverFulfill = true
-        service.processText("Original text", config: .init(
+        let result = processTextAndWait(
+            service, config: config(speed: speed, model: model)
+        )
+        return Outcome(
+            requests: transport.requests, content: result.content,
+            variantOrError: result.variantOrError, delegate: delegate
+        )
+    }
+
+    private func config(
+        speed: RequestSpeed = .standard,
+        model: String = "gpt-6.1-sol",
+        effort: ReasoningEffort = .none
+    ) -> LLMService.Configuration {
+        .init(
             provider: AppDefaults.openAiProvider,
             apiKey: "openai-key", openRouterApiKey: "", customProviderApiKey: "",
             customProviderBaseUrl: nil, model: model, customPrompt: nil,
             context: nil, targetProfileInstruction: nil, screenshotAttachment: nil,
-            accessibilityContext: nil, reasoningEffort: .none,
+            accessibilityContext: nil, reasoningEffort: effort,
             requestSpeed: speed
-        )) { receivedContent, receivedVariantOrError in
-            content = receivedContent
-            variantOrError = receivedVariantOrError
-            done.fulfill()
-        }
-        wait(for: [done], timeout: 3)
-        return Outcome(
-            requests: requests, content: content, variantOrError: variantOrError,
-            delegate: delegate
         )
     }
-}
-
-private final class ResponsesCapturingDelegate: LLMServiceDelegate {
-    var error: String?
-    var provider: String?
-    var isAuthenticationFailure = false
-
-    func llmService(
-        _ service: LLMService,
-        didFailWithError error: String,
-        isAuthenticationFailure: Bool,
-        provider: String
-    ) {
-        self.error = error
-        self.provider = provider
-        self.isAuthenticationFailure = isAuthenticationFailure
-    }
-
-    func llmService(
-        _ service: LLMService,
-        didReceiveTimingData: (String, TimeInterval)
-    ) {}
-}
-
-private final class ResponsesURLProtocol: URLProtocol {
-    static var handler: ((URLRequest) -> (Int, String))?
-
-    override class func canInit(with request: URLRequest) -> Bool { true }
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    override func startLoading() {
-        guard let handler = Self.handler, let url = request.url else { return }
-        let (status, body) = handler(request)
-        guard let response = HTTPURLResponse(
-            url: url, statusCode: status, httpVersion: nil, headerFields: nil
-        ) else { return }
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data(body.utf8))
-        client?.urlProtocolDidFinishLoading(self)
-    }
-
-    override func stopLoading() {}
 }

@@ -380,7 +380,8 @@
   "contextShortcutHintAppend": "pour l’ajouter à la suite.",
   "reasoningEffort": "Effort de raisonnement",
   "reasoningDescription": "Un niveau bas privilégie la vitesse ; un niveau élevé permet de réfléchir davantage.",
-  "reasoningCompatibility": "Pour tous les modèles. Les niveaux non pris en charge utilisent la valeur du fournisseur.",
+  "reasoningFallback": "Pour tous les modèles. Les modèles sans « Aucun » utilisent « Faible » ; si un modèle refuse le réglage, la valeur du fournisseur s’applique.",
+  "reasoningRunsAtLow": "{model} utilise le niveau Faible",
   "reasoningNone": "Aucun",
   "reasoningLow": "Faible (par défaut)",
   "reasoningMedium": "Moyen",
@@ -401,21 +402,12 @@
   "requestSpeed": "Vitesse",
   "requestSpeedDescription": "Les niveaux plus rapides répondent plus tôt et coûtent plus cher.",
   "requestSpeedStandard": "Standard",
+  "requestSpeedStandardOption": "Standard (par défaut)",
   "requestSpeedFast": "Rapide",
   "requestSpeedUltrafast": "Ultrarapide",
   "requestSpeedFastOption": "Rapide · prix ×2",
   "requestSpeedUltrafastOption": "Ultrarapide · prix ×6",
   "requestSpeedRunsAt": "{model} utilise le niveau {level}",
   "requestSpeedUnavailable": "Disponible pour OpenAI et Anthropic",
-  "requestSpeedSaveFailed": "Impossible d’enregistrer la vitesse. Réessayez.",
-  "@requestSpeedRunsAt": {
-    "placeholders": {
-      "model": {
-        "type": "String"
-      },
-      "level": {
-        "type": "String"
-      }
-    }
-  }
+  "requestSpeedSaveFailed": "Impossible d’enregistrer la vitesse. Réessayez."
 }

@@ -380,7 +380,8 @@
   "contextShortcutHintAppend": "で末尾に追加します。",
   "reasoningEffort": "推論の深さ",
   "reasoningDescription": "低い設定は速度を優先し、高い設定はより深く考えます。",
-  "reasoningCompatibility": "すべてのモデルに適用されます。非対応の場合はプロバイダーの既定値を使用します。",
+  "reasoningFallback": "すべてのモデルに適用されます。「なし」に非対応のモデルは「低」を使用し、設定を受け付けないモデルはプロバイダーの既定値を使用します。",
+  "reasoningRunsAtLow": "{model}は「低」で動作します",
   "reasoningNone": "なし",
   "reasoningLow": "低（既定）",
   "reasoningMedium": "中",
@@ -401,21 +402,12 @@
   "requestSpeed": "速度",
   "requestSpeedDescription": "高速なプランほど応答が早く、料金も高くなります。",
   "requestSpeedStandard": "標準",
+  "requestSpeedStandardOption": "標準（既定）",
   "requestSpeedFast": "高速",
   "requestSpeedUltrafast": "超高速",
   "requestSpeedFastOption": "高速 · 料金2倍",
   "requestSpeedUltrafastOption": "超高速 · 料金6倍",
   "requestSpeedRunsAt": "{model}は「{level}」で動作します",
   "requestSpeedUnavailable": "OpenAIとAnthropicで利用可能",
-  "requestSpeedSaveFailed": "速度を保存できませんでした。もう一度お試しください。",
-  "@requestSpeedRunsAt": {
-    "placeholders": {
-      "model": {
-        "type": "String"
-      },
-      "level": {
-        "type": "String"
-      }
-    }
-  }
+  "requestSpeedSaveFailed": "速度を保存できませんでした。もう一度お試しください。"
 }

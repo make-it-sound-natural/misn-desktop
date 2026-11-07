@@ -35,7 +35,6 @@ void main() {
     WidgetTester tester, {
     String provider = AppDefaults.openAiProvider,
     String model = 'gpt-6.1-sol',
-    bool isBuiltIn = true,
     Locale locale = const Locale('en'),
     bool dark = false,
   }) async {
@@ -53,11 +52,7 @@ void main() {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(
-          body: RequestSpeedRow(
-            provider: provider,
-            model: model,
-            isBuiltIn: isBuiltIn,
-          ),
+          body: RequestSpeedRow(provider: provider, model: model),
         ),
       ),
     );
@@ -175,14 +170,14 @@ void main() {
     }
   }
 
-  testWidgets('lists Standard, Fast, and Ultrafast with prices', (
+  testWidgets('marks Standard as the default and lists prices', (
     tester,
   ) async {
     setupSettings();
     await pumpRow(tester);
     await tester.tap(find.byKey(pickerKey));
     await tester.pumpAndSettle();
-    expect(find.text('Standard'), findsNWidgets(2));
+    expect(find.text('Standard (default)'), findsNWidgets(2));
     expect(find.text('Fast · 2× price'), findsOneWidget);
     expect(find.text('Ultrafast · 6× price'), findsOneWidget);
   });
@@ -195,7 +190,7 @@ void main() {
     const options = {
       RequestSpeed.fast: 'Fast · 2× price',
       RequestSpeed.ultrafast: 'Ultrafast · 6× price',
-      RequestSpeed.standard: 'Standard',
+      RequestSpeed.standard: 'Standard (default)',
     };
     var previous = RequestSpeed.standard;
     for (final entry in options.entries) {
@@ -242,7 +237,6 @@ void main() {
       tester,
       provider: AppDefaults.anthropicProvider,
       model: model,
-      isBuiltIn: false,
     );
     const subtitle = '$model runs at Fast';
     expect(find.text(subtitle), findsOneWidget);
@@ -269,7 +263,7 @@ void main() {
       'providers', (tester) async {
     for (final provider in [AppDefaults.openRouterProvider, 'custom']) {
       setupSettings(provider: provider);
-      await pumpRow(tester, provider: provider, isBuiltIn: false);
+      await pumpRow(tester, provider: provider);
       expect(
         find.text('Available for OpenAI and Anthropic'),
         findsOneWidget,

@@ -19,7 +19,6 @@ class RequestSpeedRow extends StatefulWidget {
   const RequestSpeedRow({
     required this.provider,
     required this.model,
-    required this.isBuiltIn,
     super.key,
   });
 
@@ -28,9 +27,6 @@ class RequestSpeedRow extends StatefulWidget {
 
   /// Selected model slug.
   final String model;
-
-  /// Whether the selected model comes from the built-in catalog.
-  final bool isBuiltIn;
 
   @override
   State<RequestSpeedRow> createState() => _RequestSpeedRowState();
@@ -59,7 +55,11 @@ class _RequestSpeedRowState extends State<RequestSpeedRow> {
   Future<void> _select(RequestSpeed speed) async {
     setState(() => _busy = true);
     try {
-      await ShortcutService().setRequestSpeed(speed);
+      await ShortcutService().setRequestSpeed(
+        speed,
+        provider: widget.provider,
+        model: widget.model,
+      );
       await _settings.setRequestSpeed(speed);
       if (mounted) setState(() => _speed = speed);
     } on Exception catch (error, stackTrace) {
@@ -87,22 +87,11 @@ class _RequestSpeedRowState extends State<RequestSpeedRow> {
       provider: widget.provider,
       model: widget.model,
       requested: _speed,
-      isBuiltIn: widget.isBuiltIn,
     );
-    final levels = {
-      RequestSpeed.standard: l10n.requestSpeedStandard,
-      RequestSpeed.fast: l10n.requestSpeedFast,
-      RequestSpeed.ultrafast: l10n.requestSpeedUltrafast,
-    };
-    final options = {
-      RequestSpeed.standard: l10n.requestSpeedStandard,
-      RequestSpeed.fast: l10n.requestSpeedFastOption,
-      RequestSpeed.ultrafast: l10n.requestSpeedUltrafastOption,
-    };
     final subtitle = !available
         ? l10n.requestSpeedUnavailable
         : effective != _speed
-        ? l10n.requestSpeedRunsAt(widget.model, levels[effective]!)
+        ? l10n.requestSpeedRunsAt(widget.model, _levelLabel(l10n, effective))
         : l10n.requestSpeedDescription;
 
     return AppSettingsRow(
@@ -127,7 +116,10 @@ class _RequestSpeedRowState extends State<RequestSpeedRow> {
             enabled: !_busy && available,
             options: [
               for (final speed in RequestSpeed.values)
-                AppPopupOption(value: speed, label: options[speed]!),
+                AppPopupOption(
+                  value: speed,
+                  label: _optionLabel(l10n, speed),
+                ),
             ],
             onChanged: (speed) => unawaited(_select(speed)),
           ),
@@ -136,3 +128,17 @@ class _RequestSpeedRowState extends State<RequestSpeedRow> {
     );
   }
 }
+
+String _levelLabel(AppLocalizations l10n, RequestSpeed speed) =>
+    switch (speed) {
+      RequestSpeed.standard => l10n.requestSpeedStandard,
+      RequestSpeed.fast => l10n.requestSpeedFast,
+      RequestSpeed.ultrafast => l10n.requestSpeedUltrafast,
+    };
+
+String _optionLabel(AppLocalizations l10n, RequestSpeed speed) =>
+    switch (speed) {
+      RequestSpeed.standard => l10n.requestSpeedStandardOption,
+      RequestSpeed.fast => l10n.requestSpeedFastOption,
+      RequestSpeed.ultrafast => l10n.requestSpeedUltrafastOption,
+    };

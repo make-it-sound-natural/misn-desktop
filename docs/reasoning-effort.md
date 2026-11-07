@@ -7,13 +7,20 @@ speed, while higher levels allow a larger reasoning budget. Providers decide
 how to interpret the level, so this is not a latency or quality guarantee.
 
 OpenAI receives `reasoning.effort` through the Responses API. None becomes
-`low` on `gpt-6-astra` and `gpt-6.1-sol`, which do not support `none`.
+`low` on `gpt-6-astra` and `gpt-6.1-sol`, which do not support `none`. The
+Reasoning effort row then shows `gpt-6.1-sol runs at Low`; the saved choice
+stays None.
 On HTTP 400 or 422, an explicit rejection of `reasoning`, `reasoning.effort`,
 or its value allows one retry with the `reasoning` object omitted. This also
 supports manually added OpenAI models that reject reasoning options. The
 retry uses the model's default reasoning and preserves the saved preference
 and all other request fields, including the speed tier. A second rejection,
 rejected speed tier, rate limit, or other error is shown as returned.
+
+After a retry succeeds, the reduced request is remembered for the same
+provider, base URL, model, and reasoning level until the app quits, so later
+rewrites skip the failed first request. This applies to every retry on this
+page.
 
 Chat Completions providers (OpenRouter and custom providers) receive the
 top-level `reasoning_effort` field. OpenRouter documents it in its
@@ -35,8 +42,9 @@ Authentication, quota, server errors, unrelated validation failures, and
 repeated rejection of an already removed field do not trigger another retry.
 
 Anthropic receives the level as `output_config.effort` in the Messages API
-request. None maps to `low`, because thinking cannot be turned off on every
-model in the Anthropic catalog. Low, Medium, and High map to `low`, `medium`,
+request. Its effort has no `none` level, so None becomes `low` for every
+Anthropic model, manually added ones included, and the row shows
+`<model> runs at Low`. Low, Medium, and High map to `low`, `medium`,
 and `high`. Anthropic requests have no parameter-rejection retries: every error
 is shown as returned.
 

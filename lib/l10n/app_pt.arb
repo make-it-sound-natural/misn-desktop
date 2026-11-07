@@ -380,7 +380,8 @@
   "contextShortcutHintAppend": "para acrescentar ao final.",
   "reasoningEffort": "Esforço de raciocínio",
   "reasoningDescription": "Níveis baixos priorizam a rapidez; níveis altos permitem raciocinar mais.",
-  "reasoningCompatibility": "Aplica-se a todos os modelos. Níveis não suportados usam o padrão do provedor.",
+  "reasoningFallback": "Aplica-se a todos os modelos. Modelos sem “Nenhum” usam “Baixo”; se um modelo rejeitar a configuração, usa-se o padrão do provedor.",
+  "reasoningRunsAtLow": "{model} usa o nível Baixo",
   "reasoningNone": "Nenhum",
   "reasoningLow": "Baixo (padrão)",
   "reasoningMedium": "Médio",
@@ -401,21 +402,12 @@
   "requestSpeed": "Velocidade",
   "requestSpeedDescription": "Os níveis mais rápidos respondem antes e custam mais.",
   "requestSpeedStandard": "Padrão",
+  "requestSpeedStandardOption": "Padrão (predefinida)",
   "requestSpeedFast": "Rápido",
   "requestSpeedUltrafast": "Ultrarrápido",
   "requestSpeedFastOption": "Rápido · preço ×2",
   "requestSpeedUltrafastOption": "Ultrarrápido · preço ×6",
   "requestSpeedRunsAt": "{model} usa o nível {level}",
   "requestSpeedUnavailable": "Disponível para OpenAI e Anthropic",
-  "requestSpeedSaveFailed": "Não foi possível guardar a velocidade. Tente novamente.",
-  "@requestSpeedRunsAt": {
-    "placeholders": {
-      "model": {
-        "type": "String"
-      },
-      "level": {
-        "type": "String"
-      }
-    }
-  }
+  "requestSpeedSaveFailed": "Não foi possível salvar a velocidade. Tente novamente."
 }

@@ -24,7 +24,11 @@ final class OpenAIResponsesFormatTests: XCTestCase {
     }
 
     func testBodyCarriesModelInstructionsReasoningAndStoreFalse() throws {
-        for effort in ReasoningEffort.allCases {
+        let expected: [ReasoningEffort: String] = [
+            .none: "none", .low: "low", .medium: "medium", .high: "high"
+        ]
+        XCTAssertEqual(Set(expected.keys), Set(ReasoningEffort.allCases))
+        for (effort, token) in expected {
             var config = config()
             config.reasoningEffort = effort
             let body = try payload(config: config)
@@ -32,7 +36,7 @@ final class OpenAIResponsesFormatTests: XCTestCase {
             XCTAssertEqual(body["model"] as? String, "gpt-6.1-sol")
             XCTAssertEqual(body["instructions"] as? String, "Rewrite naturally.")
             let reasoning = try XCTUnwrap(body["reasoning"] as? [String: String])
-            XCTAssertEqual(reasoning, ["effort": effort.rawValue])
+            XCTAssertEqual(reasoning, ["effort": token])
             XCTAssertEqual(body["store"] as? Bool, false)
         }
     }
@@ -82,10 +86,13 @@ final class OpenAIResponsesFormatTests: XCTestCase {
     }
 
     func testFastAndUltrafastSetServiceTier() throws {
-        for speed in [RequestSpeed.fast, .ultrafast] {
+        let tiers: [(RequestSpeed, String)] = [
+            (.fast, "fast"), (.ultrafast, "ultrafast")
+        ]
+        for (speed, tier) in tiers {
             XCTAssertEqual(
                 try payload(config: config(speed: speed))["service_tier"] as? String,
-                speed.rawValue
+                tier
             )
         }
     }

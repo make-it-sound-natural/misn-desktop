@@ -371,6 +371,9 @@ void main() {
           );
     });
 
+    Object? argumentOf(String method) =>
+        methodCalls.singleWhere((call) => call.method == method).arguments;
+
     test(
       'loadAndSyncSettings restores reasoning and defaults stale values',
       () async {
@@ -385,10 +388,10 @@ void main() {
           await prefs.setString('reasoning_effort', value);
           methodCalls.clear();
           await ShortcutService().loadAndSyncSettings();
-          final call = methodCalls.singleWhere(
-            (call) => call.method == MethodChannelMethods.setReasoningEffort,
+          expect(
+            argumentOf(MethodChannelMethods.setReasoningEffort),
+            value == 'retired-level' ? 'low' : value,
           );
-          expect(call.arguments, value == 'retired-level' ? 'low' : value);
         }
       },
     );
@@ -404,140 +407,65 @@ void main() {
 
         await ShortcutService().loadAndSyncSettings();
 
-        final call = methodCalls.singleWhere(
-          (call) => call.method == MethodChannelMethods.setRequestSpeed,
+        expect(
+          argumentOf(MethodChannelMethods.setRequestSpeed),
+          savedSpeed == 'ultrafast' ? 'fast' : 'standard',
         );
-        expect(call.arguments, savedSpeed == 'ultrafast' ? 'fast' : 'standard');
       }
     });
 
     test(
-      'setModel sends effective speed and reasoning for the saved selection',
+      'setModel sends the model, then reasoning and speed it supports',
       () async {
-        for (final (provider, model, speed, effectiveSpeed, reasoning) in [
-          (
-            AppDefaults.openAiProvider,
-            'gpt-6.1-sol',
-            'ultrafast',
-            'ultrafast',
-            'low',
-          ),
-          (
-            AppDefaults.anthropicProvider,
-            'claude-sonnet-5-5',
-            'fast',
-            'standard',
-            'low',
-          ),
-          (
-            AppDefaults.openRouterProvider,
-            'google/gemini-3-flash-preview',
-            'ultrafast',
-            'standard',
-            'none',
-          ),
-        ]) {
-          SharedPreferences.setMockInitialValues({
-            'api_provider': provider,
-            'openai_model': model,
-            'request_speed': speed,
-            'reasoning_effort': 'none',
-          });
-          methodCalls.clear();
+        SharedPreferences.setMockInitialValues({
+          'request_speed': 'ultrafast',
+          'reasoning_effort': 'none',
+        });
 
-          await ShortcutService().setProvider(provider);
-          await ShortcutService().setModel(model);
+        await ShortcutService().setModel(
+          provider: AppDefaults.openAiProvider,
+          model: 'gpt-6-luna',
+        );
 
-          expect(
-            methodCalls.map((call) => call.method),
-            [
-              MethodChannelMethods.setProvider,
-              MethodChannelMethods.setModel,
-              MethodChannelMethods.setReasoningEffort,
-              MethodChannelMethods.setRequestSpeed,
-            ],
-          );
-          expect(
-            methodCalls
-                .singleWhere(
-                  (call) => call.method == MethodChannelMethods.setRequestSpeed,
-                )
-                .arguments,
-            effectiveSpeed,
-          );
-          expect(
-            methodCalls
-                .singleWhere(
-                  (call) =>
-                      call.method == MethodChannelMethods.setReasoningEffort,
-                )
-                .arguments,
-            reasoning,
-          );
-        }
+        expect(methodCalls.map((call) => call.method), [
+          MethodChannelMethods.setModel,
+          MethodChannelMethods.setReasoningEffort,
+          MethodChannelMethods.setRequestSpeed,
+        ]);
+        expect(argumentOf(MethodChannelMethods.setModel), 'gpt-6-luna');
+        expect(argumentOf(MethodChannelMethods.setReasoningEffort), 'none');
+        expect(argumentOf(MethodChannelMethods.setRequestSpeed), 'fast');
       },
     );
 
-    test('setModel sends the chosen speed for a custom OpenAI model', () async {
+    test('setModel resolves against the given model, not saved ones', () async {
       SharedPreferences.setMockInitialValues({
-        'api_provider': AppDefaults.openAiProvider,
-        'openai_model': 'custom-openai-model',
+        'api_provider': AppDefaults.openRouterProvider,
+        'openai_model': 'google/gemini-3-flash-preview',
         'request_speed': 'ultrafast',
+        'reasoning_effort': 'none',
       });
 
-      await ShortcutService().setModel('custom-openai-model');
-
-      expect(
-        methodCalls
-            .singleWhere(
-              (call) => call.method == MethodChannelMethods.setRequestSpeed,
-            )
-            .arguments,
-        'ultrafast',
+      await ShortcutService().setModel(
+        provider: AppDefaults.openAiProvider,
+        model: 'gpt-6.1-sol',
       );
+
+      expect(argumentOf(MethodChannelMethods.setReasoningEffort), 'low');
+      expect(argumentOf(MethodChannelMethods.setRequestSpeed), 'ultrafast');
     });
 
-    test(
-      'setModel sends fast for a custom Anthropic model set to ultrafast',
-      () async {
-        SharedPreferences.setMockInitialValues({
-          'api_provider': AppDefaults.anthropicProvider,
-          'openai_model': 'custom-anthropic-model',
-          'request_speed': 'ultrafast',
-        });
+    test('setRequestSpeed sends the effective level only', () async {
+      await ShortcutService().setRequestSpeed(
+        RequestSpeed.ultrafast,
+        provider: AppDefaults.openAiProvider,
+        model: 'gpt-6-luna',
+      );
 
-        await ShortcutService().setModel('custom-anthropic-model');
-
-        expect(
-          methodCalls
-              .singleWhere(
-                (call) => call.method == MethodChannelMethods.setRequestSpeed,
-              )
-              .arguments,
-          'fast',
-        );
-      },
-    );
-
-    test(
-      'setRequestSpeed sends the effective level for the saved model',
-      () async {
-        SharedPreferences.setMockInitialValues({
-          'api_provider': AppDefaults.openAiProvider,
-          'openai_model': 'gpt-6-luna',
-        });
-
-        await ShortcutService().setRequestSpeed(RequestSpeed.ultrafast);
-
-        expect(methodCalls, hasLength(1));
-        expect(methodCalls.single.method, MethodChannelMethods.setRequestSpeed);
-        expect(methodCalls.single.arguments, 'fast');
-        expect(
-          await SettingsService().getRequestSpeed(),
-          RequestSpeed.standard,
-        );
-      },
-    );
+      expect(methodCalls, hasLength(1));
+      expect(argumentOf(MethodChannelMethods.setRequestSpeed), 'fast');
+      expect(await SettingsService().getRequestSpeed(), RequestSpeed.standard);
+    });
 
     test('setRequestSpeed rethrows a native failure', () async {
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -550,7 +478,11 @@ void main() {
           );
 
       await expectLater(
-        ShortcutService().setRequestSpeed(RequestSpeed.fast),
+        ShortcutService().setRequestSpeed(
+          RequestSpeed.fast,
+          provider: AppDefaults.openAiProvider,
+          model: 'gpt-6-luna',
+        ),
         throwsA(
           isA<PlatformException>().having(
             (error) => error.code,
@@ -561,24 +493,16 @@ void main() {
       );
     });
 
-    test(
-      'setReasoningEffort sends low for models without none support',
-      () async {
-        SharedPreferences.setMockInitialValues({
-          'api_provider': AppDefaults.openAiProvider,
-          'openai_model': 'gpt-6.1-sol',
-        });
+    test('setReasoningEffort sends the effective level only', () async {
+      await ShortcutService().setReasoningEffort(
+        ReasoningEffort.none,
+        provider: AppDefaults.openAiProvider,
+        model: 'gpt-6.1-sol',
+      );
 
-        await ShortcutService().setReasoningEffort(ReasoningEffort.none);
-
-        expect(methodCalls, hasLength(1));
-        expect(
-          methodCalls.single.method,
-          MethodChannelMethods.setReasoningEffort,
-        );
-        expect(methodCalls.single.arguments, 'low');
-      },
-    );
+      expect(methodCalls, hasLength(1));
+      expect(argumentOf(MethodChannelMethods.setReasoningEffort), 'low');
+    });
 
     test('loadAndSyncSettings sends selected target profile', () async {
       final prefs = await SharedPreferences.getInstance();

@@ -380,7 +380,8 @@
   "contextShortcutHintAppend": "للإضافة إليه.",
   "reasoningEffort": "عمق التفكير",
   "reasoningDescription": "المستويات المنخفضة تفضّل السرعة، والعالية تتيح تفكيرًا أعمق.",
-  "reasoningCompatibility": "ينطبق على جميع النماذج. تُستخدم إعدادات المزوّد الافتراضية للمستويات غير المدعومة.",
+  "reasoningFallback": "ينطبق على جميع النماذج. النماذج التي لا تدعم «بلا تفكير» تستخدم «منخفض»، وإذا رفض النموذج الإعداد تُستخدم إعدادات المزوّد الافتراضية.",
+  "reasoningRunsAtLow": "يعمل {model} بالمستوى «منخفض»",
   "reasoningNone": "بلا تفكير",
   "reasoningLow": "منخفض (افتراضي)",
   "reasoningMedium": "متوسط",
@@ -401,21 +402,12 @@
   "requestSpeed": "السرعة",
   "requestSpeedDescription": "تستجيب المستويات الأسرع في وقت أقصر وبتكلفة أعلى.",
   "requestSpeedStandard": "القياسية",
+  "requestSpeedStandardOption": "القياسية (افتراضية)",
   "requestSpeedFast": "السريعة",
   "requestSpeedUltrafast": "فائقة السرعة",
   "requestSpeedFastOption": "السريعة · ضعف السعر",
   "requestSpeedUltrafastOption": "فائقة السرعة · 6 أضعاف السعر",
   "requestSpeedRunsAt": "يعمل {model} بالمستوى {level}",
   "requestSpeedUnavailable": "متاحة لـ OpenAI وAnthropic",
-  "requestSpeedSaveFailed": "تعذر حفظ السرعة. حاول مرة أخرى.",
-  "@requestSpeedRunsAt": {
-    "placeholders": {
-      "model": {
-        "type": "String"
-      },
-      "level": {
-        "type": "String"
-      }
-    }
-  }
+  "requestSpeedSaveFailed": "تعذّر حفظ السرعة. حاول مرة أخرى."
 }

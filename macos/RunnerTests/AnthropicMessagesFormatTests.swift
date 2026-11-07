@@ -55,6 +55,17 @@ final class AnthropicMessagesFormatTests: XCTestCase {
         XCTAssertNil(body["service_tier"])
     }
 
+    func testUltrafastSpeedFallsBackToFastFieldAndBetaHeader() throws {
+        let request = try XCTUnwrap(makeRequest(config(requestSpeed: .ultrafast)))
+        let body = try payload(config(requestSpeed: .ultrafast))
+
+        XCTAssertEqual(body["speed"] as? String, "fast")
+        XCTAssertEqual(
+            request.value(forHTTPHeaderField: "anthropic-beta"),
+            "fast-mode-2026-02-01"
+        )
+    }
+
     func testStandardSpeedSendsNoSpeedFieldOrBetaHeader() throws {
         let request = try XCTUnwrap(makeRequest(config()))
         let body = try payload(config())

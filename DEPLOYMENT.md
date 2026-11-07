@@ -36,8 +36,9 @@ For local development and build commands, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 | Item | Purpose | Required | Where it lives |
 | --- | --- | --- | --- |
-| OpenAI API key | Calls OpenAI chat completions | If provider is OpenAI | macOS **Keychain** in release builds |
+| OpenAI API key | Calls the OpenAI Responses API | If provider is OpenAI | macOS **Keychain** in release builds |
 | OpenRouter API key | Calls OpenRouter chat completions | If provider is OpenRouter | macOS **Keychain** in release builds |
+| Anthropic API key | Calls the Anthropic Messages API | If provider is Anthropic | macOS **Keychain** in release builds |
 | Provider and model | Routing and model selection | Has defaults | SharedPreferences |
 
 Secrets are **never** committed; users enter keys in the app UI. There is no
@@ -51,8 +52,10 @@ The native layer sends LLM requests to:
 
 | Service | Endpoint (code) | Purpose |
 | --- | --- | --- |
-| OpenAI | `https://api.openai.com/v1/chat/completions` | Default provider |
-| OpenRouter | `https://openrouter.ai/api/v1/chat/completions` | Alternate provider |
+| OpenAI | `https://api.openai.com/v1/responses` | Built-in provider |
+| OpenRouter | `https://openrouter.ai/api/v1/chat/completions` | Built-in provider (default) |
+| Anthropic | `https://api.anthropic.com/v1/messages` | Built-in provider |
+| Custom provider | `<base URL>/chat/completions` | Provider added by the user |
 
 **Sparkle** checks for updates using the feed URL in `macos/Runner/Info.plist`
 (`SUFeedURL`), which points at the repository’s **`appcast.xml`** (hosted on

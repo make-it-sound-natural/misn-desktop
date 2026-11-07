@@ -14,7 +14,10 @@ final class LLMServicePayloadTests: XCTestCase {
                 accessibilityContext: nil
             )
             XCTAssertEqual(config.reasoningEffort, .low)
-            for effort in ReasoningEffort.allCases {
+            let expected: [ReasoningEffort: String] = [
+                .none: "none", .low: "low", .medium: "medium", .high: "high"
+            ]
+            for (effort, token) in expected {
                 config.reasoningEffort = effort
                 let request = try XCTUnwrap(LLMWireFormatFactory.forProvider(config.provider).makeRequest(
                     text: "hello", config: config, systemInstructions: "system"
@@ -23,7 +26,7 @@ final class LLMServicePayloadTests: XCTestCase {
                 let payload = try XCTUnwrap(
                     JSONSerialization.jsonObject(with: body) as? [String: Any]
                 )
-                XCTAssertEqual(payload["reasoning_effort"] as? String, effort.rawValue)
+                XCTAssertEqual(payload["reasoning_effort"] as? String, token)
                 XCTAssertNil(payload["reasoning"])
                 XCTAssertNotNil(payload["response_format"])
             }

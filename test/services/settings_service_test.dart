@@ -272,7 +272,7 @@ void main() {
         expect(await migrate({}), AccessibilityContextMode.field);
 
         final prefs = await SharedPreferences.getInstance();
-        expect(prefs.getInt('settings_schema_version'), 2);
+        expect(prefs.getInt('settings_schema_version'), 3);
       });
 
       test('upgrade with screenshot off gets field', () async {
@@ -344,6 +344,65 @@ void main() {
         });
 
         expect(mode, AccessibilityContextMode.off);
+      });
+    });
+
+    group('request speed migration (v2 -> v3)', () {
+      Future<RequestSpeed> migrate(Map<String, Object> stored) async {
+        SharedPreferences.setMockInitialValues(stored);
+        final service = SettingsService();
+        await service.migrateIfNeeded();
+        return service.getRequestSpeed();
+      }
+
+      test('an OpenAI install keeps the fast tier it always had', () async {
+        for (final stored in <Map<String, Object>>[
+          {
+            'settings_schema_version': 2,
+            'api_provider': AppDefaults.openAiProvider,
+          },
+          {'api_provider': AppDefaults.openAiProvider},
+        ]) {
+          expect(await migrate(stored), RequestSpeed.fast, reason: '$stored');
+        }
+      });
+
+      test('other providers and fresh installs start at standard', () async {
+        for (final stored in <Map<String, Object>>[
+          {},
+          {
+            'settings_schema_version': 2,
+            'api_provider': AppDefaults.anthropicProvider,
+          },
+          {'settings_schema_version': 2},
+        ]) {
+          expect(
+            await migrate(stored),
+            RequestSpeed.standard,
+            reason: '$stored',
+          );
+        }
+      });
+
+      test('keeps a speed that is already stored', () async {
+        expect(
+          await migrate({
+            'settings_schema_version': 2,
+            'api_provider': AppDefaults.openAiProvider,
+            'request_speed': 'ultrafast',
+          }),
+          RequestSpeed.ultrafast,
+        );
+      });
+
+      test('does not run again once the schema is at v3', () async {
+        expect(
+          await migrate({
+            'settings_schema_version': 3,
+            'api_provider': AppDefaults.openAiProvider,
+          }),
+          RequestSpeed.standard,
+        );
       });
     });
 

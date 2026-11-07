@@ -109,7 +109,6 @@ void main() {
             provider: model.provider,
             model: model.slug,
             requested: requested,
-            isBuiltIn: true,
           ),
           levels[model.slug]![requested.index],
           reason: '${model.slug} at ${requested.name}',
@@ -127,7 +126,6 @@ void main() {
             provider: AppDefaults.openAiProvider,
             model: 'custom-model',
             requested: requested,
-            isBuiltIn: false,
           ),
           requested,
         );
@@ -142,7 +140,6 @@ void main() {
           provider: AppDefaults.anthropicProvider,
           model: 'custom-model',
           requested: requested,
-          isBuiltIn: false,
         ),
         requested == RequestSpeed.ultrafast ? RequestSpeed.fast : requested,
       );
@@ -151,43 +148,26 @@ void main() {
 
   test('effectiveSpeed is standard for OpenRouter and custom providers', () {
     for (final provider in [AppDefaults.openRouterProvider, 'custom']) {
-      for (final isBuiltIn in [true, false]) {
-        for (final requested in RequestSpeed.values) {
-          expect(
-            ModelCatalog.effectiveSpeed(
-              provider: provider,
-              model: 'google/gemini-3-flash-preview',
-              requested: requested,
-              isBuiltIn: isBuiltIn,
-            ),
-            RequestSpeed.standard,
-          );
-        }
+      for (final requested in RequestSpeed.values) {
+        expect(
+          ModelCatalog.effectiveSpeed(
+            provider: provider,
+            model: 'google/gemini-3-flash-preview',
+            requested: requested,
+          ),
+          RequestSpeed.standard,
+        );
       }
     }
   });
 
-  test(
-    'effectiveSpeed treats a built-in flag without a catalog record as custom',
-    () {
-      for (final provider in [
-        AppDefaults.openAiProvider,
-        AppDefaults.anthropicProvider,
-      ]) {
-        expect(
-          ModelCatalog.effectiveSpeed(
-            provider: provider,
-            model: 'unknown-model',
-            requested: RequestSpeed.ultrafast,
-            isBuiltIn: true,
-          ),
-          provider == AppDefaults.openAiProvider
-              ? RequestSpeed.ultrafast
-              : RequestSpeed.fast,
-        );
-      }
-    },
-  );
+  test('no Anthropic model claims support for none reasoning', () {
+    for (final model in ModelCatalog.builtInModels(
+      AppDefaults.anthropicProvider,
+    )) {
+      expect(model.supportsNoReasoning, isFalse, reason: model.slug);
+    }
+  });
 
   test(
     'effectiveReasoning sends low instead of none where none is unsupported',
@@ -214,11 +194,7 @@ void main() {
           );
         }
       }
-      for (final provider in [
-        AppDefaults.openAiProvider,
-        AppDefaults.anthropicProvider,
-        'custom',
-      ]) {
+      for (final provider in [AppDefaults.openAiProvider, 'custom']) {
         for (final requested in ReasoningEffort.values) {
           expect(
             ModelCatalog.effectiveReasoning(
@@ -229,6 +205,17 @@ void main() {
             requested,
           );
         }
+      }
+      for (final requested in ReasoningEffort.values) {
+        expect(
+          ModelCatalog.effectiveReasoning(
+            provider: AppDefaults.anthropicProvider,
+            model: 'custom-model',
+            requested: requested,
+          ),
+          requested == ReasoningEffort.none ? ReasoningEffort.low : requested,
+          reason: 'custom Anthropic model at ${requested.name}',
+        );
       }
     },
   );

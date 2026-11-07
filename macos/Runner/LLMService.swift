@@ -4,6 +4,10 @@ import os.log
 /// Service for communicating with LLM APIs (OpenAI, OpenRouter, etc.)
 class LLMService {
     struct ScreenshotAttachment {
+        /// Low detail shrinks the image to 512 px, and the text in a window
+        /// becomes unreadable.
+        static let detail = "high"
+
         let mimeType: String
         let base64Data: String
 
@@ -54,6 +58,7 @@ class LLMService {
     let environment: [String: String]
 
     private let session: URLSession
+    private let reducedFormats = LLMReducedFormatCache()
 
     weak var delegate: LLMServiceDelegate?
 
@@ -73,6 +78,10 @@ class LLMService {
         let provider = config.provider
         let model = config.model
         log("Using provider: \(provider), model: \(model)")
+        log(
+            "Request settings: speed=\(config.requestSpeed.rawValue), " +
+            "reasoning=\(config.reasoningEffort.rawValue)"
+        )
         log(
             "Target profile instruction: " +
             targetProfileLogValue(config.targetProfileInstruction)
@@ -112,15 +121,30 @@ class LLMService {
         debugLog("═══════════════════════════════════════════")
         #endif
 
-        let format = LLMWireFormatFactory.forProvider(provider)
-        log("Wire format: \(type(of: format))")
+        let rewrite = RewriteRequest(
+            text: text, config: config, systemInstructions: finalInstructions
+        )
         executeRequest(
-            text: text,
-            config: config,
-            systemInstructions: finalInstructions,
-            format: format,
+            rewrite,
+            format: startingFormat(for: config),
+            remembersFormat: false,
             completion: completion
         )
+    }
+
+    /// The format these settings were reduced to after an earlier
+    /// rejection, or the provider's full format.
+    private func startingFormat(for config: Configuration) -> LLMWireFormat {
+        if let cached = reducedFormats.format(for: .init(config: config)) {
+            log(
+                "Wire format: \(type(of: cached)), without parameters " +
+                "rejected earlier"
+            )
+            return cached
+        }
+        let format = LLMWireFormatFactory.forProvider(config.provider)
+        log("Wire format: \(type(of: format))")
+        return format
     }
 
     /// The editable prompt and fixed rules, then the manual `Context:`, the
@@ -258,19 +282,27 @@ app_context.
 """
     }
 
+    /// What every attempt of one rewrite sends, whatever the format.
+    private struct RewriteRequest {
+        let text: String
+        let config: Configuration
+        let systemInstructions: String
+    }
+
+    /// Sends `rewrite` in `format`. `remembersFormat` is set for a retry, so
+    /// a reduced format that the provider accepts is used from the start
+    /// next time.
     private func executeRequest(
-        text: String,
-        config: Configuration,
-        systemInstructions: String,
+        _ rewrite: RewriteRequest,
         format: LLMWireFormat,
+        remembersFormat: Bool,
         completion: @escaping (String?, String?) -> Void
     ) {
-        let provider = config.provider
-        let model = config.model
+        let provider = rewrite.config.provider
         guard let request = format.makeRequest(
-            text: text,
-            config: config,
-            systemInstructions: systemInstructions
+            text: rewrite.text,
+            config: rewrite.config,
+            systemInstructions: rewrite.systemInstructions
         ) else {
             reportErrorResponse(
                 .init(message: "Failed to encode payload", isAuthenticationFailure: false),
@@ -311,31 +343,24 @@ app_context.
             self.log("HTTP Status Code: \(httpResponse.statusCode)")
 
             guard httpResponse.statusCode == 200 else {
-                let errorInfo = self.parseErrorInfo(
-                    from: data,
-                    statusCode: httpResponse.statusCode
-                )
-                if !errorInfo.isAuthenticationFailure,
-                   let retryFormat = format.retrying(
-                       afterErrorData: data,
-                       statusCode: httpResponse.statusCode
-                   ) {
-                    self.executeRequest(
-                        text: text,
-                        config: config,
-                        systemInstructions: systemInstructions,
-                        format: retryFormat,
-                        completion: completion
-                    )
-                    return
-                }
-
-                self.reportErrorResponse(
-                    errorInfo,
-                    provider: provider,
+                self.retryOrReportError(
+                    statusCode: httpResponse.statusCode,
+                    data: data,
+                    rewrite: rewrite,
+                    format: format,
                     completion: completion
                 )
                 return
+            }
+
+            if remembersFormat {
+                self.log(
+                    "Remembering \(type(of: format)) without rejected " +
+                    "parameters"
+                )
+                self.reducedFormats.store(
+                    format, for: .init(config: rewrite.config)
+                )
             }
 
             guard let data = data else {
@@ -355,11 +380,42 @@ app_context.
                 format: format,
                 elapsedNetwork: elapsed,
                 provider: provider,
-                model: model,
+                model: rewrite.config.model,
                 completion: completion
             )
         }
         task.resume()
+    }
+
+    /// Sends `rewrite` again without the parameters the provider rejected,
+    /// or reports the error when there is nothing to drop.
+    private func retryOrReportError(
+        statusCode: Int,
+        data: Data?,
+        rewrite: RewriteRequest,
+        format: LLMWireFormat,
+        completion: @escaping (String?, String?) -> Void
+    ) {
+        let errorInfo = parseErrorInfo(from: data, statusCode: statusCode)
+        if !errorInfo.isAuthenticationFailure,
+           let retryFormat = format.retrying(
+               afterErrorData: data,
+               statusCode: statusCode
+           ) {
+            executeRequest(
+                rewrite,
+                format: retryFormat,
+                remembersFormat: true,
+                completion: completion
+            )
+            return
+        }
+
+        reportErrorResponse(
+            errorInfo,
+            provider: rewrite.config.provider,
+            completion: completion
+        )
     }
 
     private func handleNetworkError(
