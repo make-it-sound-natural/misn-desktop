@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:logging/logging.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
+import 'package:make_it_sound_natural/constants/model_catalog.dart';
 import 'package:make_it_sound_natural/constants/shortcut_status.dart';
 import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
+import 'package:make_it_sound_natural/models/request_speed.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/models/target_profile.dart';
@@ -119,8 +121,7 @@ class ShortcutService {
 
     // Load and sync model
     final model = await settings.getModel();
-    await setModel(model);
-    await setReasoningEffort(await settings.getReasoningEffort());
+    await setModel(provider: provider, model: model);
 
     final providerCatalog = ProviderCatalogService();
     final providerEntry = await providerCatalog.providerById(provider);
@@ -368,19 +369,74 @@ class ShortcutService {
     }
   }
 
-  /// Applies the reasoning budget to native rewrites and global shortcuts.
-  Future<void> setReasoningEffort(ReasoningEffort effort) async {
+  /// Applies the reasoning budget [provider] and [model] support to native
+  /// rewrites and global shortcuts.
+  Future<void> setReasoningEffort(
+    ReasoningEffort requested, {
+    required String provider,
+    required String model,
+  }) async {
+    final effort = ModelCatalog.effectiveReasoning(
+      provider: provider,
+      model: model,
+      requested: requested,
+    );
     await _channel.invokeMethod<void>(
       MethodChannelMethods.setReasoningEffort,
       effort.name,
     );
   }
 
-  /// Sets the LLM model in the native layer.
-  Future<void> setModel(String model) async {
+  /// Applies the processing tier [provider] and [model] support.
+  Future<void> setRequestSpeed(
+    RequestSpeed requested, {
+    required String provider,
+    required String model,
+  }) async {
+    final speed = ModelCatalog.effectiveSpeed(
+      provider: provider,
+      model: model,
+      requested: requested,
+    );
+    await _channel.invokeMethod<void>(
+      MethodChannelMethods.setRequestSpeed,
+      speed.name,
+    );
+  }
+
+  Future<void> _syncRequestSettings({
+    required String provider,
+    required String model,
+  }) async {
+    final settings = SettingsService();
+    try {
+      await setReasoningEffort(
+        await settings.getReasoningEffort(),
+        provider: provider,
+        model: model,
+      );
+      await setRequestSpeed(
+        await settings.getRequestSpeed(),
+        provider: provider,
+        model: model,
+      );
+    } on PlatformException catch (e) {
+      _log.warning('Failed to sync request settings: ${e.message}');
+    } on MissingPluginException catch (e) {
+      _log.warning('Request settings channel unavailable: $e');
+    }
+  }
+
+  /// Sets the LLM model in the native layer, with the reasoning and speed
+  /// the [provider]'s [model] supports.
+  Future<void> setModel({
+    required String provider,
+    required String model,
+  }) async {
     try {
       _log.info('Sending setModel to native: $model');
       await _channel.invokeMethod(MethodChannelMethods.setModel, model);
+      await _syncRequestSettings(provider: provider, model: model);
     } on PlatformException catch (e) {
       _log.warning('Failed to set model: ${e.message}');
     }

@@ -4,6 +4,10 @@ import Foundation
 struct TokenCounter {
     /// Model-specific token limits
     private static let modelLimits: [String: (contextWindow: Int, maxOutput: Int)] = [
+        "gpt-6-luna": (1_050_000, 128_000),
+        "gpt-6.1-terra": (1_050_000, 128_000),
+        "gpt-6.1-sol": (1_050_000, 128_000),
+        "gpt-6-astra": (1_050_000, 128_000),
         "gpt-5.4-nano": (400_000, 128_000),
         "gpt-5.4-mini": (400_000, 128_000),
         "gpt-5.4": (1_050_000, 128_000),

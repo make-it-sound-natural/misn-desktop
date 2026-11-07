@@ -18,14 +18,17 @@ enum AppDefaults {
     /// `anthropic-version` header sent with every Messages API request.
     static let anthropicApiVersion = "2026-10-21"
 
+    /// Beta feature required for Anthropic fast mode.
+    static let anthropicFastModeBeta = "fast-mode-2026-02-01"
+
     /// Output budget for one rewrite, thinking included.
     static let anthropicMaxTokens = 16000
 
-    /// Default LLM model used when no model has been saved.
-    static let model = "gpt-5.4-mini"
-
     /// Default reasoning budget for rewrites.
     static let reasoningEffort = ReasoningEffort.low
+
+    /// Default request processing speed.
+    static let requestSpeed = RequestSpeed.standard
 
     /// Default correction variant used when no variant has been saved.
     static let variant = "Balanced"
@@ -49,4 +52,9 @@ enum AppDefaults {
 /// Reasoning levels shared with the Flutter settings picker.
 enum ReasoningEffort: String, CaseIterable {
     case none, low, medium, high
+}
+
+/// Request processing levels resolved by the Flutter settings.
+enum RequestSpeed: String, CaseIterable {
+    case standard, fast, ultrafast
 }

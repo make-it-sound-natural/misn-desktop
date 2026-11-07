@@ -2,9 +2,12 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:make_it_sound_natural/constants/app_defaults.dart';
 import 'package:make_it_sound_natural/constants/method_channel_methods.dart';
 import 'package:make_it_sound_natural/constants/shortcut_status.dart';
 import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
+import 'package:make_it_sound_natural/models/reasoning_effort.dart';
+import 'package:make_it_sound_natural/models/request_speed.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
@@ -368,6 +371,9 @@ void main() {
           );
     });
 
+    Object? argumentOf(String method) =>
+        methodCalls.singleWhere((call) => call.method == method).arguments;
+
     test(
       'loadAndSyncSettings restores reasoning and defaults stale values',
       () async {
@@ -382,13 +388,121 @@ void main() {
           await prefs.setString('reasoning_effort', value);
           methodCalls.clear();
           await ShortcutService().loadAndSyncSettings();
-          final call = methodCalls.singleWhere(
-            (call) => call.method == MethodChannelMethods.setReasoningEffort,
+          expect(
+            argumentOf(MethodChannelMethods.setReasoningEffort),
+            value == 'retired-level' ? 'low' : value,
           );
-          expect(call.arguments, value == 'retired-level' ? 'low' : value);
         }
       },
     );
+
+    test('loadAndSyncSettings sends the effective speed once', () async {
+      for (final savedSpeed in ['ultrafast', 'retired-tier']) {
+        SharedPreferences.setMockInitialValues({
+          'api_provider': AppDefaults.openAiProvider,
+          'openai_model': 'gpt-6-luna',
+          'request_speed': savedSpeed,
+        });
+        methodCalls.clear();
+
+        await ShortcutService().loadAndSyncSettings();
+
+        expect(
+          argumentOf(MethodChannelMethods.setRequestSpeed),
+          savedSpeed == 'ultrafast' ? 'fast' : 'standard',
+        );
+      }
+    });
+
+    test(
+      'setModel sends the model, then reasoning and speed it supports',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'request_speed': 'ultrafast',
+          'reasoning_effort': 'none',
+        });
+
+        await ShortcutService().setModel(
+          provider: AppDefaults.openAiProvider,
+          model: 'gpt-6-luna',
+        );
+
+        expect(methodCalls.map((call) => call.method), [
+          MethodChannelMethods.setModel,
+          MethodChannelMethods.setReasoningEffort,
+          MethodChannelMethods.setRequestSpeed,
+        ]);
+        expect(argumentOf(MethodChannelMethods.setModel), 'gpt-6-luna');
+        expect(argumentOf(MethodChannelMethods.setReasoningEffort), 'none');
+        expect(argumentOf(MethodChannelMethods.setRequestSpeed), 'fast');
+      },
+    );
+
+    test('setModel resolves against the given model, not saved ones', () async {
+      SharedPreferences.setMockInitialValues({
+        'api_provider': AppDefaults.openRouterProvider,
+        'openai_model': 'google/gemini-3-flash-preview',
+        'request_speed': 'ultrafast',
+        'reasoning_effort': 'none',
+      });
+
+      await ShortcutService().setModel(
+        provider: AppDefaults.openAiProvider,
+        model: 'gpt-6.1-sol',
+      );
+
+      expect(argumentOf(MethodChannelMethods.setReasoningEffort), 'low');
+      expect(argumentOf(MethodChannelMethods.setRequestSpeed), 'ultrafast');
+    });
+
+    test('setRequestSpeed sends the effective level only', () async {
+      await ShortcutService().setRequestSpeed(
+        RequestSpeed.ultrafast,
+        provider: AppDefaults.openAiProvider,
+        model: 'gpt-6-luna',
+      );
+
+      expect(methodCalls, hasLength(1));
+      expect(argumentOf(MethodChannelMethods.setRequestSpeed), 'fast');
+      expect(await SettingsService().getRequestSpeed(), RequestSpeed.standard);
+    });
+
+    test('setRequestSpeed rethrows a native failure', () async {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
+            const MethodChannel(MethodChannelMethods.channelName),
+            (call) async => throw PlatformException(
+              code: 'SAVE_FAILED',
+              message: 'Native speed update failed',
+            ),
+          );
+
+      await expectLater(
+        ShortcutService().setRequestSpeed(
+          RequestSpeed.fast,
+          provider: AppDefaults.openAiProvider,
+          model: 'gpt-6-luna',
+        ),
+        throwsA(
+          isA<PlatformException>().having(
+            (error) => error.code,
+            'code',
+            'SAVE_FAILED',
+          ),
+        ),
+      );
+    });
+
+    test('setReasoningEffort sends the effective level only', () async {
+      await ShortcutService().setReasoningEffort(
+        ReasoningEffort.none,
+        provider: AppDefaults.openAiProvider,
+        model: 'gpt-6.1-sol',
+      );
+
+      expect(methodCalls, hasLength(1));
+      expect(argumentOf(MethodChannelMethods.setReasoningEffort), 'low');
+    });
 
     test('loadAndSyncSettings sends selected target profile', () async {
       final prefs = await SharedPreferences.getInstance();

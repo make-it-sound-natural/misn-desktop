@@ -93,7 +93,7 @@ void main() {
     () async {
       SharedPreferences.setMockInitialValues({
         'api_provider': 'openai',
-        'openai_model': 'gpt-5.4-mini',
+        'openai_model': 'gpt-6.1-terra',
         'app_shortcut': 'cmd+shift+k',
         'screenshot_context_mode': 'fullScreen',
       });
@@ -104,7 +104,7 @@ void main() {
       final prefs = await SharedPreferences.getInstance();
       expect(await service.loadState(), const OnboardingSetupState.completed());
       expect(prefs.getString('api_provider'), 'openai');
-      expect(prefs.getString('openai_model'), 'gpt-5.4-mini');
+      expect(prefs.getString('openai_model'), 'gpt-6.1-terra');
       expect(prefs.getString('app_shortcut'), 'cmd+shift+k');
       expect(prefs.getString('screenshot_context_mode'), 'fullScreen');
       expect(prefs.getBool(OnboardingService.completedKey), isTrue);

@@ -12,22 +12,17 @@ final class LLMServiceCompatibilityTests: XCTestCase {
     {"choices":[{"message":{"content":"Rewritten text"}}]}
     """
 
-    override func tearDown() {
-        CompatibilityURLProtocol.handler = nil
-        super.tearDown()
-    }
-
     func testReasoningFallbackForEveryProviderPreservesRequest() throws {
-        for provider in ["openai", "openrouter", "tokenguard", "custom-endpoint"] {
+        for provider in ["openrouter", "tokenguard", "custom-endpoint"] {
             let requests = try run(
                 provider: provider,
                 responses: [(400, reasoningError), (200, success)]
             )
             XCTAssertEqual(requests.count, 2)
-            let original = try payload(requests[0])
+            let original = try jsonBody(requests[0])
             var expected = original
             expected.removeValue(forKey: "reasoning_effort")
-            XCTAssertEqual(try payload(requests[1]) as NSDictionary, expected as NSDictionary)
+            XCTAssertEqual(try jsonBody(requests[1]) as NSDictionary, expected as NSDictionary)
             XCTAssertEqual(original["reasoning_effort"] as? String, "none")
             XCTAssertEqual(requests[0].url, requests[1].url)
             XCTAssertEqual(requests[0].httpMethod, requests[1].httpMethod)
@@ -46,8 +41,8 @@ final class LLMServiceCompatibilityTests: XCTestCase {
                 (400, errors[0]), (400, errors[1]), (200, success)
             ])
             XCTAssertEqual(requests.count, 3)
-            let original = try payload(requests[0])
-            let intermediate = try payload(requests[1])
+            let original = try jsonBody(requests[0])
+            let intermediate = try jsonBody(requests[1])
             if errors[0] == reasoningError {
                 XCTAssertNil(intermediate["reasoning_effort"])
                 XCTAssertNotNil(intermediate["response_format"])
@@ -55,7 +50,7 @@ final class LLMServiceCompatibilityTests: XCTestCase {
                 XCTAssertNotNil(intermediate["reasoning_effort"])
                 XCTAssertNil(intermediate["response_format"])
             }
-            let final = try payload(requests[2])
+            let final = try jsonBody(requests[2])
             XCTAssertNil(final["reasoning_effort"])
             XCTAssertNil(final["response_format"])
             XCTAssertEqual(final["model"] as? String, original["model"] as? String)
@@ -77,8 +72,8 @@ final class LLMServiceCompatibilityTests: XCTestCase {
     func testFormatFallbackAlonePreservesReasoning() throws {
         let requests = try run(responses: [(400, formatError), (200, success)])
         XCTAssertEqual(requests.count, 2)
-        XCTAssertEqual(try payload(requests[1])["reasoning_effort"] as? String, "none")
-        XCTAssertNil(try payload(requests[1])["response_format"])
+        XCTAssertEqual(try jsonBody(requests[1])["reasoning_effort"] as? String, "none")
+        XCTAssertNil(try jsonBody(requests[1])["response_format"])
     }
 
     func testStructuredParameterRejectionAndLongErrorAreRecognized() throws {
@@ -99,7 +94,7 @@ final class LLMServiceCompatibilityTests: XCTestCase {
         for body in bodies {
             let requests = try run(responses: [(422, body), (200, success)])
             XCTAssertEqual(requests.count, 2)
-            XCTAssertNil(try payload(requests[1])["reasoning_effort"])
+            XCTAssertNil(try jsonBody(requests[1])["reasoning_effort"])
         }
     }
 
@@ -141,12 +136,12 @@ final class LLMServiceCompatibilityTests: XCTestCase {
         let body = #"{"error":{"message":"reasoning_effort is unsupported; response_format is not supported"}}"#
         let requests = try run(responses: [(400, body), (200, success)])
         XCTAssertEqual(requests.count, 2)
-        XCTAssertNil(try payload(requests[1])["reasoning_effort"])
-        XCTAssertNil(try payload(requests[1])["response_format"])
+        XCTAssertNil(try jsonBody(requests[1])["reasoning_effort"])
+        XCTAssertNil(try jsonBody(requests[1])["response_format"])
     }
 
     func testBuiltInResponseFormatPolicyIsUnchanged() throws {
-        for provider in ["openai", "openrouter"] {
+        for provider in ["openrouter"] {
             let requests = try run(
                 provider: provider,
                 responses: [(400, formatError)],
@@ -154,6 +149,60 @@ final class LLMServiceCompatibilityTests: XCTestCase {
             )
             XCTAssertEqual(requests.count, 1)
         }
+    }
+
+    func testRejectedParametersStayRemovedForTheSameSettings() throws {
+        let requests = runOnOneService([config(), config()], responses: [
+            (400, reasoningError), (400, formatError),
+            (200, success), (200, success)
+        ])
+
+        XCTAssertEqual(requests.count, 4)
+        guard requests.count == 4 else { return }
+        XCTAssertNotNil(try jsonBody(requests[0])["reasoning_effort"])
+        let next = try jsonBody(requests[3])
+        XCTAssertNil(next["reasoning_effort"])
+        XCTAssertNil(next["response_format"])
+        XCTAssertEqual(
+            next as NSDictionary, try jsonBody(requests[2]) as NSDictionary
+        )
+    }
+
+    func testOtherModelEffortOrEndpointStartsWithTheFullRequest() throws {
+        let others: [(LLMService.Configuration, String)] = [
+            (config(model: "other-model"), "none"),
+            (config(reasoningEffort: .low), "low"),
+            (config(baseUrl: "https://other.test/v1"), "none"),
+            (config(provider: "custom-endpoint"), "none")
+        ]
+        let requests = runOnOneService(
+            [config()] + others.map(\.0),
+            responses: [(400, reasoningError)] +
+                Array(repeating: (200, success), count: 1 + others.count)
+        )
+
+        XCTAssertEqual(requests.count, 2 + others.count)
+        guard requests.count == 2 + others.count else { return }
+        for (index, (_, effort)) in others.enumerated() {
+            XCTAssertEqual(
+                try jsonBody(requests[2 + index])["reasoning_effort"] as? String,
+                effort,
+                "\(index)"
+            )
+        }
+    }
+
+    func testFailedRetryIsNotRemembered() throws {
+        let serverError = #"{"error":{"message":"Internal error"}}"#
+        let requests = runOnOneService([config(), config()], responses: [
+            (400, reasoningError), (500, serverError), (200, success)
+        ])
+
+        XCTAssertEqual(requests.count, 3)
+        guard requests.count == 3 else { return }
+        XCTAssertEqual(
+            try jsonBody(requests[2])["reasoning_effort"] as? String, "none"
+        )
     }
 
     func testUnparsableSuccessBodyCompletesWithParserMessage() throws {
@@ -201,87 +250,57 @@ final class LLMServiceCompatibilityTests: XCTestCase {
         expectSuccess: Bool = true,
         expectedError: String? = nil
     ) throws -> [URLRequest] {
-        var requests: [URLRequest] = []
-        CompatibilityURLProtocol.handler = { request in
-            var captured = request
-            if captured.httpBody == nil, let stream = request.httpBodyStream {
-                stream.open()
-                defer { stream.close() }
-                var data = Data()
-                var buffer = [UInt8](repeating: 0, count: 4096)
-                while stream.hasBytesAvailable {
-                    let count = stream.read(&buffer, maxLength: buffer.count)
-                    guard count > 0 else { break }
-                    data.append(buffer, count: count)
-                }
-                captured.httpBody = data
+        let transport = ScriptedLLMTransport(responses: responses)
+        defer { transport.invalidate() }
+        let service = LLMService(session: transport.session)
+        let result = processTextAndWait(
+            service, config: config(provider: provider)
+        )
+        if expectSuccess {
+            XCTAssertEqual(result.content, "Rewritten text")
+            XCTAssertEqual(result.variantOrError, "Rewritten text")
+        } else {
+            XCTAssertNil(result.content)
+            XCTAssertNotNil(result.variantOrError)
+            if let expectedError {
+                XCTAssertEqual(result.variantOrError, expectedError)
             }
-            requests.append(captured)
-            let index = requests.count - 1
-            guard index < responses.count else {
-                XCTFail("Unexpected extra request")
-                return (500, "{}")
-            }
-            return responses[index]
         }
-        let sessionConfig = URLSessionConfiguration.ephemeral
-        sessionConfig.protocolClasses = [CompatibilityURLProtocol.self]
-        let session = URLSession(configuration: sessionConfig)
-        defer { session.invalidateAndCancel() }
-        let service = LLMService(session: session)
-        let done = expectation(description: "Request completes once")
-        done.assertForOverFulfill = true
-        service.processText("Original text", config: .init(
+        return transport.requests
+    }
+
+    /// Sends one rewrite per configuration through the same service.
+    private func runOnOneService(
+        _ configs: [LLMService.Configuration],
+        responses: [(Int, String)]
+    ) -> [URLRequest] {
+        let transport = ScriptedLLMTransport(responses: responses)
+        defer { transport.invalidate() }
+        let service = LLMService(session: transport.session)
+        for config in configs {
+            _ = processTextAndWait(service, config: config)
+        }
+        return transport.requests
+    }
+
+    private func config(
+        provider: String = "tokenguard",
+        baseUrl: String = "https://example.test/v1",
+        model: String = "test-model",
+        reasoningEffort: ReasoningEffort = .none
+    ) -> LLMService.Configuration {
+        .init(
             provider: provider,
             apiKey: "key", openRouterApiKey: "router-key",
             customProviderApiKey: "custom-key",
-            customProviderBaseUrl: "https://example.test/v1",
-            model: "test-model", customPrompt: "Rewrite naturally.",
+            customProviderBaseUrl: baseUrl,
+            model: model, customPrompt: "Rewrite naturally.",
             context: "Saved context", targetProfileInstruction: "British English",
             screenshotAttachment: .init(mimeType: "image/png", base64Data: "abc"),
             accessibilityContext: nil,
-            reasoningEffort: .none
-        )) { content, variantOrError in
-            if expectSuccess {
-                XCTAssertEqual(content, "Rewritten text")
-                XCTAssertEqual(variantOrError, "Rewritten text")
-            } else {
-                XCTAssertNil(content)
-                XCTAssertNotNil(variantOrError)
-                if let expectedError {
-                    XCTAssertEqual(variantOrError, expectedError)
-                }
-            }
-            done.fulfill()
-        }
-        wait(for: [done], timeout: 3)
-        return requests
+            reasoningEffort: reasoningEffort
+        )
     }
-
-    private func payload(_ request: URLRequest) throws -> [String: Any] {
-        let body = try XCTUnwrap(request.httpBody)
-        return try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: Any])
-    }
-}
-
-private final class CompatibilityURLProtocol: URLProtocol {
-    static var handler: ((URLRequest) -> (Int, String))?
-
-    override class func canInit(with request: URLRequest) -> Bool { true }
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    override func startLoading() {
-        guard let handler = Self.handler, let url = request.url else { return }
-        let (status, body) = handler(request)
-        guard let response = HTTPURLResponse(
-            url: url, statusCode: status, httpVersion: nil, headerFields: nil
-        ) else { return }
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data(body.utf8))
-        client?.urlProtocolDidFinishLoading(self)
-    }
-
-    override func stopLoading() {}
 }
 
 private final class TimedOutURLProtocol: URLProtocol {

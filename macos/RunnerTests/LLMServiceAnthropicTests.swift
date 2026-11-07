@@ -6,11 +6,6 @@ final class LLMServiceAnthropicTests: XCTestCase {
     {"type":"message","role":"assistant","content":[{"type":"text","text":"{\"balanced\":\"b\",\"casual\":\"c\",\"formal\":\"f\",\"concise\":\"n\"}"}],"stop_reason":"end_turn"}
     """#
 
-    override func tearDown() {
-        AnthropicURLProtocol.handler = nil
-        super.tearDown()
-    }
-
     func testRewriteSendsOneMessagesRequestAndReturnsVariants() {
         let outcome = run(responses: [(200, endTurn)])
 
@@ -106,7 +101,7 @@ final class LLMServiceAnthropicTests: XCTestCase {
 
     private struct Outcome {
         let requests: [URLRequest]
-        let delegate: CapturingDelegate
+        let delegate: CapturingLLMDelegate
         let content: String?
         let variantOrError: String?
     }
@@ -115,28 +110,12 @@ final class LLMServiceAnthropicTests: XCTestCase {
         responses: [(Int, String)],
         anthropicApiKey: String = "anthropic-key"
     ) -> Outcome {
-        var requests: [URLRequest] = []
-        AnthropicURLProtocol.handler = { request in
-            requests.append(request)
-            let index = requests.count - 1
-            guard index < responses.count else {
-                XCTFail("Unexpected extra request")
-                return (500, "{}")
-            }
-            return responses[index]
-        }
-        let sessionConfig = URLSessionConfiguration.ephemeral
-        sessionConfig.protocolClasses = [AnthropicURLProtocol.self]
-        let session = URLSession(configuration: sessionConfig)
-        defer { session.invalidateAndCancel() }
-        let service = LLMService(session: session)
-        let delegate = CapturingDelegate()
+        let transport = ScriptedLLMTransport(responses: responses)
+        defer { transport.invalidate() }
+        let service = LLMService(session: transport.session)
+        let delegate = CapturingLLMDelegate()
         service.delegate = delegate
-        var content: String?
-        var variantOrError: String?
-        let done = expectation(description: "Request completes once")
-        done.assertForOverFulfill = true
-        service.processText("Original text", config: .init(
+        let result = processTextAndWait(service, config: .init(
             provider: AppDefaults.anthropicProvider,
             apiKey: "openai-key",
             openRouterApiKey: "router-key",
@@ -149,59 +128,12 @@ final class LLMServiceAnthropicTests: XCTestCase {
             targetProfileInstruction: nil,
             screenshotAttachment: nil,
             accessibilityContext: nil
-        )) { receivedContent, receivedVariantOrError in
-            content = receivedContent
-            variantOrError = receivedVariantOrError
-            done.fulfill()
-        }
-        wait(for: [done], timeout: 3)
+        ))
         return Outcome(
-            requests: requests,
+            requests: transport.requests,
             delegate: delegate,
-            content: content,
-            variantOrError: variantOrError
+            content: result.content,
+            variantOrError: result.variantOrError
         )
     }
-}
-
-private final class CapturingDelegate: LLMServiceDelegate {
-    var error: String?
-    var provider: String?
-    var isAuthenticationFailure = false
-
-    func llmService(
-        _ service: LLMService,
-        didFailWithError error: String,
-        isAuthenticationFailure: Bool,
-        provider: String
-    ) {
-        self.error = error
-        self.provider = provider
-        self.isAuthenticationFailure = isAuthenticationFailure
-    }
-
-    func llmService(
-        _ service: LLMService,
-        didReceiveTimingData: (String, TimeInterval)
-    ) {}
-}
-
-private final class AnthropicURLProtocol: URLProtocol {
-    static var handler: ((URLRequest) -> (Int, String))?
-
-    override class func canInit(with request: URLRequest) -> Bool { true }
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-
-    override func startLoading() {
-        guard let handler = Self.handler, let url = request.url else { return }
-        let (status, body) = handler(request)
-        guard let response = HTTPURLResponse(
-            url: url, statusCode: status, httpVersion: nil, headerFields: nil
-        ) else { return }
-        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-        client?.urlProtocol(self, didLoad: Data(body.utf8))
-        client?.urlProtocolDidFinishLoading(self)
-    }
-
-    override func stopLoading() {}
 }

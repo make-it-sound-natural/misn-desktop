@@ -32,7 +32,8 @@ class MethodChannelHandler {
     private var customProviderBaseUrl: String = ""
     private var context: String = AppDefaults.context
     var reasoningEffort = AppDefaults.reasoningEffort
-    var model: String = AppDefaults.model
+    var requestSpeed = AppDefaults.requestSpeed
+    var model: String = ""
     private var defaultVariant: String = AppDefaults.variant
     private var customPrompt: String = ""
     private var targetProfileId: String = "americanEnglish"
@@ -102,6 +103,7 @@ class MethodChannelHandler {
         "setContext": handleSetContext,
         "setModel": handleSetModel,
         "setReasoningEffort": handleSetReasoningEffort,
+        "setRequestSpeed": handleSetRequestSpeed,
         "setDefaultVariant": handleSetDefaultVariant,
         "setCustomPrompt": handleSetCustomPrompt,
         "setTargetProfile": handleSetTargetProfile,

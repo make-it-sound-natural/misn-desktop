@@ -1,5 +1,6 @@
 import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/reasoning_effort.dart';
+import 'package:make_it_sound_natural/models/request_speed.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 
 /// Application default values.
@@ -34,6 +35,9 @@ class AppDefaults {
 
   /// Default reasoning budget for rewrites.
   static const ReasoningEffort reasoningEffort = ReasoningEffort.low;
+
+  /// Default processing tier for rewrites.
+  static const RequestSpeed requestSpeed = RequestSpeed.standard;
 
   /// Default correction variant used when no variant has been saved.
   static const String variant = 'Balanced';

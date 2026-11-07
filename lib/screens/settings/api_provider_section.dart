@@ -9,6 +9,7 @@ import 'package:make_it_sound_natural/models/llm_provider_entry.dart';
 import 'package:make_it_sound_natural/models/provider_auth_failure.dart';
 import 'package:make_it_sound_natural/screens/settings/api_provider_dialogs.dart';
 import 'package:make_it_sound_natural/screens/settings/reasoning_effort_row.dart';
+import 'package:make_it_sound_natural/screens/settings/request_speed_row.dart';
 import 'package:make_it_sound_natural/services/model_catalog_service.dart';
 import 'package:make_it_sound_natural/services/provider_catalog_service.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
@@ -158,7 +159,7 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
     await _settingsService.setProvider(provider);
     await _shortcutService.setProvider(provider);
     await _settingsService.setModel(model);
-    await _shortcutService.setModel(model);
+    await _shortcutService.setModel(provider: provider, model: model);
   }
 
   Future<void> _syncSelectedCustomProviderConfig() async {
@@ -436,7 +437,15 @@ class _ApiProviderSectionState extends State<ApiProviderSection> {
           children: [
             _buildModelPickerRow(l10n),
             const AppSettingsDivider(),
-            const ReasoningEffortRow(),
+            ReasoningEffortRow(
+              provider: _selectedProvider,
+              model: _selectedModel,
+            ),
+            const AppSettingsDivider(),
+            RequestSpeedRow(
+              provider: _selectedProvider,
+              model: _selectedModel,
+            ),
           ],
         ),
         if (_activeAuthFailure != null) _buildAuthFailureNote(l10n),

@@ -380,7 +380,8 @@
   "contextShortcutHintAppend": "um ihn zu ergänzen.",
   "reasoningEffort": "Denktiefe",
   "reasoningDescription": "Niedrige Stufen bevorzugen Tempo, höhere erlauben tieferes Nachdenken.",
-  "reasoningCompatibility": "Gilt für alle Modelle. Nicht unterstützte Stufen nutzen den Anbieterstandard.",
+  "reasoningFallback": "Gilt für alle Modelle. Modelle ohne „Keine“ nutzen „Niedrig“; lehnt ein Modell die Einstellung ab, gilt der Anbieterstandard.",
+  "reasoningRunsAtLow": "{model} nutzt die Stufe Niedrig",
   "reasoningNone": "Keine",
   "reasoningLow": "Niedrig (Standard)",
   "reasoningMedium": "Mittel",
@@ -397,5 +398,16 @@
   "aboutReportIssueSubtitle": "Öffnet ein neues GitHub-Issue mit deinen Versionsdaten",
   "aboutPrivacyPolicy": "Datenschutzerklärung",
   "aboutLicense": "Lizenz",
-  "aboutLinkOpenFailed": "Der Link konnte nicht geöffnet werden"
+  "aboutLinkOpenFailed": "Der Link konnte nicht geöffnet werden",
+  "requestSpeed": "Geschwindigkeit",
+  "requestSpeedDescription": "Schnellere Stufen antworten früher und kosten mehr.",
+  "requestSpeedStandard": "Standard",
+  "requestSpeedStandardOption": "Standard (voreingestellt)",
+  "requestSpeedFast": "Schnell",
+  "requestSpeedUltrafast": "Ultraschnell",
+  "requestSpeedFastOption": "Schnell · 2× Kosten",
+  "requestSpeedUltrafastOption": "Ultraschnell · 6× Kosten",
+  "requestSpeedRunsAt": "{model} nutzt die Stufe {level}",
+  "requestSpeedUnavailable": "Für OpenAI und Anthropic verfügbar",
+  "requestSpeedSaveFailed": "Geschwindigkeit konnte nicht gespeichert werden. Erneut versuchen."
 }

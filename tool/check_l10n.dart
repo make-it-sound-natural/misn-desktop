@@ -61,6 +61,7 @@ bool _allowedSharedKeys(String key) => const {
   'updates',
   'versionLabel',
   'pixelsUnit',
+  'requestSpeedStandard',
 }.contains(key);
 
 void _writeFinding(String label, List<String> values) {

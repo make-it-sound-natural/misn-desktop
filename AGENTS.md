@@ -69,10 +69,8 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
 │   └── release_manager/      # Channel config, version policy, CLI commands
 ├── test/                     # Dart unit/widget tests
 │   └── tool/                 # Dart CLI and Python nightly policy tests
-├── docs/
-│   ├── design-system.md      # Compact desktop UI layout rules and tokens
-│   ├── nightly-versioning.md # Nightly allocation and migration constraints
-│   └── ci-cd-setup.md        # CI/CD overview
+├── docs/                     # Design system, request speed, reasoning effort,
+│                             # token limits, nightly versioning, CI/CD
 ├── .github/workflows/        # CI/CD workflows
 │   ├── test.yml              # PR / push test pipeline
 │   ├── bump-version.yml      # Bump pubspec version (dispatch)
@@ -85,9 +83,11 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
     │   # Key files: MethodChannelHandler, ShortcutHandler, LLMService,
     │   # ClipboardService, ShortcutManager, ContextCapturer, StatusBubble*,
     │   # StatusBubbleControlling (test seam), VariantHandler, …
-    │   # LLMService sends through an LLMWireFormat (ChatCompletionsFormat,
-    │   # AnthropicMessagesFormat); CorrectionVariantsJSON decodes the four
-    │   # variants into marker text.
+    │   # LLMService sends through an LLMWireFormat (OpenAIResponsesFormat,
+    │   # ChatCompletionsFormat, AnthropicMessagesFormat);
+    │   # LLMReducedFormatCache (in LLMWireFormat.swift) remembers a format
+    │   # reduced after a parameter rejection; CorrectionVariantsJSON
+    │   # decodes the four variants into marker text.
     │   # MethodChannelHandler+AnthropicKey stores and syncs the Anthropic key.
     │   # App context (text read through Accessibility and sent with a
     │   # rewrite; not the manual ContextCapturer / user_context):
@@ -100,7 +100,9 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
     │   #   AccessibilityContextDebugSaver, DebugArtifactStore
     └── RunnerTests/          # XCTest (dispatch, LLM error parser, LLM wire
                               # formats and variants JSON, bubble policy,
-                              # App context capture and policy)
+                              # App context capture and policy);
+                              # LLMServiceTestSupport holds the scripted
+                              # URLProtocol and delegate for LLMService tests
 ```
 
 ## Build and test commands

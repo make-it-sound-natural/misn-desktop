@@ -1,17 +1,12 @@
 import Foundation
 import os.log
 
-/// OpenAI-compatible Chat Completions, used by OpenAI, OpenRouter, and
-/// custom providers.
+/// OpenAI-compatible Chat Completions for OpenRouter and custom providers.
 struct ChatCompletionsFormat: LLMWireFormat {
     let provider: String
     /// Parameters a provider rejected earlier; they stay removed on every
     /// later attempt.
     var excludedParameters: Set<LLMCompatibility.Parameter> = []
-
-    /// Low detail shrinks the image to 512 px, and the text in a window
-    /// becomes unreadable.
-    static let screenshotDetail = "high"
 
     private static let logger = OSLog(
         subsystem: "com.makeitsoundnatural.macos",
@@ -83,9 +78,6 @@ struct ChatCompletionsFormat: LLMWireFormat {
                 ]
             ]
         }
-        if config.provider == AppDefaults.openAiProvider {
-            payload["service_tier"] = "priority"
-        }
         return payload
     }
 
@@ -120,7 +112,7 @@ struct ChatCompletionsFormat: LLMWireFormat {
             data: data,
             statusCode: statusCode
         ).subtracting(excludedParameters).filter {
-            $0 != .responseFormat || !isBuiltInProvider
+            $0 != .responseFormat || !isOpenRouter
         }
         guard !rejected.isEmpty else { return nil }
 
@@ -131,17 +123,14 @@ struct ChatCompletionsFormat: LLMWireFormat {
         return copy
     }
 
-    private var isBuiltInProvider: Bool {
+    private var isOpenRouter: Bool {
         provider == AppDefaults.openRouterProvider
-            || provider == AppDefaults.openAiProvider
     }
 
     private func requestUrl(for config: LLMService.Configuration) -> URL? {
         let rawUrl: String
         if config.provider == AppDefaults.openRouterProvider {
             rawUrl = "https://openrouter.ai/api/v1/chat/completions"
-        } else if config.provider == AppDefaults.openAiProvider {
-            rawUrl = "https://api.openai.com/v1/chat/completions"
         } else {
             rawUrl = normalizeChatCompletionsUrl(
                 config.customProviderBaseUrl ?? ""
@@ -202,7 +191,7 @@ formal, concise. Do not wrap it in markdown. Do not add commentary.
                 "type": "image_url",
                 "image_url": [
                     "url": screenshotAttachment.dataURL,
-                    "detail": Self.screenshotDetail
+                    "detail": LLMService.ScreenshotAttachment.detail
                 ]
             ]
         ]

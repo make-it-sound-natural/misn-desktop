@@ -77,6 +77,9 @@ abstract class MethodChannelMethods {
   /// Applies the selected reasoning budget.
   static const String setReasoningEffort = 'setReasoningEffort';
 
+  /// Applies the effective processing tier.
+  static const String setRequestSpeed = 'setRequestSpeed';
+
   /// Sets the LLM model to use.
   static const String setModel = 'setModel';
 

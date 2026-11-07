@@ -30,6 +30,10 @@ The system supports multiple models with different context windows:
 
 | Model | Context Window | Max Output | Usable Input |
 |-------|---------------|------------|--------------|
+| gpt-6-luna | 1,050,000 | 128,000 | ~921,000 |
+| gpt-6.1-terra | 1,050,000 | 128,000 | ~921,000 |
+| gpt-6.1-sol | 1,050,000 | 128,000 | ~921,000 |
+| gpt-6-astra | 1,050,000 | 128,000 | ~921,000 |
 | gpt-5.4-nano | 400,000 | 128,000 | ~271,000 |
 | gpt-5.4-mini | 400,000 | 128,000 | ~271,000 |
 | gpt-5.4 | 1,050,000 | 128,000 | ~921,000 |
@@ -42,6 +46,9 @@ The system supports multiple models with different context windows:
 | anthropic/claude-haiku-4.5 | 200,000 | 64,000 | ~135,000 |
 
 **Usable Input** = Context Window - Max Output - 1,000 (safety margin)
+
+Models missing from this table, manually added ones included, use a
+128,000-token context window and 16,384 output tokens.
 
 ### Smart Context Truncation
 
@@ -96,17 +103,11 @@ Token estimation - System: 1500, User: 500, Context: 300000, Total: 302000, Limi
 
 ## API Configuration
 
-### Priority Processing
-All requests use `service_tier: "priority"` for:
-- ⚡ Faster response times
-- 📊 More consistent latency
-- 🎯 Better for user-facing interactions
+### Request Speed and Model Selection
 
-### Default Model: gpt-5.4-mini
-- **Cost-effective**: $0.20/1M input tokens, $1.25/1M output tokens
-- **Fast**: Optimized for quick responses and high-volume tasks
-- **Large context**: 400K tokens
-- **Perfect for**: Text correction and refinement
+The model always comes from the Dart settings. Speed levels, provider support,
+request fields, and pricing are described in
+[Request Speed](request-speed.md).
 
 ## Usage Recommendations
 

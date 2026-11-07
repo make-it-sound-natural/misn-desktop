@@ -43,6 +43,38 @@ final class AnthropicMessagesFormatTests: XCTestCase {
         XCTAssertEqual(messages[0]["role"] as? String, "user")
     }
 
+    func testFastSpeedAddsSpeedFieldAndBetaHeader() throws {
+        let request = try XCTUnwrap(makeRequest(config(requestSpeed: .fast)))
+        let body = try payload(config(requestSpeed: .fast))
+
+        XCTAssertEqual(body["speed"] as? String, "fast")
+        XCTAssertEqual(
+            request.value(forHTTPHeaderField: "anthropic-beta"),
+            "fast-mode-2026-02-01"
+        )
+        XCTAssertNil(body["service_tier"])
+    }
+
+    func testUltrafastSpeedFallsBackToFastFieldAndBetaHeader() throws {
+        let request = try XCTUnwrap(makeRequest(config(requestSpeed: .ultrafast)))
+        let body = try payload(config(requestSpeed: .ultrafast))
+
+        XCTAssertEqual(body["speed"] as? String, "fast")
+        XCTAssertEqual(
+            request.value(forHTTPHeaderField: "anthropic-beta"),
+            "fast-mode-2026-02-01"
+        )
+    }
+
+    func testStandardSpeedSendsNoSpeedFieldOrBetaHeader() throws {
+        let request = try XCTUnwrap(makeRequest(config()))
+        let body = try payload(config())
+
+        XCTAssertNil(body["speed"])
+        XCTAssertNil(body["service_tier"])
+        XCTAssertNil(request.value(forHTTPHeaderField: "anthropic-beta"))
+    }
+
     func testTextOnlyRequestSendsPlainStringContent() throws {
         let message = try userMessage(config())
 
@@ -206,32 +238,11 @@ final class AnthropicMessagesFormatTests: XCTestCase {
         XCTAssertNil(format.retrying(afterErrorData: body, statusCode: 400))
     }
 
-    func testFactoryRoutesOnlyAnthropicProviderToMessagesApi() throws {
-        let native = try XCTUnwrap(request(for: config()))
-        let custom = try XCTUnwrap(request(for: config(provider: "anthropic")))
-
-        XCTAssertEqual(
-            native.url?.absoluteString,
-            "https://api.anthropic.com/v1/messages"
-        )
-        XCTAssertEqual(
-            custom.url?.absoluteString,
-            "https://api.anthropic.com/v1/chat/completions"
-        )
-    }
-
-    private func request(for config: LLMService.Configuration) -> URLRequest? {
-        LLMWireFormatFactory.forProvider(config.provider).makeRequest(
-            text: "Selected text",
-            config: config,
-            systemInstructions: "system"
-        )
-    }
-
     private func config(
         provider: String = AppDefaults.anthropicProvider,
         screenshot: LLMService.ScreenshotAttachment? = nil,
-        reasoningEffort: ReasoningEffort = .low
+        reasoningEffort: ReasoningEffort = .low,
+        requestSpeed: RequestSpeed = .standard
     ) -> LLMService.Configuration {
         .init(
             provider: provider,
@@ -246,7 +257,8 @@ final class AnthropicMessagesFormatTests: XCTestCase {
             targetProfileInstruction: nil,
             screenshotAttachment: screenshot,
             accessibilityContext: nil,
-            reasoningEffort: reasoningEffort
+            reasoningEffort: reasoningEffort,
+            requestSpeed: requestSpeed
         )
     }
 

@@ -1160,7 +1160,16 @@
   },
   "reasoningEffort": "Reasoning effort",
   "reasoningDescription": "Lower levels favor speed; higher levels allow deeper reasoning.",
-  "reasoningCompatibility": "Applies to all models. Unsupported levels use the provider’s default.",
+  "reasoningFallback": "Applies to all models. Models without None use Low; a model that rejects the setting uses its provider’s default.",
+  "reasoningRunsAtLow": "{model} runs at Low",
+  "@reasoningRunsAtLow": {
+    "description": "Reasoning row subtitle when the selected model has no None level and runs at Low instead.",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      }
+    }
+  },
   "reasoningNone": "None",
   "reasoningLow": "Low (default)",
   "reasoningMedium": "Medium",
@@ -1213,5 +1222,27 @@
   "aboutLinkOpenFailed": "Couldn't open the link",
   "@aboutLinkOpenFailed": {
     "description": "Toast shown when an About link cannot be opened"
-  }
+  },
+  "requestSpeed": "Speed",
+  "requestSpeedDescription": "Faster tiers answer sooner and cost more.",
+  "requestSpeedStandard": "Standard",
+  "requestSpeedStandardOption": "Standard (default)",
+  "requestSpeedFast": "Fast",
+  "requestSpeedUltrafast": "Ultrafast",
+  "requestSpeedFastOption": "Fast · 2× price",
+  "requestSpeedUltrafastOption": "Ultrafast · 6× price",
+  "requestSpeedRunsAt": "{model} runs at {level}",
+  "@requestSpeedRunsAt": {
+    "description": "Speed row subtitle when the selected model runs at a slower tier than chosen. `level` is a localized speed level name.",
+    "placeholders": {
+      "model": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "requestSpeedUnavailable": "Available for OpenAI and Anthropic",
+  "requestSpeedSaveFailed": "Could not save speed. Try again."
 }

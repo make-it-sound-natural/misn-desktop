@@ -6,17 +6,32 @@ saved locally; missing or unknown saved values use Low. Lower levels favor
 speed, while higher levels allow a larger reasoning budget. Providers decide
 how to interpret the level, so this is not a latency or quality guarantee.
 
-Chat Completions providers (OpenAI, OpenRouter, and custom providers) receive
-the top-level `reasoning_effort` field. The app does not send a second, nested
-`reasoning.effort` field. OpenRouter documents the top-level
-field in its [parameter reference](https://openrouter.ai/docs/api_reference/parameters).
+OpenAI receives `reasoning.effort` through the Responses API. None becomes
+`low` on `gpt-6-astra` and `gpt-6.1-sol`, which do not support `none`. The
+Reasoning effort row then shows `gpt-6.1-sol runs at Low`; the saved choice
+stays None.
+On HTTP 400 or 422, an explicit rejection of `reasoning`, `reasoning.effort`,
+or its value allows one retry with the `reasoning` object omitted. This also
+supports manually added OpenAI models that reject reasoning options. The
+retry uses the model's default reasoning and preserves the saved preference
+and all other request fields, including the speed tier. A second rejection,
+rejected speed tier, rate limit, or other error is shown as returned.
+
+After a retry succeeds, the reduced request is remembered for the same
+provider, base URL, model, and reasoning level until the app quits, so later
+rewrites skip the failed first request. This applies to every retry on this
+page.
+
+Chat Completions providers (OpenRouter and custom providers) receive the
+top-level `reasoning_effort` field. OpenRouter documents it in its
+[parameter reference](https://openrouter.ai/docs/api_reference/parameters).
 TokenGuard's top-level contract and observations about rejected `none` values
 come from [MT-1087](https://www.notion.so/3dc03d59105281629ca5caf4d3b0e725).
 
 On HTTP 400 or 422, an explicit rejection of `reasoning_effort` or its value
 allows a retry with that field omitted. The saved preference stays unchanged.
-This uses the provider's default for that request. It does not turn reasoning
-off: None is sent as the explicit value `none` until rejected.
+This uses the provider's default for that request. None is sent as the
+explicit value `none` until rejected.
 
 The custom-provider `response_format` fallback shares the same retry budget:
 each rejected parameter can be removed once, for at most three requests total.
@@ -27,8 +42,9 @@ Authentication, quota, server errors, unrelated validation failures, and
 repeated rejection of an already removed field do not trigger another retry.
 
 Anthropic receives the level as `output_config.effort` in the Messages API
-request. None maps to `low`, because thinking cannot be turned off on every
-model in the Anthropic catalog. Low, Medium, and High map to `low`, `medium`,
+request. Its effort has no `none` level, so None becomes `low` for every
+Anthropic model, manually added ones included, and the row shows
+`<model> runs at Low`. Low, Medium, and High map to `low`, `medium`,
 and `high`. Anthropic requests have no parameter-rejection retries: every error
 is shown as returned.
 

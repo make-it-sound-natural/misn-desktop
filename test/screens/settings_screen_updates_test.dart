@@ -103,7 +103,7 @@ void main() {
         'api_provider': 'openai',
         'openai_api_key': '',
         'openrouter_api_key': '',
-        'openai_model': 'gpt-5.4-mini',
+        'openai_model': 'gpt-6.1-terra',
         'app_shortcut': AppDefaults.correctionShortcut,
         'app_shortcut_replace': AppDefaults.replaceShortcut,
         'app_shortcut_append': AppDefaults.appendShortcut,

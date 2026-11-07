@@ -24,7 +24,7 @@ extension LLMService {
                 "Screenshot context attached to LLM request: yes, " +
                 "mime=\(screenshot.mimeType), " +
                 "base64Length=\(screenshot.base64Data.count), " +
-                "detail=\(ChatCompletionsFormat.screenshotDetail)"
+                "detail=\(ScreenshotAttachment.detail)"
             )
         } else {
             lines.append("Screenshot context attached to LLM request: no")

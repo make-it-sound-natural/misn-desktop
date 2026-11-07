@@ -27,6 +27,7 @@ void main() {
     List<String> customProviders = const [],
     List<String> customModels = const [],
     List<String> hiddenModels = const [],
+    String requestSpeed = 'standard',
   }) {
     methodCalls = [];
     secureValues = {
@@ -40,6 +41,7 @@ void main() {
       'app_shortcut_append': AppDefaults.appendShortcut,
       'default_variant': AppDefaults.variant,
       'custom_prompt': '',
+      'request_speed': requestSpeed,
       'target_profile_selection_confirmed': true,
       'target_profile_selected_id': 'americanEnglish',
       if (customProviders.isNotEmpty) 'llm_custom_providers': customProviders,
@@ -219,6 +221,7 @@ void main() {
     await pumpSettings(tester);
 
     expect(find.byKey(const Key('apiProvider-modelPicker')), findsOneWidget);
+    expect(find.byKey(const Key('apiProvider-speedPicker')), findsOneWidget);
     expect(find.text('Providers'), findsOneWidget);
     expect(find.text('Models'), findsOneWidget);
     expect(find.text('OpenRouter'), findsWidgets);
@@ -324,12 +327,12 @@ void main() {
 
     await tester.tap(find.byKey(const Key('apiProvider-modelPicker')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('gpt-5.4-mini').last);
+    await tester.tap(find.text('gpt-6.1-terra').last);
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
     expect(prefs.getString('api_provider'), 'openai');
-    expect(prefs.getString('openai_model'), 'gpt-5.4-mini');
+    expect(prefs.getString('openai_model'), 'gpt-6.1-terra');
   });
 
   testWidgets('picking a Claude model selects Anthropic and saves its key', (
@@ -545,13 +548,13 @@ void main() {
 
     await tapRowAction(
       tester,
-      const Key('apiProvider-visibility-openai-gpt-5.4-mini'),
+      const Key('apiProvider-visibility-openai-gpt-6.1-terra'),
     );
 
     final prefs = await SharedPreferences.getInstance();
     expect(
       prefs.getStringList('llm_hidden_models'),
-      contains('openai::gpt-5.4-mini'),
+      contains('openai::gpt-6.1-terra'),
     );
   });
 
@@ -559,10 +562,10 @@ void main() {
     // Every model hidden except the single remaining OpenRouter built-in.
     setupSettings(
       hiddenModels: const [
-        'openai::gpt-5.4-nano',
-        'openai::gpt-5.4-mini',
-        'openai::gpt-5.4',
-        'openai::gpt-5.5',
+        'openai::gpt-6-luna',
+        'openai::gpt-6.1-terra',
+        'openai::gpt-6.1-sol',
+        'openai::gpt-6-astra',
         'anthropic-messages::claude-haiku-5-5',
         'anthropic-messages::claude-sonnet-5-5',
         'anthropic-messages::claude-opus-5-5',
@@ -632,12 +635,12 @@ void main() {
       final picker = tester.widget<AppPopupSelect<String>>(
         find.byKey(const Key('apiProvider-modelPicker')),
       );
-      expect(picker.value, 'openai::gpt-5.4-nano');
+      expect(picker.value, 'openai::gpt-6-luna');
 
       // The provider must travel with the model it fell back to.
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('api_provider'), 'openai');
-      expect(prefs.getString('openai_model'), 'gpt-5.4-nano');
+      expect(prefs.getString('openai_model'), 'gpt-6-luna');
     });
 
     testWidgets('keeps the provider when the same provider still has one', (
@@ -645,14 +648,14 @@ void main() {
     ) async {
       setupSettings(
         provider: 'openai',
-        model: 'gpt-5.4-mini',
-        hiddenModels: const ['openai::gpt-5.4-mini'],
+        model: 'gpt-6.1-terra',
+        hiddenModels: const ['openai::gpt-6.1-terra'],
       );
       await pumpSettings(tester);
 
       final prefs = await SharedPreferences.getInstance();
       expect(prefs.getString('api_provider'), 'openai');
-      expect(prefs.getString('openai_model'), 'gpt-5.4-nano');
+      expect(prefs.getString('openai_model'), 'gpt-6-luna');
     });
 
     testWidgets('falls back when the stored provider is gone', (tester) async {
@@ -689,7 +692,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('apiProvider-modelPicker')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('gpt-5.4-mini').last);
+    await tester.tap(find.text('gpt-6.1-terra').last);
     await tester.pumpAndSettle();
 
     // Dropping either call leaves the native LLM path on the old provider
@@ -701,7 +704,24 @@ void main() {
       (call) => call.method == MethodChannelMethods.setModel,
     );
     expect(setProvider.arguments, 'openai');
-    expect(setModel.arguments, 'gpt-5.4-mini');
+    expect(setModel.arguments, 'gpt-6.1-terra');
+  });
+
+  testWidgets('picking a model pushes its effective speed', (tester) async {
+    setupSettings(requestSpeed: 'ultrafast');
+    await pumpSettings(tester);
+    await tester.tap(find.byKey(const Key('apiProvider-modelPicker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('gpt-6-luna').last);
+    await tester.pumpAndSettle();
+    expect(
+      methodCalls
+          .lastWhere(
+            (call) => call.method == MethodChannelMethods.setRequestSpeed,
+          )
+          .arguments,
+      'fast',
+    );
   });
 
   group('edit paths', () {
