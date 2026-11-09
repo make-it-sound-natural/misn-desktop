@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/models/accessibility_context_mode.dart';
 import 'package:make_it_sound_natural/models/onboarding_setup_state.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
@@ -41,6 +42,8 @@ class _OnboardingGateState extends State<OnboardingGate> {
   OnboardingSetupState? _state;
   AccessibilityContextMode _accessibilityContextMode =
       AccessibilityContextMode.field;
+  ScreenshotContextMode _screenshotContextMode = ScreenshotContextMode.off;
+  ScreenRecordingPermissionStatus? _screenshotPermissionStatus;
   var _showOnboarding = false;
   var _loaded = false;
 
@@ -58,13 +61,29 @@ class _OnboardingGateState extends State<OnboardingGate> {
     final accessibilityContextMode = showOnboarding
         ? await _settingsService.getAccessibilityContextMode()
         : AccessibilityContextMode.field;
+    final screenshotContextMode = showOnboarding
+        ? await _loadScreenshotContextMode()
+        : ScreenshotContextMode.off;
+    // A resumed step shows the saved choice with its current permission.
+    final screenshotPermissionStatus =
+        screenshotContextMode == ScreenshotContextMode.off
+        ? null
+        : await _recheckScreenshotContextMode(screenshotContextMode);
     if (!mounted) return;
     setState(() {
       _showOnboarding = showOnboarding;
       _state = state;
       _accessibilityContextMode = accessibilityContextMode;
+      _screenshotContextMode = screenshotContextMode;
+      _screenshotPermissionStatus = screenshotPermissionStatus;
       _loaded = true;
     });
+  }
+
+  Future<ScreenshotContextMode> _loadScreenshotContextMode() async {
+    final pendingMode = await _settingsService
+        .getPendingScreenshotContextMode();
+    return pendingMode ?? await _settingsService.getScreenshotContextMode();
   }
 
   Future<void> _saveState(OnboardingSetupState state) async {
@@ -90,19 +109,66 @@ class _OnboardingGateState extends State<OnboardingGate> {
       return ScreenRecordingPermissionStatus.granted;
     }
 
+    // Saved before the request: macOS may ask to relaunch the app, and the
+    // next launch turns the pending mode on once permission is granted.
     await _settingsService.setPendingScreenshotContextMode(mode);
     final status = await _shortcutService.requestScreenRecordingPermission(
       mode,
     );
-    final savedMode = status == ScreenRecordingPermissionStatus.granted
+    await _saveScreenshotPermissionResult(mode, status);
+    return status;
+  }
+
+  /// Checks Screen Recording without prompting and turns the pending mode on
+  /// once it is granted.
+  Future<ScreenRecordingPermissionStatus> _recheckScreenshotContextMode(
+    ScreenshotContextMode mode,
+  ) async {
+    final status = await _shortcutService.checkScreenRecordingPermission(mode);
+    await _saveScreenshotPermissionResult(mode, status);
+    return status;
+  }
+
+  /// Opens Screen Recording in System Settings with the native helper, the
+  /// same one Settings shows. Only called after macOS has answered, so the
+  /// helper never covers the system prompt.
+  Future<ScreenRecordingPermissionStatus> _openScreenRecordingSettings(
+    ScreenshotContextMode mode,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    await _shortcutService.presentScreenRecordingPermissionGuide(
+      title: l10n.screenRecordingPermissionGuideTitle,
+      message: l10n.screenRecordingPermissionGuideMessage,
+      dragInstruction: l10n.screenRecordingPermissionDragInstruction,
+      openSettings: l10n.openSystemSettings,
+      revealInFinder: l10n.revealInFinder,
+      checkAgain: l10n.checkAgain,
+      cancel: l10n.cancel,
+      stillMissing: l10n.screenRecordingPermissionStillMissing,
+      debugHint: l10n.screenRecordingPermissionDebugHint,
+      manualAddRequired: false,
+      openSettingsOnAppear: true,
+    );
+    return _recheckScreenshotContextMode(mode);
+  }
+
+  Future<void> _saveScreenshotPermissionResult(
+    ScreenshotContextMode mode,
+    ScreenRecordingPermissionStatus status,
+  ) async {
+    final activeMode = status == ScreenRecordingPermissionStatus.granted
         ? mode
         : ScreenshotContextMode.off;
-    await _settingsService.setScreenshotContextMode(savedMode);
-    if (status == ScreenRecordingPermissionStatus.granted) {
-      await _settingsService.clearPendingScreenshotContextMode();
+    await _settingsService.setScreenshotContextMode(activeMode);
+    switch (status) {
+      case ScreenRecordingPermissionStatus.granted:
+      case ScreenRecordingPermissionStatus.unsupported:
+        await _settingsService.clearPendingScreenshotContextMode();
+      case ScreenRecordingPermissionStatus.promptMayBeVisible:
+      case ScreenRecordingPermissionStatus.manualGrantRequired:
+        await _settingsService.setPendingScreenshotContextMode(mode);
     }
-    await _shortcutService.setScreenshotContextMode(savedMode);
-    return status;
+    await _shortcutService.setScreenshotContextMode(activeMode);
   }
 
   Future<void> _chooseAccessibilityContextMode(
@@ -125,11 +191,15 @@ class _OnboardingGateState extends State<OnboardingGate> {
     return OnboardingScreen(
       initialState: _state ?? const OnboardingSetupState.initial(),
       initialAccessibilityContextMode: _accessibilityContextMode,
+      initialScreenshotContextMode: _screenshotContextMode,
+      initialScreenshotPermissionStatus: _screenshotPermissionStatus,
       onStateChanged: (state) => unawaited(_saveState(state)),
       onCompleted: () => unawaited(_complete()),
       checkAccessibility: _shortcutService.checkAccessibilityPermissions,
       requestAccessibility: _shortcutService.requestAccessibilityPermission,
       onScreenshotContextSelected: _chooseScreenshotContextMode,
+      recheckScreenshotContext: _recheckScreenshotContextMode,
+      openScreenRecordingSettings: _openScreenRecordingSettings,
       onAccessibilityContextSelected: _chooseAccessibilityContextMode,
     );
   }

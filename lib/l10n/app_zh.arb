@@ -274,9 +274,9 @@
   "@onboardingAccessibilitySkip": {
     "description": "Button to skip Accessibility permission during onboarding"
   },
-  "onboardingAccessibilityCheckAgain": "再次检查",
-  "@onboardingAccessibilityCheckAgain": {
-    "description": "Button to recheck Accessibility permission status"
+  "onboardingCheckAgain": "再次检查",
+  "@onboardingCheckAgain": {
+    "description": "Button to recheck a permission status during onboarding"
   },
   "onboardingScreenshotTitle": "应用与截图上下文",
   "@onboardingScreenshotTitle": {
@@ -307,6 +307,14 @@
   "onboardingScreenshotUnsupported": "截图上下文需要 macOS 14 或更高版本。",
   "@onboardingScreenshotUnsupported": {
     "description": "Onboarding status when Screenshot context is unsupported"
+  },
+  "onboardingScreenshotPermissionManual": "尚未授予屏幕录制权限。请在屏幕录制设置中启用 Make It Sound Natural，然后再次检查。",
+  "@onboardingScreenshotPermissionManual": {
+    "description": "Onboarding status when Screen Recording must be enabled in System Settings"
+  },
+  "onboardingScreenshotOpenSettings": "打开屏幕录制设置",
+  "@onboardingScreenshotOpenSettings": {
+    "description": "Onboarding button that opens Screen Recording in System Settings with the setup helper"
   },
   "onboardingContinue": "继续",
   "@onboardingContinue": {

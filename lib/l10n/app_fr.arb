@@ -274,9 +274,9 @@
   "@onboardingAccessibilitySkip": {
     "description": "Button to skip Accessibility permission during onboarding"
   },
-  "onboardingAccessibilityCheckAgain": "Vérifier à nouveau",
-  "@onboardingAccessibilityCheckAgain": {
-    "description": "Button to recheck Accessibility permission status"
+  "onboardingCheckAgain": "Vérifier à nouveau",
+  "@onboardingCheckAgain": {
+    "description": "Button to recheck a permission status during onboarding"
   },
   "onboardingScreenshotTitle": "Contexte de l’app et de capture",
   "@onboardingScreenshotTitle": {
@@ -307,6 +307,14 @@
   "onboardingScreenshotUnsupported": "Le contexte de capture nécessite macOS 14 ou une version ultérieure.",
   "@onboardingScreenshotUnsupported": {
     "description": "Onboarding status when Screenshot context is unsupported"
+  },
+  "onboardingScreenshotPermissionManual": "L’enregistrement de l’écran n’est pas encore autorisé. Activez Make It Sound Natural dans les réglages d’enregistrement de l’écran, puis vérifiez à nouveau.",
+  "@onboardingScreenshotPermissionManual": {
+    "description": "Onboarding status when Screen Recording must be enabled in System Settings"
+  },
+  "onboardingScreenshotOpenSettings": "Ouvrir les réglages d’enregistrement de l’écran",
+  "@onboardingScreenshotOpenSettings": {
+    "description": "Onboarding button that opens Screen Recording in System Settings with the setup helper"
   },
   "onboardingContinue": "Continuer",
   "@onboardingContinue": {

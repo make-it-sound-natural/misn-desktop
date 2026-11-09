@@ -65,8 +65,11 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  void setScreenshotOnboardingState() {
+  void setScreenshotOnboardingState({
+    Map<String, Object> extraValues = const {},
+  }) {
     SharedPreferences.setMockInitialValues({
+      ...extraValues,
       OnboardingService.completedKey: false,
       'onboarding_required_setup_completed': true,
       'onboarding_screenshot_context_skipped': false,
@@ -299,4 +302,169 @@ void main() {
       );
     },
   );
+  testWidgets('Skip clears a screenshot mode pending Screen Recording', (
+    tester,
+  ) async {
+    setScreenshotOnboardingState();
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method ==
+              MethodChannelMethods.requestScreenRecordingPermission) {
+            return {'status': 'manualGrantRequired'};
+          }
+          return null;
+        });
+
+    await pumpGate(tester);
+    await tester.tap(find.text('Full Screen'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-skip-optional')));
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('pending_screenshot_context_mode'), isNull);
+    expect(
+      prefs.getString('screenshot_context_mode'),
+      ScreenshotContextMode.off.value,
+    );
+  });
+
+  testWidgets('a resumed step restores the pending mode and its status', (
+    tester,
+  ) async {
+    setScreenshotOnboardingState(
+      extraValues: {
+        'pending_screenshot_context_mode':
+            ScreenshotContextMode.fullScreen.value,
+      },
+    );
+    final methods = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          methods.add(call.method);
+          if (call.method ==
+              MethodChannelMethods.checkScreenRecordingPermission) {
+            return {'status': 'manualGrantRequired'};
+          }
+          return null;
+        });
+
+    await pumpGate(tester);
+
+    final control = tester.widget<SegmentedButton<ScreenshotContextMode>>(
+      find.byKey(const Key('onboarding-screenshot-mode-control')),
+    );
+    expect(control.selected, {ScreenshotContextMode.fullScreen});
+    expect(
+      find.textContaining('Screen Recording is not granted yet'),
+      findsOneWidget,
+    );
+    // Resuming only checks; it never prompts or shows the helper.
+    expect(
+      methods,
+      isNot(contains(MethodChannelMethods.requestScreenRecordingPermission)),
+    );
+    expect(
+      methods,
+      isNot(
+        contains(MethodChannelMethods.presentScreenRecordingPermissionGuide),
+      ),
+    );
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getString('pending_screenshot_context_mode'),
+      ScreenshotContextMode.fullScreen.value,
+    );
+  });
+
+  testWidgets('Check again turns the pending mode on once granted', (
+    tester,
+  ) async {
+    setScreenshotOnboardingState(
+      extraValues: {
+        'pending_screenshot_context_mode':
+            ScreenshotContextMode.activeApplication.value,
+      },
+    );
+    var granted = false;
+    final syncedModes = <Object?>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          switch (call.method) {
+            case MethodChannelMethods.checkScreenRecordingPermission:
+              return {'status': granted ? 'granted' : 'manualGrantRequired'};
+            case MethodChannelMethods.setScreenshotContextMode:
+              syncedModes.add(call.arguments);
+          }
+          return null;
+        });
+
+    await pumpGate(tester);
+    granted = true;
+    await tester.tap(
+      find.byKey(const Key('onboarding-screenshot-check-again')),
+    );
+    await tester.pumpAndSettle();
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getString('screenshot_context_mode'),
+      ScreenshotContextMode.activeApplication.value,
+    );
+    expect(prefs.getString('pending_screenshot_context_mode'), isNull);
+    expect(syncedModes.last, ScreenshotContextMode.activeApplication.value);
+    expect(find.text('Screenshot context is enabled.'), findsOneWidget);
+  });
+
+  testWidgets('Open Screen Recording settings shows the helper, then checks', (
+    tester,
+  ) async {
+    setScreenshotOnboardingState();
+    final methods = <String>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          methods.add(call.method);
+          switch (call.method) {
+            case MethodChannelMethods.requestScreenRecordingPermission:
+            case MethodChannelMethods.checkScreenRecordingPermission:
+              return {'status': 'manualGrantRequired'};
+            case MethodChannelMethods.presentScreenRecordingPermissionGuide:
+              return false;
+          }
+          return null;
+        });
+
+    await pumpGate(tester);
+    await tester.tap(find.text('Full Screen'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+    expect(
+      methods,
+      isNot(
+        contains(MethodChannelMethods.presentScreenRecordingPermissionGuide),
+      ),
+    );
+    methods.clear();
+
+    await tester.tap(
+      find.byKey(const Key('onboarding-screenshot-open-settings')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      methods,
+      containsAllInOrder([
+        MethodChannelMethods.presentScreenRecordingPermissionGuide,
+        MethodChannelMethods.checkScreenRecordingPermission,
+      ]),
+    );
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getString('pending_screenshot_context_mode'),
+      ScreenshotContextMode.fullScreen.value,
+    );
+  });
 }
