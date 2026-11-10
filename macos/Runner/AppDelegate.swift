@@ -4,6 +4,12 @@ import Sparkle
 
 @main
 class AppDelegate: FlutterAppDelegate {
+  /// True when the app only hosts the XCTest bundle. No test needs the
+  /// Flutter engine, and one left rendering crashed the host when XCTest
+  /// called `exit()` while the raster thread was still drawing.
+  static let isTestHost =
+    ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+
   private let windowLifecycleController = AppWindowLifecycleController()
 
   func configureWindowLifecycle(window: NSWindow?) {
@@ -11,6 +17,12 @@ class AppDelegate: FlutterAppDelegate {
   }
 
   override func applicationDidFinishLaunching(_ notification: Notification) {
+    if Self.isTestHost {
+      // Keep the empty window off screen and leave focus where it is.
+      mainFlutterWindow?.orderOut(nil)
+      return
+    }
+
     // Initialize Sparkle auto-updater
     SparkleUpdater.shared.initialize()
 

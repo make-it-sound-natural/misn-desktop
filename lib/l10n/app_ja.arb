@@ -274,9 +274,9 @@
   "@onboardingAccessibilitySkip": {
     "description": "Button to skip Accessibility permission during onboarding"
   },
-  "onboardingAccessibilityCheckAgain": "もう一度確認",
-  "@onboardingAccessibilityCheckAgain": {
-    "description": "Button to recheck Accessibility permission status"
+  "onboardingCheckAgain": "もう一度確認",
+  "@onboardingCheckAgain": {
+    "description": "Button to recheck a permission status during onboarding"
   },
   "onboardingScreenshotTitle": "アプリとスクリーンショットのコンテキスト",
   "@onboardingScreenshotTitle": {
@@ -292,6 +292,10 @@
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
   },
+  "onboardingScreenshotModeSelected": "「続ける」でこの選択を保存します。画面収録が許可されると、スクリーンショットコンテキストが有効になります。",
+  "@onboardingScreenshotModeSelected": {
+    "description": "Onboarding status for a non-Off Screenshot context mode before Continue"
+  },
   "onboardingScreenshotOffStatus": "スクリーンショットコンテキストはオフです。画面収録の許可は要求されません。",
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
@@ -302,11 +306,19 @@
   },
   "onboardingScreenshotPermissionNeeded": "スクリーンショットコンテキストを使用するには、画面収録の許可がまだ必要です。",
   "@onboardingScreenshotPermissionNeeded": {
-    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+    "description": "Onboarding status while the macOS Screen Recording prompt may be visible"
   },
   "onboardingScreenshotUnsupported": "スクリーンショットコンテキストには macOS 14 以降が必要です。",
   "@onboardingScreenshotUnsupported": {
     "description": "Onboarding status when Screenshot context is unsupported"
+  },
+  "onboardingScreenshotPermissionManual": "画面収録はまだ許可されていません。画面収録の設定で Make It Sound Natural を有効にしてから、もう一度確認してください。macOS から求められた場合はアプリを再起動してください。",
+  "@onboardingScreenshotPermissionManual": {
+    "description": "Onboarding status when Screen Recording must be enabled in System Settings"
+  },
+  "onboardingScreenshotOpenSettings": "画面収録の設定を開く",
+  "@onboardingScreenshotOpenSettings": {
+    "description": "Onboarding button that opens Screen Recording in System Settings with the setup helper"
   },
   "onboardingContinue": "続ける",
   "@onboardingContinue": {

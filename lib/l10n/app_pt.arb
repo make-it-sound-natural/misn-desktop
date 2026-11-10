@@ -274,9 +274,9 @@
   "@onboardingAccessibilitySkip": {
     "description": "Button to skip Accessibility permission during onboarding"
   },
-  "onboardingAccessibilityCheckAgain": "Verificar novamente",
-  "@onboardingAccessibilityCheckAgain": {
-    "description": "Button to recheck Accessibility permission status"
+  "onboardingCheckAgain": "Verificar novamente",
+  "@onboardingCheckAgain": {
+    "description": "Button to recheck a permission status during onboarding"
   },
   "onboardingScreenshotTitle": "Contexto do app e de captura",
   "@onboardingScreenshotTitle": {
@@ -292,6 +292,10 @@
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
   },
+  "onboardingScreenshotModeSelected": "Continuar salva esta opção. O contexto de captura é ativado quando a Gravação de Tela for concedida.",
+  "@onboardingScreenshotModeSelected": {
+    "description": "Onboarding status for a non-Off Screenshot context mode before Continue"
+  },
   "onboardingScreenshotOffStatus": "O contexto de captura está desativado. A Gravação de Tela não será solicitada.",
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
@@ -302,11 +306,19 @@
   },
   "onboardingScreenshotPermissionNeeded": "A permissão de Gravação de Tela ainda é necessária para usar o contexto de captura.",
   "@onboardingScreenshotPermissionNeeded": {
-    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+    "description": "Onboarding status while the macOS Screen Recording prompt may be visible"
   },
   "onboardingScreenshotUnsupported": "O contexto de captura requer macOS 14 ou posterior.",
   "@onboardingScreenshotUnsupported": {
     "description": "Onboarding status when Screenshot context is unsupported"
+  },
+  "onboardingScreenshotPermissionManual": "A permissão de gravação de tela ainda não foi concedida. Ative Make It Sound Natural nos ajustes de Gravação de Tela e verifique novamente. Reinicie o app se o macOS pedir.",
+  "@onboardingScreenshotPermissionManual": {
+    "description": "Onboarding status when Screen Recording must be enabled in System Settings"
+  },
+  "onboardingScreenshotOpenSettings": "Abrir ajustes de Gravação de Tela",
+  "@onboardingScreenshotOpenSettings": {
+    "description": "Onboarding button that opens Screen Recording in System Settings with the setup helper"
   },
   "onboardingContinue": "Continuar",
   "@onboardingContinue": {

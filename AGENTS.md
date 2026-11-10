@@ -267,6 +267,11 @@ business rules that belong in shared Dart unless required for OS integration.
 - **Dart**: tests under `test/`; use `flutter_test`; Arrange-Act-Assert.
 - **Native**: `macos/RunnerTests/` — XCTest; `@testable import` the app module
   (e.g. `Make_It_Sound_Natural`).
+- **XCTest host**: the app that hosts `RunnerTests` starts no Flutter engine
+  and hides its window (`AppDelegate.isTestHost`); an engine still rendering
+  crashed the host when XCTest called `exit()`. You MUST NOT write native
+  tests that need the engine or the Flutter window; test Swift types
+  directly.
 - **`make test`** runs release policy tests and **both** app stacks; CI runs
   `pod install` before native tests. `make test-release` uses Python 3
   standard-library unittest to exercise nightly allocation and artifact checks.
