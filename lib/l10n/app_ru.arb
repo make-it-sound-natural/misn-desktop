@@ -292,6 +292,10 @@
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
   },
+  "onboardingScreenshotModeSelected": "«Продолжить» сохранит выбор. Контекст скриншота включится после выдачи разрешения на запись экрана.",
+  "@onboardingScreenshotModeSelected": {
+    "description": "Onboarding status for a non-Off Screenshot context mode before Continue"
+  },
   "onboardingScreenshotOffStatus": "Контекст скриншота выключен. Доступ к записи экрана не будет запрошен.",
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
@@ -302,13 +306,13 @@
   },
   "onboardingScreenshotPermissionNeeded": "Перед использованием контекста скриншота всё ещё нужен доступ к записи экрана.",
   "@onboardingScreenshotPermissionNeeded": {
-    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+    "description": "Onboarding status while the macOS Screen Recording prompt may be visible"
   },
   "onboardingScreenshotUnsupported": "Контекст скриншота требует macOS 14 или новее.",
   "@onboardingScreenshotUnsupported": {
     "description": "Onboarding status when Screenshot context is unsupported"
   },
-  "onboardingScreenshotPermissionManual": "Доступ к записи экрана ещё не выдан. Включите Make It Sound Natural в настройках записи экрана, затем проверьте снова.",
+  "onboardingScreenshotPermissionManual": "Доступ к записи экрана ещё не выдан. Включите Make It Sound Natural в настройках записи экрана, затем проверьте снова. Перезапустите приложение, если macOS попросит.",
   "@onboardingScreenshotPermissionManual": {
     "description": "Onboarding status when Screen Recording must be enabled in System Settings"
   },

@@ -7,6 +7,7 @@ import 'package:make_it_sound_natural/models/onboarding_setup_state.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/screens/onboarding/onboarding_nearby_text_option.dart';
+import 'package:make_it_sound_natural/screens/onboarding/onboarding_screenshot_context_choice.dart';
 import 'package:make_it_sound_natural/theme/app_design_tokens.dart';
 import 'package:make_it_sound_natural/widgets/app_panel.dart';
 import 'package:make_it_sound_natural/widgets/app_settings_section.dart';
@@ -60,23 +61,15 @@ class OnboardingScreen extends StatefulWidget {
   /// Requests Accessibility permission after a user action.
   final Future<bool> Function() requestAccessibility;
 
-  /// Requests Screenshot context mode setup after explicit opt-in.
-  final Future<ScreenRecordingPermissionStatus> Function(
-    ScreenshotContextMode mode,
-  )
-  onScreenshotContextSelected;
+  /// Saves the Screenshot context mode on Continue and Skip. A non-Off mode
+  /// asks for Screen Recording; Off takes back a mode saved earlier.
+  final ScreenshotContextPermissionAction onScreenshotContextSelected;
 
   /// Checks Screen Recording again without prompting.
-  final Future<ScreenRecordingPermissionStatus> Function(
-    ScreenshotContextMode mode,
-  )
-  recheckScreenshotContext;
+  final ScreenshotContextPermissionAction recheckScreenshotContext;
 
   /// Opens Screen Recording in System Settings, then checks it again.
-  final Future<ScreenRecordingPermissionStatus> Function(
-    ScreenshotContextMode mode,
-  )
-  openScreenRecordingSettings;
+  final ScreenshotContextPermissionAction openScreenRecordingSettings;
 
   /// Saves the App context mode when the nearby text switch changes what is
   /// stored: raised to field and nearby text on Continue, lowered back to
@@ -135,15 +128,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     await _saveNearbyText(include: _includeNearbyText);
     if (!mounted) return;
 
-    if (_selectedScreenshotContextMode == ScreenshotContextMode.off) {
+    final mode = _selectedScreenshotContextMode;
+    final status = await widget.onScreenshotContextSelected(mode);
+    if (!mounted) return;
+    if (mode == ScreenshotContextMode.off) {
       _setState(_state.skipOptionalScreenshotContext());
       return;
     }
-
-    final status = await widget.onScreenshotContextSelected(
-      _selectedScreenshotContextMode,
-    );
-    if (!mounted) return;
     setState(() => _screenshotPermissionStatus = status);
     if (status == ScreenRecordingPermissionStatus.granted) {
       _setState(_state.continueFromCurrentStep());
@@ -163,10 +154,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   /// Shows the new status but does not advance: Continue still saves the
   /// rest of the step, such as the nearby text switch.
   Future<void> _refreshScreenshotPermission(
-    Future<ScreenRecordingPermissionStatus> Function(
-      ScreenshotContextMode mode,
-    )
-    check,
+    ScreenshotContextPermissionAction check,
   ) async {
     final mode = _selectedScreenshotContextMode;
     final status = await check(mode);
@@ -337,36 +325,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             ),
                           ] else if (_state.lastStep ==
                               OnboardingStep.screenshotContext) ...[
-                            if (_screenshotPermissionPending)
-                              TextButton(
-                                key: const Key(
-                                  'onboarding-screenshot-check-again',
-                                ),
-                                onPressed: () => unawaited(
-                                  _refreshScreenshotPermission(
-                                    widget.recheckScreenshotContext,
-                                  ),
-                                ),
-                                child: Text(l10n.onboardingCheckAgain),
-                              ),
-                            // The helper window would cover the macOS prompt,
-                            // so it is offered only once macOS has answered.
-                            if (_screenshotPermissionStatus ==
-                                ScreenRecordingPermissionStatus
-                                    .manualGrantRequired)
-                              TextButton(
-                                key: const Key(
-                                  'onboarding-screenshot-open-settings',
-                                ),
-                                onPressed: () => unawaited(
-                                  _refreshScreenshotPermission(
-                                    widget.openScreenRecordingSettings,
-                                  ),
-                                ),
-                                child: Text(
-                                  l10n.onboardingScreenshotOpenSettings,
-                                ),
-                              ),
                             TextButton(
                               key: const Key('onboarding-skip-optional'),
                               onPressed: () => unawaited(_skipOptional()),
@@ -398,15 +356,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
-
-  bool get _screenshotPermissionPending =>
-      switch (_screenshotPermissionStatus) {
-        ScreenRecordingPermissionStatus.promptMayBeVisible ||
-        ScreenRecordingPermissionStatus.manualGrantRequired => true,
-        ScreenRecordingPermissionStatus.granted ||
-        ScreenRecordingPermissionStatus.unsupported ||
-        null => false,
-      };
 
   _OnboardingStepContent _currentStep(AppLocalizations l10n) {
     return switch (_state.lastStep) {
@@ -445,75 +394,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           onChanged: (value) => setState(() => _includeNearbyText = value),
         ),
         const SizedBox(height: AppSpacing.md),
-        Semantics(
-          label: l10n.onboardingScreenshotModeLabel,
-          child: SegmentedButton<ScreenshotContextMode>(
-            key: const Key('onboarding-screenshot-mode-control'),
-            segments: [
-              ButtonSegment<ScreenshotContextMode>(
-                value: ScreenshotContextMode.off,
-                label: Text(
-                  l10n.screenshotContextOff,
-                  key: const Key('onboarding-screenshot-mode-off'),
-                ),
-              ),
-              ButtonSegment<ScreenshotContextMode>(
-                value: ScreenshotContextMode.fieldArea,
-                label: Text(
-                  l10n.screenshotContextFieldArea,
-                  key: const Key('onboarding-screenshot-mode-field-area'),
-                ),
-              ),
-              ButtonSegment<ScreenshotContextMode>(
-                value: ScreenshotContextMode.activeApplication,
-                label: Text(
-                  l10n.screenshotContextApplication,
-                  key: const Key('onboarding-screenshot-mode-application'),
-                ),
-              ),
-              ButtonSegment<ScreenshotContextMode>(
-                value: ScreenshotContextMode.fullScreen,
-                label: Text(
-                  l10n.screenshotContextFullScreen,
-                  key: const Key('onboarding-screenshot-mode-full-screen'),
-                ),
-              ),
-            ],
-            selected: {_selectedScreenshotContextMode},
-            onSelectionChanged: (selection) {
-              setState(() {
-                _selectedScreenshotContextMode = selection.single;
-                _screenshotPermissionStatus = null;
-              });
-            },
+        OnboardingScreenshotContextChoice(
+          selectedMode: _selectedScreenshotContextMode,
+          status: _screenshotPermissionStatus,
+          onModeChanged: (mode) => setState(() {
+            _selectedScreenshotContextMode = mode;
+            _screenshotPermissionStatus = null;
+          }),
+          onCheckAgain: () => unawaited(
+            _refreshScreenshotPermission(widget.recheckScreenshotContext),
+          ),
+          onOpenSettings: () => unawaited(
+            _refreshScreenshotPermission(widget.openScreenRecordingSettings),
           ),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        _buildScreenshotStatus(l10n),
       ],
-    );
-  }
-
-  Widget _buildScreenshotStatus(AppLocalizations l10n) {
-    final text = switch (_screenshotPermissionStatus) {
-      ScreenRecordingPermissionStatus.granted =>
-        l10n.onboardingScreenshotPermissionGranted,
-      ScreenRecordingPermissionStatus.unsupported =>
-        l10n.onboardingScreenshotUnsupported,
-      ScreenRecordingPermissionStatus.promptMayBeVisible =>
-        l10n.onboardingScreenshotPermissionNeeded,
-      ScreenRecordingPermissionStatus.manualGrantRequired =>
-        l10n.onboardingScreenshotPermissionManual,
-      null => l10n.onboardingScreenshotOffStatus,
-    };
-
-    return Semantics(
-      liveRegion: true,
-      child: Text(
-        key: const Key('onboarding-screenshot-status'),
-        text,
-        style: Theme.of(context).textTheme.bodySmall,
-      ),
     );
   }
 }

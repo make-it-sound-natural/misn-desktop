@@ -7,6 +7,7 @@ import 'package:make_it_sound_natural/models/onboarding_setup_state.dart';
 import 'package:make_it_sound_natural/models/screen_recording_permission_status.dart';
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/screens/onboarding/onboarding_screen.dart';
+import 'package:make_it_sound_natural/screens/onboarding/onboarding_screenshot_context_choice.dart';
 
 void main() {
   Future<void> pumpOnboarding(
@@ -21,18 +22,9 @@ void main() {
     VoidCallback? onCompleted,
     Future<bool> Function()? checkAccessibility,
     Future<bool> Function()? requestAccessibility,
-    Future<ScreenRecordingPermissionStatus> Function(
-      ScreenshotContextMode mode,
-    )?
-    onScreenshotContextSelected,
-    Future<ScreenRecordingPermissionStatus> Function(
-      ScreenshotContextMode mode,
-    )?
-    recheckScreenshotContext,
-    Future<ScreenRecordingPermissionStatus> Function(
-      ScreenshotContextMode mode,
-    )?
-    openScreenRecordingSettings,
+    ScreenshotContextPermissionAction? onScreenshotContextSelected,
+    ScreenshotContextPermissionAction? recheckScreenshotContext,
+    ScreenshotContextPermissionAction? openScreenRecordingSettings,
     Future<void> Function(AccessibilityContextMode mode)?
     onAccessibilityContextSelected,
   }) async {
@@ -75,6 +67,16 @@ void main() {
         ),
       ),
     );
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> chooseScreenshotModeAndContinue(
+    WidgetTester tester,
+    String mode,
+  ) async {
+    await tester.tap(find.text(mode));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
     await tester.pumpAndSettle();
   }
 
@@ -256,7 +258,7 @@ void main() {
     expect(find.text('Full Screen'), findsOneWidget);
   });
 
-  testWidgets('keeps Screen Recording request idle when Off continues', (
+  testWidgets('Off continues to done and saves Off', (
     tester,
   ) async {
     final states = <OnboardingSetupState>[];
@@ -280,7 +282,7 @@ void main() {
     await tester.tap(find.byKey(const Key('onboarding-continue')));
     await tester.pumpAndSettle();
 
-    expect(requestedModes, isEmpty);
+    expect(requestedModes, [ScreenshotContextMode.off]);
     expect(states.last.screenshotContextSkipped, isTrue);
     expect(states.last.lastStep, OnboardingStep.done);
   });
@@ -308,10 +310,7 @@ void main() {
         },
       );
 
-      await tester.tap(find.text('Application'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('onboarding-continue')));
-      await tester.pumpAndSettle();
+      await chooseScreenshotModeAndContinue(tester, 'Application');
 
       expect(requestedModes, [ScreenshotContextMode.activeApplication]);
       expect(states.last.screenshotContextSkipped, isFalse);
@@ -340,10 +339,7 @@ void main() {
         },
       );
 
-      await tester.tap(find.text('Around Field'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('onboarding-continue')));
-      await tester.pumpAndSettle();
+      await chooseScreenshotModeAndContinue(tester, 'Around Field');
 
       expect(requestedModes, [ScreenshotContextMode.fieldArea]);
     },
@@ -370,10 +366,7 @@ void main() {
         },
       );
 
-      await tester.tap(find.text('Full Screen'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('onboarding-continue')));
-      await tester.pumpAndSettle();
+      await chooseScreenshotModeAndContinue(tester, 'Full Screen');
 
       expect(requestedModes, [ScreenshotContextMode.fullScreen]);
     },
@@ -396,10 +389,7 @@ void main() {
       },
     );
 
-    await tester.tap(find.text('Application'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Application');
 
     expect(
       find.byKey(const Key('onboarding-screenshot-status')),
@@ -480,7 +470,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(selectedModes, [AccessibilityContextMode.fieldAndNearby]);
-    expect(requestedScreenshotModes, isEmpty);
+    expect(requestedScreenshotModes, [ScreenshotContextMode.off]);
     expect(states.last.lastStep, OnboardingStep.done);
   });
 
@@ -500,10 +490,7 @@ void main() {
     );
 
     await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
-    await tester.tap(find.text('Application'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Application');
 
     expect(selectedModes, [AccessibilityContextMode.fieldAndNearby]);
     expect(requestedScreenshotModes, [ScreenshotContextMode.activeApplication]);
@@ -538,10 +525,7 @@ void main() {
     );
 
     await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
-    await tester.tap(find.text('Application'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Application');
     await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('onboarding-skip-optional')));
@@ -567,15 +551,9 @@ void main() {
     );
 
     await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
-    await tester.tap(find.text('Application'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Application');
     await tester.tap(find.byKey(const Key('onboarding-nearby-text-switch')));
-    await tester.tap(find.text('Off'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Off');
 
     expect(selectedModes, [
       AccessibilityContextMode.fieldAndNearby,
@@ -619,10 +597,7 @@ void main() {
       },
     );
 
-    await tester.tap(find.text('Full Screen'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Full Screen');
     await tester.tap(find.byKey(const Key('onboarding-skip-optional')));
     await tester.pumpAndSettle();
 
@@ -698,10 +673,7 @@ void main() {
       find.byKey(const Key('onboarding-screenshot-check-again')),
       findsNothing,
     );
-    await tester.tap(find.text('Application'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Application');
     await tester.tap(
       find.byKey(const Key('onboarding-screenshot-check-again')),
     );
@@ -731,10 +703,7 @@ void main() {
       },
     );
 
-    await tester.tap(find.text('Full Screen'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Full Screen');
     await tester.tap(
       find.byKey(const Key('onboarding-screenshot-open-settings')),
     );
@@ -752,12 +721,11 @@ void main() {
       initialState: screenshotStepState,
       onScreenshotContextSelected: (_) async =>
           ScreenRecordingPermissionStatus.promptMayBeVisible,
+      recheckScreenshotContext: (_) async =>
+          ScreenRecordingPermissionStatus.manualGrantRequired,
     );
 
-    await tester.tap(find.text('Full Screen'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Full Screen');
 
     expect(
       find.byKey(const Key('onboarding-screenshot-check-again')),
@@ -778,5 +746,62 @@ void main() {
       find.byKey(const Key('onboarding-screenshot-open-settings')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('Off and Continue take back a mode pending Screen Recording', (
+    tester,
+  ) async {
+    final selectedModes = <ScreenshotContextMode>[];
+    final states = <OnboardingSetupState>[];
+    await pumpOnboarding(
+      tester,
+      initialState: screenshotStepState,
+      onStateChanged: states.add,
+      onScreenshotContextSelected: (mode) async {
+        selectedModes.add(mode);
+        return mode == ScreenshotContextMode.off
+            ? ScreenRecordingPermissionStatus.granted
+            : ScreenRecordingPermissionStatus.manualGrantRequired;
+      },
+    );
+
+    await chooseScreenshotModeAndContinue(tester, 'Full Screen');
+    await chooseScreenshotModeAndContinue(tester, 'Off');
+
+    expect(selectedModes, [
+      ScreenshotContextMode.fullScreen,
+      ScreenshotContextMode.off,
+    ]);
+    expect(states.last.screenshotContextSkipped, isTrue);
+    expect(find.text('Finish setup'), findsOneWidget);
+  });
+
+  testWidgets('a mode picked but not saved yet says Continue saves it', (
+    tester,
+  ) async {
+    await pumpOnboarding(
+      tester,
+      initialState: screenshotStepState,
+      initialScreenshotContextMode: ScreenshotContextMode.fullScreen,
+      initialScreenshotPermissionStatus:
+          ScreenRecordingPermissionStatus.manualGrantRequired,
+    );
+
+    await tester.tap(find.text('Application'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Continue saves this choice. Screenshot context turns on once '
+        'Screen Recording is granted.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Screenshot context is off'), findsNothing);
+
+    await tester.tap(find.text('Off'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Screenshot context is off'), findsOneWidget);
   });
 }

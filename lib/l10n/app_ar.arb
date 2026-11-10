@@ -292,6 +292,10 @@
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
   },
+  "onboardingScreenshotModeSelected": "يحفظ «متابعة» هذا الاختيار. يتم تفعيل سياق لقطة الشاشة بعد منح إذن تسجيل الشاشة.",
+  "@onboardingScreenshotModeSelected": {
+    "description": "Onboarding status for a non-Off Screenshot context mode before Continue"
+  },
   "onboardingScreenshotOffStatus": "سياق لقطة الشاشة متوقف. لن يتم طلب إذن تسجيل الشاشة.",
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
@@ -302,13 +306,13 @@
   },
   "onboardingScreenshotPermissionNeeded": "لا يزال إذن تسجيل الشاشة مطلوبًا قبل استخدام سياق لقطة الشاشة.",
   "@onboardingScreenshotPermissionNeeded": {
-    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+    "description": "Onboarding status while the macOS Screen Recording prompt may be visible"
   },
   "onboardingScreenshotUnsupported": "يتطلب سياق لقطة الشاشة macOS 14 أو أحدث.",
   "@onboardingScreenshotUnsupported": {
     "description": "Onboarding status when Screenshot context is unsupported"
   },
-  "onboardingScreenshotPermissionManual": "لم يتم منح إذن تسجيل الشاشة بعد. فعّل Make It Sound Natural في إعدادات تسجيل الشاشة، ثم تحقق مرة أخرى.",
+  "onboardingScreenshotPermissionManual": "لم يتم منح إذن تسجيل الشاشة بعد. فعّل Make It Sound Natural في إعدادات تسجيل الشاشة، ثم تحقق مرة أخرى. أعد تشغيل التطبيق إذا طلب macOS ذلك.",
   "@onboardingScreenshotPermissionManual": {
     "description": "Onboarding status when Screen Recording must be enabled in System Settings"
   },

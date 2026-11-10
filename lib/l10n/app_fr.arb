@@ -292,7 +292,11 @@
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
   },
-  "onboardingScreenshotOffStatus": "Le contexte de capture est désactivé. L’enregistrement d’écran ne sera pas demandé.",
+  "onboardingScreenshotModeSelected": "Continuer enregistre ce choix. Le contexte de capture s’active une fois l’enregistrement de l’écran autorisé.",
+  "@onboardingScreenshotModeSelected": {
+    "description": "Onboarding status for a non-Off Screenshot context mode before Continue"
+  },
+  "onboardingScreenshotOffStatus": "Le contexte de capture est désactivé. L’enregistrement de l’écran ne sera pas demandé.",
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
   },
@@ -300,15 +304,15 @@
   "@onboardingScreenshotPermissionGranted": {
     "description": "Onboarding status after Screen Recording is granted"
   },
-  "onboardingScreenshotPermissionNeeded": "L’autorisation d’enregistrement d’écran est encore nécessaire avant d’utiliser le contexte de capture.",
+  "onboardingScreenshotPermissionNeeded": "L’autorisation d’enregistrement de l’écran est encore nécessaire avant d’utiliser le contexte de capture.",
   "@onboardingScreenshotPermissionNeeded": {
-    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+    "description": "Onboarding status while the macOS Screen Recording prompt may be visible"
   },
   "onboardingScreenshotUnsupported": "Le contexte de capture nécessite macOS 14 ou une version ultérieure.",
   "@onboardingScreenshotUnsupported": {
     "description": "Onboarding status when Screenshot context is unsupported"
   },
-  "onboardingScreenshotPermissionManual": "L’enregistrement de l’écran n’est pas encore autorisé. Activez Make It Sound Natural dans les réglages d’enregistrement de l’écran, puis vérifiez à nouveau.",
+  "onboardingScreenshotPermissionManual": "L’enregistrement de l’écran n’est pas encore autorisé. Activez Make It Sound Natural dans les réglages d’enregistrement de l’écran, puis vérifiez à nouveau. Redémarrez l’app si macOS le demande.",
   "@onboardingScreenshotPermissionManual": {
     "description": "Onboarding status when Screen Recording must be enabled in System Settings"
   },

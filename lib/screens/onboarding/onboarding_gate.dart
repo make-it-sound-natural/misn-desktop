@@ -9,6 +9,7 @@ import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/screens/home_screen.dart';
 import 'package:make_it_sound_natural/screens/onboarding/onboarding_screen.dart';
 import 'package:make_it_sound_natural/services/onboarding_service.dart';
+import 'package:make_it_sound_natural/services/screen_recording_permission_guide.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
 
@@ -61,29 +62,20 @@ class _OnboardingGateState extends State<OnboardingGate> {
     final accessibilityContextMode = showOnboarding
         ? await _settingsService.getAccessibilityContextMode()
         : AccessibilityContextMode.field;
-    final screenshotContextMode = showOnboarding
-        ? await _loadScreenshotContextMode()
-        : ScreenshotContextMode.off;
     // A resumed step shows the saved choice with its current permission.
-    final screenshotPermissionStatus =
-        screenshotContextMode == ScreenshotContextMode.off
-        ? null
-        : await _recheckScreenshotContextMode(screenshotContextMode);
+    final screenshotContext = showOnboarding
+        ? await _shortcutService.restoreScreenshotContextMode(_settingsService)
+        : null;
     if (!mounted) return;
     setState(() {
       _showOnboarding = showOnboarding;
       _state = state;
       _accessibilityContextMode = accessibilityContextMode;
-      _screenshotContextMode = screenshotContextMode;
-      _screenshotPermissionStatus = screenshotPermissionStatus;
+      _screenshotContextMode =
+          screenshotContext?.mode ?? ScreenshotContextMode.off;
+      _screenshotPermissionStatus = screenshotContext?.status;
       _loaded = true;
     });
-  }
-
-  Future<ScreenshotContextMode> _loadScreenshotContextMode() async {
-    final pendingMode = await _settingsService
-        .getPendingScreenshotContextMode();
-    return pendingMode ?? await _settingsService.getScreenshotContextMode();
   }
 
   Future<void> _saveState(OnboardingSetupState state) async {
@@ -103,9 +95,10 @@ class _OnboardingGateState extends State<OnboardingGate> {
     ScreenshotContextMode mode,
   ) async {
     if (mode == ScreenshotContextMode.off) {
-      await _settingsService.setScreenshotContextMode(mode);
-      await _settingsService.clearPendingScreenshotContextMode();
-      await _shortcutService.setScreenshotContextMode(mode);
+      await _saveScreenshotContextMode(
+        mode,
+        ScreenRecordingPermissionStatus.granted,
+      );
       return ScreenRecordingPermissionStatus.granted;
     }
 
@@ -115,7 +108,7 @@ class _OnboardingGateState extends State<OnboardingGate> {
     final status = await _shortcutService.requestScreenRecordingPermission(
       mode,
     );
-    await _saveScreenshotPermissionResult(mode, status);
+    await _saveScreenshotContextMode(mode, status);
     return status;
   }
 
@@ -125,51 +118,29 @@ class _OnboardingGateState extends State<OnboardingGate> {
     ScreenshotContextMode mode,
   ) async {
     final status = await _shortcutService.checkScreenRecordingPermission(mode);
-    await _saveScreenshotPermissionResult(mode, status);
+    await _saveScreenshotContextMode(mode, status);
     return status;
   }
 
-  /// Opens Screen Recording in System Settings with the native helper, the
-  /// same one Settings shows. Only called after macOS has answered, so the
-  /// helper never covers the system prompt.
+  /// Opens Screen Recording in System Settings with the helper Settings
+  /// shows, then checks again.
   Future<ScreenRecordingPermissionStatus> _openScreenRecordingSettings(
     ScreenshotContextMode mode,
   ) async {
-    final l10n = AppLocalizations.of(context)!;
-    await _shortcutService.presentScreenRecordingPermissionGuide(
-      title: l10n.screenRecordingPermissionGuideTitle,
-      message: l10n.screenRecordingPermissionGuideMessage,
-      dragInstruction: l10n.screenRecordingPermissionDragInstruction,
-      openSettings: l10n.openSystemSettings,
-      revealInFinder: l10n.revealInFinder,
-      checkAgain: l10n.checkAgain,
-      cancel: l10n.cancel,
-      stillMissing: l10n.screenRecordingPermissionStillMissing,
-      debugHint: l10n.screenRecordingPermissionDebugHint,
-      manualAddRequired: false,
-      openSettingsOnAppear: true,
+    await _shortcutService.showScreenRecordingPermissionGuide(
+      AppLocalizations.of(context)!,
     );
     return _recheckScreenshotContextMode(mode);
   }
 
-  Future<void> _saveScreenshotPermissionResult(
+  Future<void> _saveScreenshotContextMode(
     ScreenshotContextMode mode,
     ScreenRecordingPermissionStatus status,
-  ) async {
-    final activeMode = status == ScreenRecordingPermissionStatus.granted
-        ? mode
-        : ScreenshotContextMode.off;
-    await _settingsService.setScreenshotContextMode(activeMode);
-    switch (status) {
-      case ScreenRecordingPermissionStatus.granted:
-      case ScreenRecordingPermissionStatus.unsupported:
-        await _settingsService.clearPendingScreenshotContextMode();
-      case ScreenRecordingPermissionStatus.promptMayBeVisible:
-      case ScreenRecordingPermissionStatus.manualGrantRequired:
-        await _settingsService.setPendingScreenshotContextMode(mode);
-    }
-    await _shortcutService.setScreenshotContextMode(activeMode);
-  }
+  ) => _shortcutService.saveScreenshotContextMode(
+    _settingsService,
+    mode,
+    status,
+  );
 
   Future<void> _chooseAccessibilityContextMode(
     AccessibilityContextMode mode,

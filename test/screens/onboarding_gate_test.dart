@@ -65,6 +65,16 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> chooseScreenshotModeAndContinue(
+    WidgetTester tester,
+    String mode,
+  ) async {
+    await tester.tap(find.text(mode));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('onboarding-continue')));
+    await tester.pumpAndSettle();
+  }
+
   void setScreenshotOnboardingState({
     Map<String, Object> extraValues = const {},
   }) {
@@ -217,10 +227,7 @@ void main() {
           });
 
       await pumpGate(tester);
-      await tester.tap(find.text('Application'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('onboarding-continue')));
-      await tester.pumpAndSettle();
+      await chooseScreenshotModeAndContinue(tester, 'Application');
 
       final prefs = await SharedPreferences.getInstance();
       expect(requestArgs, [ScreenshotContextMode.activeApplication.value]);
@@ -246,10 +253,7 @@ void main() {
         });
 
     await pumpGate(tester);
-    await tester.tap(find.text('Full Screen'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Full Screen');
 
     final prefs = await SharedPreferences.getInstance();
     expect(
@@ -278,10 +282,7 @@ void main() {
           });
 
       await pumpGate(tester);
-      await tester.tap(find.text('Full Screen'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('onboarding-continue')));
-      await tester.pumpAndSettle();
+      await chooseScreenshotModeAndContinue(tester, 'Full Screen');
 
       final prefs = await SharedPreferences.getInstance();
       expect(
@@ -316,10 +317,7 @@ void main() {
         });
 
     await pumpGate(tester);
-    await tester.tap(find.text('Full Screen'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Full Screen');
     await tester.tap(find.byKey(const Key('onboarding-skip-optional')));
     await tester.pumpAndSettle();
 
@@ -437,10 +435,7 @@ void main() {
         });
 
     await pumpGate(tester);
-    await tester.tap(find.text('Full Screen'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('onboarding-continue')));
-    await tester.pumpAndSettle();
+    await chooseScreenshotModeAndContinue(tester, 'Full Screen');
     expect(
       methods,
       isNot(
@@ -465,6 +460,83 @@ void main() {
     expect(
       prefs.getString('pending_screenshot_context_mode'),
       ScreenshotContextMode.fullScreen.value,
+    );
+  });
+
+  testWidgets('Off and Continue turn off a mode granted by Check again', (
+    tester,
+  ) async {
+    setScreenshotOnboardingState();
+    final syncedModes = <Object?>[];
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          switch (call.method) {
+            case MethodChannelMethods.requestScreenRecordingPermission:
+              return {'status': 'manualGrantRequired'};
+            case MethodChannelMethods.checkScreenRecordingPermission:
+              return {'status': 'granted'};
+            case MethodChannelMethods.setScreenshotContextMode:
+              syncedModes.add(call.arguments);
+          }
+          return null;
+        });
+
+    await pumpGate(tester);
+    await chooseScreenshotModeAndContinue(tester, 'Full Screen');
+    await tester.tap(
+      find.byKey(const Key('onboarding-screenshot-check-again')),
+    );
+    await tester.pumpAndSettle();
+    final prefs = await SharedPreferences.getInstance();
+    expect(
+      prefs.getString('screenshot_context_mode'),
+      ScreenshotContextMode.fullScreen.value,
+    );
+
+    await chooseScreenshotModeAndContinue(tester, 'Off');
+
+    expect(
+      prefs.getString('screenshot_context_mode'),
+      ScreenshotContextMode.off.value,
+    );
+    expect(prefs.getString('pending_screenshot_context_mode'), isNull);
+    expect(syncedModes.last, ScreenshotContextMode.off.value);
+    expect(find.byKey(const Key('onboarding-complete')), findsOneWidget);
+  });
+
+  testWidgets('a resumed mode on unsupported macOS is dropped', (
+    tester,
+  ) async {
+    setScreenshotOnboardingState(
+      extraValues: {
+        'pending_screenshot_context_mode':
+            ScreenshotContextMode.fullScreen.value,
+      },
+    );
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method ==
+              MethodChannelMethods.checkScreenRecordingPermission) {
+            return {'status': 'unsupported'};
+          }
+          return null;
+        });
+
+    await pumpGate(tester);
+
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getString('pending_screenshot_context_mode'), isNull);
+    expect(
+      prefs.getString('screenshot_context_mode'),
+      ScreenshotContextMode.off.value,
+    );
+    expect(
+      find.text('Screenshot context requires macOS 14 or later.'),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('onboarding-screenshot-check-again')),
+      findsNothing,
     );
   });
 }

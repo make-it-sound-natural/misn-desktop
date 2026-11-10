@@ -18,6 +18,13 @@ enum ScreenRecordingPermissionStatus {
   /// Native method-channel value.
   final String value;
 
+  /// Whether a mode saved with this status waits as pending until Screen
+  /// Recording is granted.
+  bool get isPending => switch (this) {
+    promptMayBeVisible || manualGrantRequired => true,
+    granted || unsupported => false,
+  };
+
   /// Parses a native value, falling back to manual grant required.
   static ScreenRecordingPermissionStatus fromValue(String? value) {
     for (final status in values) {

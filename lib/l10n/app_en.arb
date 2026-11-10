@@ -860,6 +860,10 @@
   "@onboardingScreenshotModeLabel": {
     "description": "Accessible label for Screenshot context mode choices in onboarding"
   },
+  "onboardingScreenshotModeSelected": "Continue saves this choice. Screenshot context turns on once Screen Recording is granted.",
+  "@onboardingScreenshotModeSelected": {
+    "description": "Onboarding status for a non-Off Screenshot context mode before Continue"
+  },
   "onboardingScreenshotOffStatus": "Screenshot context is off. Screen Recording will not be requested.",
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
@@ -870,13 +874,13 @@
   },
   "onboardingScreenshotPermissionNeeded": "Screen Recording permission is still needed before Screenshot context can be used.",
   "@onboardingScreenshotPermissionNeeded": {
-    "description": "Onboarding status after non-Off Screenshot context could not be enabled"
+    "description": "Onboarding status while the macOS Screen Recording prompt may be visible"
   },
   "onboardingScreenshotUnsupported": "Screenshot context requires macOS 14 or later.",
   "@onboardingScreenshotUnsupported": {
     "description": "Onboarding status when Screenshot context is unsupported"
   },
-  "onboardingScreenshotPermissionManual": "Screen Recording is not granted yet. Enable Make It Sound Natural in Screen Recording settings, then check again.",
+  "onboardingScreenshotPermissionManual": "Screen Recording is not granted yet. Enable Make It Sound Natural in Screen Recording settings, then check again. Restart the app if macOS asks.",
   "@onboardingScreenshotPermissionManual": {
     "description": "Onboarding status when Screen Recording must be enabled in System Settings"
   },

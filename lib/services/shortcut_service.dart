@@ -17,6 +17,12 @@ import 'package:make_it_sound_natural/services/speed_tracking_service.dart';
 import 'package:make_it_sound_natural/services/target_profile_service.dart';
 import 'package:make_it_sound_natural/utils/logger.dart';
 
+/// A saved screenshot context mode and its Screen Recording status.
+typedef SavedScreenshotContext = ({
+  ScreenshotContextMode mode,
+  ScreenRecordingPermissionStatus status,
+});
+
 /// Service for managing global keyboard shortcuts and Flutter-Swift
 /// communication.
 class ShortcutService {
@@ -157,8 +163,7 @@ class ShortcutService {
     await setDefaultVariant(defaultVariant);
 
     // Load, restore, and sync screenshot context mode.
-    final screenshotContextMode = await _restoreScreenshotContextMode(settings);
-    await setScreenshotContextMode(screenshotContextMode);
+    await restoreScreenshotContextMode(settings);
 
     // Native keeps App context off until this sync.
     await setAccessibilityContextMode(
@@ -185,35 +190,42 @@ class ShortcutService {
     );
   }
 
-  Future<ScreenshotContextMode> _restoreScreenshotContextMode(
+  /// Checks the saved screenshot context mode without prompting, saves the
+  /// result and syncs native. A pending mode wins over the active one: it is
+  /// the newer choice. Returns null when no mode is saved.
+  Future<SavedScreenshotContext?> restoreScreenshotContextMode(
     SettingsService settings,
   ) async {
-    final activeMode = await settings.getScreenshotContextMode();
-    final pendingMode = await settings.getPendingScreenshotContextMode();
-
-    if (activeMode != ScreenshotContextMode.off) {
-      final status = await checkScreenRecordingPermission(activeMode);
-      if (status == ScreenRecordingPermissionStatus.granted) {
-        await settings.clearPendingScreenshotContextMode();
-        return activeMode;
-      }
-      await settings.setPendingScreenshotContextMode(activeMode);
-      await settings.setScreenshotContextMode(ScreenshotContextMode.off);
-      return ScreenshotContextMode.off;
+    final mode =
+        await settings.getPendingScreenshotContextMode() ??
+        await settings.getScreenshotContextMode();
+    if (mode == ScreenshotContextMode.off) {
+      await setScreenshotContextMode(ScreenshotContextMode.off);
+      return null;
     }
+    final status = await checkScreenRecordingPermission(mode);
+    await saveScreenshotContextMode(settings, mode, status);
+    return (mode: mode, status: status);
+  }
 
-    if (pendingMode == null) return activeMode;
-
-    final status = await checkScreenRecordingPermission(pendingMode);
-    if (status == ScreenRecordingPermissionStatus.granted) {
-      await settings.setScreenshotContextMode(pendingMode);
+  /// Saves [mode] for a Screen Recording [status] and syncs native: granted
+  /// turns it on, a missing permission keeps it pending, unsupported drops
+  /// it. Pass [ScreenRecordingPermissionStatus.granted] to save Off.
+  Future<void> saveScreenshotContextMode(
+    SettingsService settings,
+    ScreenshotContextMode mode,
+    ScreenRecordingPermissionStatus status,
+  ) async {
+    final activeMode = status == ScreenRecordingPermissionStatus.granted
+        ? mode
+        : ScreenshotContextMode.off;
+    await settings.setScreenshotContextMode(activeMode);
+    if (status.isPending) {
+      await settings.setPendingScreenshotContextMode(mode);
+    } else {
       await settings.clearPendingScreenshotContextMode();
-      return pendingMode;
     }
-    if (status == ScreenRecordingPermissionStatus.unsupported) {
-      await settings.clearPendingScreenshotContextMode();
-    }
-    return ScreenshotContextMode.off;
+    await setScreenshotContextMode(activeMode);
   }
 
   /// Checks if accessibility permissions are granted.
