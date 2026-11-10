@@ -17,6 +17,13 @@ class MainFlutterWindow: NSWindow {
     isReleasedWhenClosed = false
     (NSApp.delegate as? AppDelegate)?.configureWindowLifecycle(window: self)
 
+    // The XCTest host never starts the Flutter engine; see
+    // AppDelegate.isTestHost.
+    guard !AppDelegate.isTestHost else {
+      super.awakeFromNib()
+      return
+    }
+
     let flutterViewController = FlutterViewController()
     let windowFrame = self.frame
     self.contentViewController = flutterViewController

@@ -1,8 +1,19 @@
+import AppKit
+import FlutterMacOS
 import Sparkle
 import XCTest
 @testable import Make_It_Sound_Natural
 
 final class RunnerTests: XCTestCase {
+    func testTestHostDoesNotStartFlutterEngine() {
+        // A rendering engine crashed the host when XCTest called exit().
+        XCTAssertTrue(AppDelegate.isTestHost)
+        let window = (NSApp.delegate as? AppDelegate)?.mainFlutterWindow
+        XCTAssertNotNil(window)
+        XCTAssertNil(window?.contentViewController)
+        XCTAssertFalse(window?.isVisible ?? true)
+    }
+
     func testAccessibilityCheckDoesNotRequestPrompt() {
         let result = AccessibilityPermissionProbe.status(
             prompt: false,
