@@ -65,6 +65,7 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
 ├── tool/                     # Release automation and localization tooling
 │   ├── nightly_version.py    # Nightly numbering and artifact validation
 │   ├── stable_release.py     # Stable provenance, version and checksum gates
+│   ├── verify_sparkle_signature.swift # Verify DMG with embedded public key
 │   ├── verify_nightly_update.py # Install signed candidate before publishing
 │   ├── release_manager.dart  # Entrypoint: dart run tool/release_manager.dart
 │   └── release_manager/      # Channel config, version policy, CLI commands

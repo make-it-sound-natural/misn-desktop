@@ -512,6 +512,12 @@ jobs:
 
       - name: Assemble immutable candidate
         run: |
+          set -euo pipefail
+          PUBLIC_KEY=$(plutil -extract SUPublicEDKey raw "build/macos/Build/Products/Release/$APP_NAME.app/Contents/Info.plist")
+          SIGNATURE=$(python3 -c 'import xml.etree.ElementTree as E; print(E.parse("appcast.xml").find("channel/item/enclosure").attrib["{http://www.andymatuschak.org/xml-namespaces/sparkle}edSignature"])')
+          xcrun swift tool/verify_sparkle_signature.swift \
+            "build/macos/Build/Products/Release/$ARTIFACT_PREFIX-$VERSION.dmg" \
+            "$PUBLIC_KEY" "$SIGNATURE" | tee -a build/stable-qa.txt
           mkdir -p build/stable-candidate
           cp "build/macos/Build/Products/Release/$ARTIFACT_PREFIX-$VERSION.dmg" build/stable-candidate/
           cp "${{ steps.app_zip.outputs.zip_path }}" build/stable-candidate/
