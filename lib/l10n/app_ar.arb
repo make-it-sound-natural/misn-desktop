@@ -112,7 +112,7 @@
   "settingsNavShortcuts": "الاختصارات",
   "settingsNavWriting": "الكتابة",
   "settingsNavLanguage": "اللغة",
-  "apiKeySecurityNote": "يتم تخزين مفتاح API بأمان في macOS Keychain ولا يرسله التطبيق أبداً.",
+  "apiKeySecurityNote": "يُخزَّن مفتاح API في سلسلة مفاتيح macOS ويُرسَل فقط إلى المزوّد الذي أعددته لمصادقة الطلبات.",
   "openRouterModels": "نماذج OpenRouter",
   "customProviders": "مزودون مخصصون",
   "customProviderCompatibilityNote": "يجب أن تدعم المزودات المخصصة Chat Completions بدون بث. يتطلب سياق لقطة الشاشة أيضًا دعم إدخال الصور.",

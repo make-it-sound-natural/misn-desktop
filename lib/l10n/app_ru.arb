@@ -112,7 +112,7 @@
   "settingsNavShortcuts": "Сочетания клавиш",
   "settingsNavWriting": "Письмо",
   "settingsNavLanguage": "Язык",
-  "apiKeySecurityNote": "Ваш API-ключ безопасно хранится в macOS Keychain и никогда не отправляется приложением.",
+  "apiKeySecurityNote": "Ваш API-ключ хранится в macOS Keychain и передаётся только настроенному провайдеру для аутентификации запросов.",
   "openRouterModels": "Модели OpenRouter",
   "customProviders": "Пользовательские провайдеры",
   "customProviderCompatibilityNote": "Пользовательские провайдеры должны поддерживать Chat Completions без потоковой передачи. Для контекста снимка экрана также нужна поддержка изображений.",

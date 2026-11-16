@@ -112,7 +112,7 @@
   "settingsNavShortcuts": "Kurzbefehle",
   "settingsNavWriting": "Schreiben",
   "settingsNavLanguage": "Sprache",
-  "apiKeySecurityNote": "Ihr API-Schlüssel wird sicher im macOS Schlüsselbund gespeichert und nie von der App gesendet.",
+  "apiKeySecurityNote": "Ihr API-Schlüssel wird im macOS-Schlüsselbund gespeichert und nur zur Authentifizierung von Anfragen an den konfigurierten Anbieter gesendet.",
   "openRouterModels": "OpenRouter-Modelle",
   "customProviders": "Benutzerdefinierte Anbieter",
   "customProviderCompatibilityNote": "Benutzerdefinierte Anbieter müssen nicht-streamende Chat Completions unterstützen. Screenshot-Kontext erfordert außerdem Unterstützung für Bildeingaben.",

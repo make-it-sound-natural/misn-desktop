@@ -112,7 +112,7 @@
   "settingsNavShortcuts": "ショートカット",
   "settingsNavWriting": "文章",
   "settingsNavLanguage": "言語",
-  "apiKeySecurityNote": "APIキーはmacOS Keychainに安全に保存され、アプリが送信することはありません。",
+  "apiKeySecurityNote": "APIキーはmacOSのキーチェーンに保存され、リクエストの認証のために設定したプロバイダーにのみ送信されます。",
   "openRouterModels": "OpenRouterモデル",
   "customProviders": "カスタムプロバイダー",
   "customProviderCompatibilityNote": "カスタムプロバイダーは非ストリーミングのChat Completionsをサポートする必要があります。スクリーンショットコンテキストには画像入力のサポートも必要です。",

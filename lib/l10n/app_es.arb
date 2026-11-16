@@ -112,7 +112,7 @@
   "settingsNavShortcuts": "Atajos",
   "settingsNavWriting": "Escritura",
   "settingsNavLanguage": "Idioma",
-  "apiKeySecurityNote": "Tu clave API se guarda de forma segura en macOS Keychain y la app nunca la envía.",
+  "apiKeySecurityNote": "Tu clave API se guarda en el llavero de macOS y solo se envía al proveedor configurado para autenticar las solicitudes.",
   "openRouterModels": "Modelos de OpenRouter",
   "customProviders": "Proveedores personalizados",
   "customProviderCompatibilityNote": "Los proveedores personalizados deben admitir Chat Completions sin streaming. El contexto de captura también requiere soporte de entrada de imagen.",

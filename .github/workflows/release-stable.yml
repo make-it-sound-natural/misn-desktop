@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       start_from:
-        description: 'Start from job'
+        description: 'Prepare a candidate, resume preparation, or publish an approved candidate'
         required: true
         type: choice
         default: 'build'
@@ -16,6 +16,7 @@ on:
           - build
           - notarize
           - release
+          - publish
       artifact_run_id:
         description: 'Run ID to download existing artifacts when restarting'
         required: false
@@ -26,10 +27,11 @@ permissions:
   actions: read
 
 concurrency:
-  group: stable-${{ inputs.version }}
+  group: stable
   cancel-in-progress: false
 
 env:
+  VERSION: ${{ inputs.version }}
   APP_NAME: "Make It Sound Natural"
   ARTIFACT_PREFIX: MakeItSoundNatural
   FEED_PATH: appcast.xml
@@ -40,11 +42,45 @@ env:
   CLOUDFLARE_PAGES_BRANCH: ${{ vars.CLOUDFLARE_PAGES_BRANCH }}
 
 jobs:
+  validate:
+    name: Validate source and artifact provenance
+    runs-on: ubuntu-latest
+    outputs:
+      build_number: ${{ steps.source.outputs.build_number }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validate version against source
+        id: source
+        run: python3 tool/stable_release.py source --version "$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Validate restart source
+        if: inputs.start_from != 'build'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_RUN_ID: ${{ inputs.artifact_run_id }}
+          START_FROM: ${{ inputs.start_from }}
+        run: |
+          set -euo pipefail
+          [[ "$ARTIFACT_RUN_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$ARTIFACT_RUN_ID" > run.json
+          python3 - <<'PYTHON'
+          import json, os
+          run = json.load(open('run.json'))
+          assert run['head_sha'] == os.environ['GITHUB_SHA'], 'Artifact source commit differs'
+          assert run['path'] == '.github/workflows/release-stable.yml', 'Wrong source workflow'
+          assert run['event'] == 'workflow_dispatch', 'Wrong source event'
+          if os.environ['START_FROM'] == 'publish':
+              assert run['conclusion'] == 'success', 'Candidate run did not succeed'
+          PYTHON
+      - name: Restrict publication to master
+        if: inputs.start_from == 'publish'
+        run: test "$GITHUB_REF" = 'refs/heads/master'
+
   # =============================================================================
   # JOB 1: Build and Sign
   # =============================================================================
   build-and-sign:
     name: Build & Sign
+    needs: validate
     if: inputs.start_from == 'build'
     runs-on: macos-latest
     timeout-minutes: 30
@@ -64,15 +100,6 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      - name: Validate Stable source
-        run: |
-          BRANCH="${GITHUB_REF_NAME}"
-          dart run tool/release_manager.dart validate \
-            --channel stable \
-            --version "${{ inputs.version }}" \
-            --source-branch "$BRANCH"
-          test "$BRANCH" = "master"
-
       - name: Validate Sparkle EdDSA Key
         run: |
           EDDSA_KEY=$(plutil -extract SUPublicEDKey raw macos/Runner/Info.plist 2>/dev/null || echo "")
@@ -85,7 +112,6 @@ jobs:
       - name: Extract version
         id: version
         run: |
-          VERSION="${{ inputs.version }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "Building version: $VERSION"
 
@@ -158,7 +184,6 @@ jobs:
 
       - name: Create app archive for notarization
         run: |
-          VERSION=${{ steps.version.outputs.version }}
           APP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}.app"
           ZIP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}-${VERSION}-unsigned.app.zip"
           ditto -c -k --rsrc --keepParent "$APP_PATH" "$ZIP_PATH"
@@ -179,9 +204,10 @@ jobs:
   # =============================================================================
   notarize:
     name: Notarize
-    needs: [build-and-sign]
+    needs: [validate, build-and-sign]
     if: |
       always() &&
+      needs.validate.result == 'success' &&
       (needs.build-and-sign.result == 'success' || inputs.start_from == 'notarize')
     runs-on: macos-latest
     timeout-minutes: 60
@@ -195,7 +221,6 @@ jobs:
       - name: Get version
         id: version
         run: |
-          VERSION="${{ inputs.version }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Validate restart artifact source
@@ -216,7 +241,6 @@ jobs:
 
       - name: Extract app archive
         run: |
-          VERSION=${{ steps.version.outputs.version }}
           ZIP_PATH="build/${{ env.APP_NAME }}-${VERSION}-unsigned.app.zip"
           mkdir -p "build/macos/Build/Products/Release"
           ditto -x -k "$ZIP_PATH" "build/macos/Build/Products/Release/"
@@ -254,7 +278,6 @@ jobs:
 
       - name: Create notarized app archive
         run: |
-          VERSION=${{ steps.version.outputs.version }}
           APP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}.app"
           ZIP_PATH="build/${{ env.APP_NAME }}-${VERSION}-notarized.app.zip"
           ditto -c -k --rsrc --keepParent "$APP_PATH" "$ZIP_PATH"
@@ -270,13 +293,14 @@ jobs:
   # JOB 3: Release
   # =============================================================================
   release:
-    name: Create Release
-    needs: [notarize]
+    name: Prepare signed candidate
+    needs: [validate, notarize]
     if: |
       always() &&
+      needs.validate.result == 'success' &&
       (needs.notarize.result == 'success' || inputs.start_from == 'release')
     runs-on: macos-latest
-    timeout-minutes: 15
+    timeout-minutes: 60
 
     steps:
       - name: Checkout code
@@ -285,7 +309,6 @@ jobs:
       - name: Get version
         id: version
         run: |
-          VERSION="${{ inputs.version }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Validate restart artifact source
@@ -335,7 +358,6 @@ jobs:
 
       - name: Extract notarized app
         run: |
-          VERSION=${{ steps.version.outputs.version }}
           ZIP_PATH="build/${{ env.APP_NAME }}-${VERSION}-notarized.app.zip"
           mkdir -p "build/macos/Build/Products/Release"
           ditto -x -k "$ZIP_PATH" "build/macos/Build/Products/Release/"
@@ -344,7 +366,6 @@ jobs:
         id: app_zip
         run: |
           set -euo pipefail
-          VERSION=${{ steps.version.outputs.version }}
           APP_PATH="build/macos/Build/Products/Release/${{ env.APP_NAME }}.app"
           ZIP_PATH="build/macos/Build/Products/Release/${{ env.ARTIFACT_PREFIX }}-${VERSION}.app.zip"
 
@@ -380,7 +401,6 @@ jobs:
           DEVELOPER_ID: ${{ secrets.DEVELOPER_ID }}
         run: |
           set -euo pipefail
-          VERSION=${{ steps.version.outputs.version }}
           DMG_PATH="build/macos/Build/Products/Release/${{ env.ARTIFACT_PREFIX }}-${VERSION}.dmg"
 
           if [ ! -f "$DMG_PATH" ]; then
@@ -419,7 +439,6 @@ jobs:
         id: artifacts
         run: |
           set -euo pipefail
-          VERSION=${{ steps.version.outputs.version }}
           DMG_PATH="build/macos/Build/Products/Release/${{ env.ARTIFACT_PREFIX }}-${VERSION}.dmg"
           echo "dmg_path=$DMG_PATH" >> $GITHUB_OUTPUT
 
@@ -454,16 +473,28 @@ jobs:
           fi
           echo "sparkle_signature=$SPARKLE_SIG" >> $GITHUB_OUTPUT
 
-      - name: Generate changelog
-        id: changelog
+      - name: Verify candidate metadata and Gatekeeper
         run: |
-          mkdir -p build
-          chmod +x ./scripts/extract_version.sh
-          CHANGELOG=$(./scripts/extract_version.sh changelog 2>/dev/null || echo "Bug fixes and improvements")
-          printf '%s\n' "$CHANGELOG" > build/changelog.txt
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          set -euo pipefail
+          APP_PATH="build/macos/Build/Products/Release/$APP_NAME.app"
+          DMG_PATH="build/macos/Build/Products/Release/$ARTIFACT_PREFIX-$VERSION.dmg"
+          FEED_BASE="${UPDATE_BASE_URL:-https://raw.githubusercontent.com/$GITHUB_REPOSITORY/master}"
+          python3 tool/stable_release.py plist --version "$VERSION" \
+            --plist "$APP_PATH/Contents/Info.plist" --feed-url "${FEED_BASE%/}/appcast.xml"
+          {
+            codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+            spctl --assess --type execute --verbose=2 "$APP_PATH"
+            xcrun stapler validate "$APP_PATH"
+            codesign --verify --verbose=2 "$DMG_PATH"
+            spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG_PATH"
+            xcrun stapler validate "$DMG_PATH"
+          } 2>&1 | tee build/stable-qa.txt
+          git fetch --tags origin master
+          git show FETCH_HEAD:appcast.xml > appcast.xml
+          git tag --list > build/stable-tags.txt
+          python3 tool/stable_release.py history --version "$VERSION" \
+            --tags build/stable-tags.txt --feed appcast.xml
+          cp "docs/releases/$VERSION.md" build/changelog.txt
 
       - name: Update Stable appcast
         env:
@@ -471,13 +502,84 @@ jobs:
         run: |
           dart run tool/release_manager.dart update-appcast \
             --channel stable \
-            --version "${{ steps.version.outputs.version }}" \
+            --sparkle-version "${{ needs.validate.outputs.build_number }}" \
+            --version "$VERSION" \
             --repo "${{ github.repository }}" \
             --update-base-url "${{ env.UPDATE_BASE_URL }}" \
             --dmg-size "${{ steps.artifacts.outputs.dmg_size }}" \
             --sparkle-signature "$SPARKLE_SIGNATURE" \
             --notes-file build/changelog.txt
 
+      - name: Assemble immutable candidate
+        run: |
+          mkdir -p build/stable-candidate
+          cp "build/macos/Build/Products/Release/$ARTIFACT_PREFIX-$VERSION.dmg" build/stable-candidate/
+          cp "${{ steps.app_zip.outputs.zip_path }}" build/stable-candidate/
+          cp appcast.xml build/stable-candidate/
+          cp build/changelog.txt build/stable-candidate/release-notes.txt
+          cp build/stable-qa.txt build/stable-candidate/qa.txt
+          python3 tool/stable_release.py manifest --version "$VERSION" \
+            --sha "$GITHUB_SHA" --directory build/stable-candidate
+      - name: Upload candidate for clean-account QA and approval
+        uses: actions/upload-artifact@v6
+        with:
+          name: stable-candidate-${{ inputs.version }}
+          path: build/stable-candidate/
+          retention-days: 14
+      - name: Candidate summary
+        run: |
+          echo 'Candidate prepared; no release or appcast was published.' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Complete clean-account onboarding and first rewrite before publish.' >> "$GITHUB_STEP_SUMMARY"
+          cat build/stable-candidate/candidate.json >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Cleanup secrets
+        if: always()
+        run: |
+          rm -f /tmp/sparkle_private_key || true
+          security delete-keychain build.keychain || true
+
+  publish:
+    name: Publish approved candidate
+    needs: validate
+    if: inputs.start_from == 'publish'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v7
+        with:
+          name: stable-candidate-${{ inputs.version }}
+          path: build/stable-candidate
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.artifact_run_id }}
+      - name: Verify approved bytes and fresh stable history
+        run: |
+          set -euo pipefail
+          python3 tool/stable_release.py verify --version "$VERSION" \
+            --sha "$GITHUB_SHA" --directory build/stable-candidate
+          git fetch --tags origin master
+          git show FETCH_HEAD:appcast.xml > build/current-stable.xml
+          git tag --list > build/stable-tags.txt
+          python3 tool/stable_release.py history --version "$VERSION" \
+            --tags build/stable-tags.txt --feed build/current-stable.xml
+          DMG_PATH="build/stable-candidate/$ARTIFACT_PREFIX-$VERSION.dmg"
+          codesign --verify --verbose=2 "$DMG_PATH"
+          xcrun stapler validate "$DMG_PATH"
+          spctl --assess --type open --context context:primary-signature --verbose=2 "$DMG_PATH"
+      - name: Validate hosting preserves other channels
+        run: test "${UPDATE_PUBLISH_TARGET:-github}" != cloudflare_pages
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v3.0.3
+        with:
+          tag_name: v${{ inputs.version }}
+          target_commitish: ${{ github.sha }}
+          fail_on_unmatched_files: true
+          overwrite_files: false
+          files: |
+            build/stable-candidate/*.dmg
+            build/stable-candidate/*.app.zip
+          body_path: build/stable-candidate/release-notes.txt
+          draft: false
+          prerelease: false
       - name: Publish Sparkle update files
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -488,47 +590,20 @@ jobs:
           UPDATE_SSH_PATH: ${{ vars.UPDATE_SSH_PATH }}
           UPDATE_SSH_PORT: ${{ vars.UPDATE_SSH_PORT }}
         run: |
+          # Full-site deployment currently replaces other channels. Fail closed.
+          test "${UPDATE_PUBLISH_TARGET:-github}" != cloudflare_pages
           bash scripts/publish_update_files.sh \
-            "${{ steps.artifacts.outputs.dmg_path }}" \
-            "${{ env.FEED_PATH }}"
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: v${{ steps.version.outputs.version }}
-          files: |
-            ${{ steps.app_zip.outputs.zip_path }}
-            ${{ steps.artifacts.outputs.dmg_path }}
-          body: |
-            ## What's Changed
-
-            ${{ steps.changelog.outputs.changelog }}
-
-            ## Installation
-
-            1. Download the `.app.zip` file below
-            2. Open the ZIP
-            3. Drag "${{ env.APP_NAME }}.app" to your Applications folder
-            4. Launch from Applications
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit updated appcast
+            "build/stable-candidate/$ARTIFACT_PREFIX-$VERSION.dmg" \
+            build/stable-candidate/appcast.xml
+      - name: Commit only stable appcast on latest master
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet "${{ env.FEED_PATH }}"; then
-            echo "No changes to ${{ env.FEED_PATH }}"
-          else
-            git add "${{ env.FEED_PATH }}"
-            git commit -m "Update ${{ env.FEED_PATH }} for v${{ steps.version.outputs.version }}"
-            git push origin HEAD:${{ github.event.repository.default_branch }}
-          fi
-
-      - name: Cleanup secrets
-        if: always()
-        run: |
-          rm -f /tmp/sparkle_private_key || true
-          security delete-keychain build.keychain || true
+          set -euo pipefail
+          cp build/stable-candidate/appcast.xml "$RUNNER_TEMP/stable-appcast.xml"
+          git fetch origin master
+          git checkout --detach FETCH_HEAD
+          cp "$RUNNER_TEMP/stable-appcast.xml" appcast.xml
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add appcast.xml
+          git commit -m "Update appcast.xml for v$VERSION"
+          git push origin HEAD:master

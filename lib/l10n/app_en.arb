@@ -470,7 +470,7 @@
   "@settingsNavLanguage": {
     "description": "Settings sidebar language item"
   },
-  "apiKeySecurityNote": "Your API key is stored securely in macOS Keychain and is never sent by the app.",
+  "apiKeySecurityNote": "Your API key is stored in macOS Keychain and sent only to the configured provider to authenticate requests.",
   "@apiKeySecurityNote": {
     "description": "Security note under AI provider settings"
   },

@@ -80,6 +80,35 @@ Releases are produced by channel workflows in `.github/workflows/`:
 maintaining releases must ensure the following **repository configuration**
 exists. Do not paste real secret values into issues or docs.
 
+### Stable candidate and publication
+
+`Release Stable` defaults to preparing a candidate. It does not publish a
+GitHub release or change a live appcast during preparation.
+
+1. Set `version` to the exact marketing version in `pubspec.yaml`. The build
+   number after `+` must increase for every stable release. Preparation can run
+   on a review branch; publication must run on `master` at the candidate's exact
+   source commit.
+2. Run with `start_from=build`. `notarize` and `release` resume preparation
+   using `artifact_run_id` from the same workflow and source commit.
+3. Download `stable-candidate-VERSION`. It contains the notarized DMG and ZIP,
+   candidate appcast, release notes, Gatekeeper evidence, and a SHA-256 manifest.
+   Check clean-account installation, onboarding, and the first BYOK rewrite.
+   Automated Gatekeeper checks do not replace this manual acceptance test.
+4. After QA and publication approval, run `start_from=publish` on `master`
+   with the successful candidate's `artifact_run_id`. This publishes the exact
+   approved files without rebuilding, signing, or notarizing them again.
+
+The workflow verifies the bundle ID, signing public key, feed URL, marketing
+version and build number. Sparkle uses the artifact's numeric build number,
+not the marketing version. Duplicate or stale versions are rejected. Stable
+has its own concurrency group, bundle ID, and feed; nightly is unchanged.
+
+Stable publication currently supports GitHub and SSH hosting. Cloudflare Pages
+is rejected before publication because the current full-site deployment helper
+would replace the other channels. Do not enable it until channel preservation
+is implemented and verified.
+
 ### Required repository secrets
 
 These map to GitHub Actions **secrets** used during build, not to application

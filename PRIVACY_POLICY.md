@@ -20,7 +20,7 @@ When you use the App to rewrite text:
 
 ### API Keys
 
-- Your API keys (OpenAI, OpenRouter, and/or Anthropic) are stored locally on
+- Your API keys (OpenAI, OpenRouter, Anthropic, and custom providers) are stored locally on
 	your device using macOS Keychain.
 - API keys are only used to authenticate requests to their respective services and are never transmitted to any other service.
 
@@ -29,10 +29,14 @@ When you use the App to rewrite text:
 The App stores the following data locally on your device:
 
 - **Settings**: Your preferences (keyboard shortcuts, default variant selection, custom prompts)
-- **API Keys**: Your OpenAI, OpenRouter, and/or Anthropic API keys (stored in macOS Keychain)
+- **API Keys**: Your built-in and custom provider API keys (stored in macOS Keychain)
 - **Context**: Optional context text you provide for better corrections (stored in the App's local settings and kept between launches until you change or clear it)
 
 No personal data is transmitted to any servers other than your configured AI provider (OpenAI, OpenRouter, or Anthropic) for text processing.
+
+Custom providers receive requests directly at the HTTPS endpoint you configure.
+Their operators determine how those requests are processed and retained.
+OpenRouter may route text and optional context to an underlying model provider.
 
 ## Third-Party Services
 
@@ -133,7 +137,7 @@ The App uses Sparkle for automatic updates. When checking for updates:
 ## Data Security
 
 - All communication with AI providers (OpenAI, OpenRouter, Anthropic) uses HTTPS encryption
-- Your API keys are stored in macOS Keychain and never shared
+- Your API keys are stored in macOS Keychain and sent only to the configured provider to authenticate requests
 - No analytics or tracking services are used
 
 ## Children's Privacy
