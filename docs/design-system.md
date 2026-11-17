@@ -209,3 +209,11 @@ usually be `20-24 px`. Related controls should usually be `8-16 px` apart.
   they stop filling the window, keeping the text in a readable measure;
 - `AppSizes.headerTrafficLightInset` reserves leading space for macOS
   traffic-light controls in the full-size titlebar.
+
+## First-run setup
+
+Center the setup panel in the available window and allow vertical scrolling
+when the content exceeds its height. Center the step indicators within the
+panel. Screenshot scope choices wrap as whole controls so a selected label
+has room for its checkmark. Show a confirmed Screen Recording grant near
+the top of the resumed step and keep it visible on the finish step.

@@ -15,7 +15,7 @@
   "apply": "Aplicar",
   "copy": "Copiar",
   "apiKeyRequired": "Chave API necessária para correções",
-  "providerSetupRequired": "Configuração do provedor necessária para correções",
+  "providerSetupRequired": "Conecte um serviço de IA para reformular o texto",
   "configure": "Configurar",
   "textCorrectedSuccess": "Texto corrigido com sucesso!",
   "errorLabel": "Erro: {error}",
@@ -112,7 +112,7 @@
   "settingsNavShortcuts": "Atalhos",
   "settingsNavWriting": "Escrita",
   "settingsNavLanguage": "Idioma",
-  "apiKeySecurityNote": "Sua chave API é armazenada com segurança no macOS Keychain e nunca é enviada pelo app.",
+  "apiKeySecurityNote": "Sua chave API é armazenada no Keychain do macOS e enviada apenas ao provedor configurado para autenticar as solicitações.",
   "openRouterModels": "Modelos OpenRouter",
   "customProviders": "Provedores personalizados",
   "customProviderCompatibilityNote": "Provedores personalizados devem oferecer suporte a Chat Completions sem streaming. O contexto de captura de tela também requer suporte a entrada de imagem.",
@@ -238,7 +238,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter e google/gemini-3-flash-preview são selecionados por padrão. Adicione sua chave de API nas configurações quando estiver pronto.",
+  "onboardingProviderDescription": "Um serviço de IA reformula seu texto. Após a configuração, abra os ajustes e adicione sua chave de API do OpenRouter ou escolha outro serviço.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -300,7 +300,7 @@
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
   },
-  "onboardingScreenshotPermissionGranted": "O contexto de captura está ativado.",
+  "onboardingScreenshotPermissionGranted": "A gravação da tela está permitida. O modo de captura escolhido está ativo.",
   "@onboardingScreenshotPermissionGranted": {
     "description": "Onboarding status after Screen Recording is granted"
   },

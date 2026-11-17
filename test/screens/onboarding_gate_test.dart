@@ -351,10 +351,13 @@ void main() {
 
     await pumpGate(tester);
 
-    final control = tester.widget<SegmentedButton<ScreenshotContextMode>>(
-      find.byKey(const Key('onboarding-screenshot-mode-control')),
+    final selected = tester.widget<ChoiceChip>(
+      find.ancestor(
+        of: find.text('Full Screen'),
+        matching: find.byType(ChoiceChip),
+      ),
     );
-    expect(control.selected, {ScreenshotContextMode.fullScreen});
+    expect(selected.selected, isTrue);
     expect(
       find.textContaining('Screen Recording is not granted yet'),
       findsOneWidget,
@@ -413,7 +416,12 @@ void main() {
     );
     expect(prefs.getString('pending_screenshot_context_mode'), isNull);
     expect(syncedModes.last, ScreenshotContextMode.activeApplication.value);
-    expect(find.text('Screenshot context is enabled.'), findsOneWidget);
+    expect(
+      find.text(
+        'Screen Recording is allowed. Your selected screenshot mode is active.',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Open Screen Recording settings shows the helper, then checks', (

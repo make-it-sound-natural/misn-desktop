@@ -15,7 +15,7 @@
   "apply": "適用",
   "copy": "コピー",
   "apiKeyRequired": "修正にはAPIキーが必要です",
-  "providerSetupRequired": "修正にはプロバイダー設定が必要です",
+  "providerSetupRequired": "文章を書き換えるには AI サービスに接続してください",
   "configure": "設定",
   "textCorrectedSuccess": "テキストを正常に修正しました！",
   "errorLabel": "エラー: {error}",
@@ -112,7 +112,7 @@
   "settingsNavShortcuts": "ショートカット",
   "settingsNavWriting": "文章",
   "settingsNavLanguage": "言語",
-  "apiKeySecurityNote": "APIキーはmacOS Keychainに安全に保存され、アプリが送信することはありません。",
+  "apiKeySecurityNote": "APIキーはmacOSのキーチェーンに保存され、リクエストの認証のために設定したプロバイダーにのみ送信されます。",
   "openRouterModels": "OpenRouterモデル",
   "customProviders": "カスタムプロバイダー",
   "customProviderCompatibilityNote": "カスタムプロバイダーは非ストリーミングのChat Completionsをサポートする必要があります。スクリーンショットコンテキストには画像入力のサポートも必要です。",
@@ -238,7 +238,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter と google/gemini-3-flash-preview がデフォルトで選択されています。準備ができたら設定で API キーを追加してください。",
+  "onboardingProviderDescription": "文章の書き換えには AI サービスを使用します。セットアップ後に設定を開き、OpenRouter の API キーを入力するか、別のサービスを選んでください。",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -300,7 +300,7 @@
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
   },
-  "onboardingScreenshotPermissionGranted": "スクリーンショットコンテキストが有効です。",
+  "onboardingScreenshotPermissionGranted": "画面収録が許可されました。選択したスクリーンショットモードが有効です。",
   "@onboardingScreenshotPermissionGranted": {
     "description": "Onboarding status after Screen Recording is granted"
   },

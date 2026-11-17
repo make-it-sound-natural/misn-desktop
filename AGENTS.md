@@ -64,6 +64,8 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
 │   └── l10n/                 # ARB sources + ignored generated localizations
 ├── tool/                     # Release automation and localization tooling
 │   ├── nightly_version.py    # Nightly numbering and artifact validation
+│   ├── stable_release.py     # Stable provenance, version and checksum gates
+│   ├── verify_sparkle_signature.swift # Verify DMG with embedded public key
 │   ├── verify_nightly_update.py # Install signed candidate before publishing
 │   ├── release_manager.dart  # Entrypoint: dart run tool/release_manager.dart
 │   └── release_manager/      # Channel config, version policy, CLI commands
@@ -347,6 +349,11 @@ All Markdown in this repo **SHOULD** follow:
   Preserve the installed bundle identity, feed URL and signing key. See
   [docs/nightly-versioning.md](docs/nightly-versioning.md) for migration and
   recovery constraints.
+
+- **Stable releases**: prepare signed candidates before publication. Preserve
+  their exact bytes and SHA-256 manifest through QA and publication. Match
+  Sparkle's version to CFBundleVersion, verify source provenance on restarts,
+  and keep stable publication separate from nightly. See DEPLOYMENT.md.
 
 - **Flutter–Swift bridge**: `MethodChannelHandler.swift`; map types safely
   (String, Int, Double, Bool, List, Map). Channel name uses reverse-domain

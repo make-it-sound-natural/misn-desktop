@@ -44,11 +44,18 @@ class OnboardingScreenshotContextChoice extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Text(
+          l10n.onboardingScreenshotModeLabel,
+          style: AppTextStyles.rowTitleOf(context),
+        ),
+        const SizedBox(height: AppSpacing.xxs),
         Semantics(
           label: l10n.onboardingScreenshotModeLabel,
-          child: SegmentedButton<ScreenshotContextMode>(
+          child: Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xxs,
             key: const Key('onboarding-screenshot-mode-control'),
-            segments: [
+            children: [
               for (final (mode, label, key) in [
                 (
                   ScreenshotContextMode.off,
@@ -71,27 +78,27 @@ class OnboardingScreenshotContextChoice extends StatelessWidget {
                   'full-screen',
                 ),
               ])
-                ButtonSegment<ScreenshotContextMode>(
-                  value: mode,
+                ChoiceChip(
+                  selected: selectedMode == mode,
+                  onSelected: (_) => onModeChanged(mode),
                   label: Text(
                     label,
                     key: Key('onboarding-screenshot-mode-$key'),
                   ),
                 ),
             ],
-            selected: {selectedMode},
-            onSelectionChanged: (selection) => onModeChanged(selection.single),
           ),
         ),
         const SizedBox(height: AppSpacing.sm),
-        Semantics(
-          liveRegion: true,
-          child: Text(
-            key: const Key('onboarding-screenshot-status'),
-            _statusText(l10n),
-            style: Theme.of(context).textTheme.bodySmall,
+        if (status != ScreenRecordingPermissionStatus.granted)
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              key: const Key('onboarding-screenshot-status'),
+              _statusText(l10n),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ),
-        ),
         if (status?.isPending ?? false)
           Wrap(
             spacing: AppSpacing.sm,

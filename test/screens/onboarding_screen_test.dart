@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
@@ -8,10 +9,15 @@ import 'package:make_it_sound_natural/models/screen_recording_permission_status.
 import 'package:make_it_sound_natural/models/screenshot_context_mode.dart';
 import 'package:make_it_sound_natural/screens/onboarding/onboarding_screen.dart';
 import 'package:make_it_sound_natural/screens/onboarding/onboarding_screenshot_context_choice.dart';
+import 'package:make_it_sound_natural/theme/app_theme.dart';
+import 'package:make_it_sound_natural/widgets/app_panel.dart';
 
 void main() {
   Future<void> pumpOnboarding(
     WidgetTester tester, {
+    Size window = const Size(1180, 1000),
+    Locale locale = const Locale('en'),
+    double textScale = 1,
     OnboardingSetupState initialState = const OnboardingSetupState.initial(),
     AccessibilityContextMode initialAccessibilityContextMode =
         AccessibilityContextMode.field,
@@ -31,12 +37,20 @@ void main() {
     // The Ahem test font is much wider than the system font. Use a tall
     // window so the App context step keeps its buttons on screen.
     tester.view
-      ..physicalSize = const Size(1180, 1000)
+      ..physicalSize = window
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: AppTheme.light(menuFontSize: 14),
+        locale: locale,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
         localizationsDelegates: const [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
@@ -87,6 +101,66 @@ void main() {
     accessibilitySkipped: false,
     lastStep: OnboardingStep.screenshotContext,
   );
+
+  testWidgets('centers the first panel and the visible step indicators', (
+    tester,
+  ) async {
+    const window = Size(1180, 636);
+    await pumpOnboarding(tester, window: window);
+    final panel = tester.getRect(find.byType(AppPanel));
+    expect(panel.center, window.center(Offset.zero));
+    final dots = find.byWidgetPredicate(
+      (w) =>
+          w is Container &&
+          w.decoration is BoxDecoration &&
+          (w.decoration! as BoxDecoration).shape == BoxShape.circle,
+    );
+    expect(dots, findsNWidgets(4));
+    final midpoint =
+        (tester.getCenter(dots.first).dx + tester.getCenter(dots.last).dx) / 2;
+    expect(midpoint, closeTo(panel.center.dx, 1));
+  });
+
+  for (final locale in [
+    const Locale('en'),
+    const Locale('de'),
+    const Locale('ar'),
+  ]) {
+    testWidgets(
+      'choices fit and Continue is reachable in ${locale.languageCode}',
+      (tester) async {
+        await pumpOnboarding(
+          tester,
+          window: const Size(700, 480),
+          locale: locale,
+          textScale: 1.3,
+          initialState: screenshotStepState,
+          initialScreenshotContextMode: ScreenshotContextMode.fieldArea,
+        );
+        final labels = find.descendant(
+          of: find.byType(ChoiceChip),
+          matching: find.byType(RichText),
+        );
+        expect(labels, findsNWidgets(4));
+        for (final paragraph in tester.renderObjectList<RenderParagraph>(
+          labels,
+        )) {
+          final boxes = paragraph.getBoxesForSelection(
+            TextSelection(
+              baseOffset: 0,
+              extentOffset: paragraph.text.toPlainText().length,
+            ),
+          );
+          expect(boxes.map((b) => b.top).toSet(), hasLength(1));
+          expect(paragraph.didExceedMaxLines, isFalse);
+        }
+        final action = find.byKey(const Key('onboarding-continue'));
+        await tester.ensureVisible(action);
+        expect(action.hitTestable(), findsOneWidget);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 
   testWidgets('starts at provider step', (tester) async {
     await pumpOnboarding(tester);
@@ -619,10 +693,13 @@ void main() {
           ScreenRecordingPermissionStatus.manualGrantRequired,
     );
 
-    final control = tester.widget<SegmentedButton<ScreenshotContextMode>>(
-      find.byKey(const Key('onboarding-screenshot-mode-control')),
+    final selected = tester.widget<ChoiceChip>(
+      find.ancestor(
+        of: find.text('Full Screen'),
+        matching: find.byType(ChoiceChip),
+      ),
     );
-    expect(control.selected, {ScreenshotContextMode.fullScreen});
+    expect(selected.selected, isTrue);
     expect(
       find.textContaining('Screen Recording is not granted yet'),
       findsOneWidget,
@@ -641,11 +718,19 @@ void main() {
           ScreenRecordingPermissionStatus.granted,
     );
 
-    final control = tester.widget<SegmentedButton<ScreenshotContextMode>>(
-      find.byKey(const Key('onboarding-screenshot-mode-control')),
+    final selected = tester.widget<ChoiceChip>(
+      find.ancestor(
+        of: find.text('Application'),
+        matching: find.byType(ChoiceChip),
+      ),
     );
-    expect(control.selected, {ScreenshotContextMode.activeApplication});
-    expect(find.text('Screenshot context is enabled.'), findsOneWidget);
+    expect(selected.selected, isTrue);
+    expect(
+      find.text(
+        'Screen Recording is allowed. Your selected screenshot mode is active.',
+      ),
+      findsOneWidget,
+    );
     expect(
       find.byKey(const Key('onboarding-screenshot-check-again')),
       findsNothing,
@@ -680,7 +765,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(checkedModes, [ScreenshotContextMode.activeApplication]);
-    expect(find.text('Screenshot context is enabled.'), findsOneWidget);
+    expect(
+      find.text(
+        'Screen Recording is allowed. Your selected screenshot mode is active.',
+      ),
+      findsOneWidget,
+    );
     expect(states, isEmpty);
     expect(
       find.byKey(const Key('onboarding-screenshot-open-settings')),
@@ -710,7 +800,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(openedModes, [ScreenshotContextMode.fullScreen]);
-    expect(find.text('Screenshot context is enabled.'), findsOneWidget);
+    expect(
+      find.text(
+        'Screen Recording is allowed. Your selected screenshot mode is active.',
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('prompt-visible status offers Check again but not the helper', (

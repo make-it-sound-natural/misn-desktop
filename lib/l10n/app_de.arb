@@ -15,7 +15,7 @@
   "apply": "Anwenden",
   "copy": "Kopieren",
   "apiKeyRequired": "API-Schlüssel für Korrekturen erforderlich",
-  "providerSetupRequired": "Anbietereinrichtung für Korrekturen erforderlich",
+  "providerSetupRequired": "KI-Dienst zum Umformulieren verbinden",
   "configure": "Konfigurieren",
   "textCorrectedSuccess": "Text erfolgreich korrigiert!",
   "errorLabel": "Fehler: {error}",
@@ -112,7 +112,7 @@
   "settingsNavShortcuts": "Kurzbefehle",
   "settingsNavWriting": "Schreiben",
   "settingsNavLanguage": "Sprache",
-  "apiKeySecurityNote": "Ihr API-Schlüssel wird sicher im macOS Schlüsselbund gespeichert und nie von der App gesendet.",
+  "apiKeySecurityNote": "Ihr API-Schlüssel wird im macOS-Schlüsselbund gespeichert und nur zur Authentifizierung von Anfragen an den konfigurierten Anbieter gesendet.",
   "openRouterModels": "OpenRouter-Modelle",
   "customProviders": "Benutzerdefinierte Anbieter",
   "customProviderCompatibilityNote": "Benutzerdefinierte Anbieter müssen nicht-streamende Chat Completions unterstützen. Screenshot-Kontext erfordert außerdem Unterstützung für Bildeingaben.",
@@ -238,7 +238,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter und google/gemini-3-flash-preview sind standardmäßig ausgewählt. Füge deinen API-Schlüssel in den Einstellungen hinzu, wenn du bereit bist.",
+  "onboardingProviderDescription": "Ein KI-Dienst formuliert Ihren Text um. Öffnen Sie nach der Einrichtung die Einstellungen und geben Sie Ihren API-Schlüssel für OpenRouter ein oder wählen Sie einen anderen Anbieter.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -300,7 +300,7 @@
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
   },
-  "onboardingScreenshotPermissionGranted": "Screenshot-Kontext ist aktiviert.",
+  "onboardingScreenshotPermissionGranted": "Bildschirmaufnahme ist erlaubt. Der gewählte Screenshot-Modus ist aktiv.",
   "@onboardingScreenshotPermissionGranted": {
     "description": "Onboarding status after Screen Recording is granted"
   },
