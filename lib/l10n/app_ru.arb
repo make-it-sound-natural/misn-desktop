@@ -15,7 +15,7 @@
   "apply": "Применить",
   "copy": "Копировать",
   "apiKeyRequired": "Для исправлений требуется API-ключ",
-  "providerSetupRequired": "Для исправлений требуется настройка провайдера",
+  "providerSetupRequired": "Подключите ИИ для переписывания текста",
   "configure": "Настроить",
   "textCorrectedSuccess": "Текст успешно исправлен!",
   "errorLabel": "Ошибка: {error}",
@@ -238,7 +238,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter и google/gemini-3-flash-preview выбраны по умолчанию. Добавьте API-ключ в настройках, когда будете готовы.",
+  "onboardingProviderDescription": "Сервис ИИ переписывает ваш текст. Чтобы попробовать первое исправление, после настройки откройте Настройки и добавьте свой API-ключ OpenRouter или выберите другой сервис.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -300,7 +300,7 @@
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
   },
-  "onboardingScreenshotPermissionGranted": "Контекст скриншота включен.",
+  "onboardingScreenshotPermissionGranted": "Запись экрана разрешена. Выбранный режим снимков экрана включён.",
   "@onboardingScreenshotPermissionGranted": {
     "description": "Onboarding status after Screen Recording is granted"
   },

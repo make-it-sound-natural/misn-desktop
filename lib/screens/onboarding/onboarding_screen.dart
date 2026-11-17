@@ -237,8 +237,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       key: const Key('onboarding-screen'),
       // Scrolls so the panel survives short windows and larger text sizes.
-      body: SingleChildScrollView(
-        child: Center(
+      body: Center(
+        child: SingleChildScrollView(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: _onboardingMaxWidth),
             child: Padding(
@@ -254,6 +254,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       style: AppTextStyles.pageTitleOf(context),
                     ),
                     const SizedBox(height: AppSpacing.xl),
+                    if ((_state.lastStep == OnboardingStep.screenshotContext ||
+                            _state.lastStep == OnboardingStep.done) &&
+                        !_state.screenshotContextSkipped &&
+                        _selectedScreenshotContextMode !=
+                            ScreenshotContextMode.off &&
+                        _screenshotPermissionStatus ==
+                            ScreenRecordingPermissionStatus.granted) ...[
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          l10n.onboardingScreenshotPermissionGranted,
+                          style: AppTextStyles.rowTitleOf(context),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -293,7 +309,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       _WarningText(l10n.onboardingAccessibilitySkipped),
                       const SizedBox(height: AppSpacing.xl),
                     ],
-                    _StepDots(current: _state.lastStep.index, total: 4),
+                    _StepDots(
+                      current: _state.lastStep.index,
+                      total: OnboardingStep.values.length,
+                    ),
                     const SizedBox(height: AppSpacing.xl),
                     Align(
                       alignment: Alignment.centerRight,
@@ -424,6 +443,7 @@ class _StepDots extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         for (var i = 0; i < total; i++) ...[
           if (i > 0) const SizedBox(width: _stepDotGap),

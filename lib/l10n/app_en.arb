@@ -68,7 +68,7 @@
   "@apiKeyRequired": {
     "description": "Banner text when API key is missing"
   },
-  "providerSetupRequired": "Provider setup required for corrections",
+  "providerSetupRequired": "Connect an AI service to rewrite text",
   "@providerSetupRequired": {
     "description": "Banner text when selected provider is missing a key or visible model"
   },
@@ -800,7 +800,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter and google/gemini-3-flash-preview are selected by default. Add your API key in settings when you are ready.",
+  "onboardingProviderDescription": "Your AI provider is the service that rewrites your text. To try your first rewrite, open Settings after setup and add your API key for OpenRouter, or choose another provider.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -868,7 +868,7 @@
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
   },
-  "onboardingScreenshotPermissionGranted": "Screenshot context is enabled.",
+  "onboardingScreenshotPermissionGranted": "Screen Recording is allowed. Your selected screenshot mode is active.",
   "@onboardingScreenshotPermissionGranted": {
     "description": "Onboarding status after Screen Recording is granted"
   },

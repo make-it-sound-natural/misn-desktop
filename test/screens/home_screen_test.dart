@@ -331,7 +331,7 @@ void main() {
       await pumpHomeScreen(tester);
 
       expect(
-        find.text('Provider setup required for corrections'),
+        find.text('Connect an AI service to rewrite text'),
         findsNothing,
       );
     });
@@ -350,7 +350,7 @@ void main() {
       await pumpHomeScreen(tester);
 
       expect(
-        find.text('Provider setup required for corrections'),
+        find.text('Connect an AI service to rewrite text'),
         findsOneWidget,
       );
     });
@@ -369,7 +369,7 @@ void main() {
       await pumpHomeScreen(tester);
 
       expect(
-        find.text('Provider setup required for corrections'),
+        find.text('Connect an AI service to rewrite text'),
         findsOneWidget,
       );
     });
@@ -410,7 +410,7 @@ void main() {
       await pumpHomeScreen(tester);
 
       expect(
-        find.text('Provider setup required for corrections'),
+        find.text('Connect an AI service to rewrite text'),
         findsOneWidget,
       );
     });

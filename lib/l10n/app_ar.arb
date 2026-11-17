@@ -15,7 +15,7 @@
   "apply": "تطبيق",
   "copy": "نسخ",
   "apiKeyRequired": "مفتاح API مطلوب للتصحيحات",
-  "providerSetupRequired": "يلزم إعداد المزود للتصحيحات",
+  "providerSetupRequired": "اربط خدمة ذكاء اصطناعي لإعادة صياغة النص",
   "configure": "إعداد",
   "textCorrectedSuccess": "تم تصحيح النص بنجاح!",
   "errorLabel": "خطأ: {error}",
@@ -238,7 +238,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter و google/gemini-3-flash-preview محددان افتراضيًا. أضف مفتاح API في الإعدادات عندما تكون جاهزًا.",
+  "onboardingProviderDescription": "تعيد خدمة الذكاء الاصطناعي صياغة نصك. بعد إكمال الإعداد، افتح الإعدادات وأضف مفتاح API الخاص بك لخدمة OpenRouter أو اختر خدمة أخرى.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -300,7 +300,7 @@
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
   },
-  "onboardingScreenshotPermissionGranted": "تم تفعيل سياق لقطة الشاشة.",
+  "onboardingScreenshotPermissionGranted": "تسجيل الشاشة مسموح. وضع لقطة الشاشة المحدد مفعّل.",
   "@onboardingScreenshotPermissionGranted": {
     "description": "Onboarding status after Screen Recording is granted"
   },

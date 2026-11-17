@@ -15,7 +15,7 @@
   "apply": "Aplicar",
   "copy": "Copiar",
   "apiKeyRequired": "Se requiere clave API para correcciones",
-  "providerSetupRequired": "Se requiere configurar el proveedor para correcciones",
+  "providerSetupRequired": "Conecta un servicio de IA para reformular el texto",
   "configure": "Configurar",
   "textCorrectedSuccess": "¡Texto corregido exitosamente!",
   "errorLabel": "Error: {error}",
@@ -238,7 +238,7 @@
   "@onboardingProviderTitle": {
     "description": "Onboarding provider setup step title"
   },
-  "onboardingProviderDescription": "OpenRouter y google/gemini-3-flash-preview están seleccionados de forma predeterminada. Añade tu clave API en ajustes cuando estés listo.",
+  "onboardingProviderDescription": "Un servicio de IA reformula tu texto. Tras la configuración, abre los ajustes y añade tu clave API de OpenRouter o elige otro servicio.",
   "@onboardingProviderDescription": {
     "description": "Onboarding provider setup step description"
   },
@@ -300,7 +300,7 @@
   "@onboardingScreenshotOffStatus": {
     "description": "Onboarding status when Screenshot context remains off"
   },
-  "onboardingScreenshotPermissionGranted": "El contexto de captura está activado.",
+  "onboardingScreenshotPermissionGranted": "La grabación de pantalla está permitida. El modo de captura seleccionado está activo.",
   "@onboardingScreenshotPermissionGranted": {
     "description": "Onboarding status after Screen Recording is granted"
   },
