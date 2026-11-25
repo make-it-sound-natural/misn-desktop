@@ -135,6 +135,12 @@ abstract class MethodChannelMethods {
   /// Brings the app window to foreground.
   static const String bringToForeground = 'bringToForeground';
 
+  /// Tells native that Flutter received the key presses sent so far.
+  static const String acknowledgeKeyEvents = 'acknowledgeKeyEvents';
+
+  /// Reports key presses that left the focused text field unchanged.
+  static const String reportTextInputStall = 'reportTextInputStall';
+
   // Incoming methods (Swift → Flutter)
   /// Stores context text (replace or append mode).
   static const String storeContext = 'storeContext';

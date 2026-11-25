@@ -36,6 +36,9 @@ class MainFlutterWindow: NSWindow {
     let messenger = flutterViewController.engine.binaryMessenger
     let methodHandler = MethodChannelHandler(binaryMessenger: messenger)
     self.methodChannelHandler = methodHandler
+    methodHandler.keyboardDiagnostics = KeyboardInputDiagnostics(
+      flutterWindow: self
+    )
 
     let shortcut = ShortcutHandler(methodChannelHandler: methodHandler)
     self.shortcutHandler = shortcut

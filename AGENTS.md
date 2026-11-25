@@ -98,9 +98,15 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
     │   #   ContextSourcePolicy, ContextSourceCollector,
     │   #   MethodChannelHandler+AccessibilityContext,
     │   #   AccessibilityContextDebugSaver, DebugArtifactStore
+    │   # Keyboard diagnostics (logs where key presses get lost when
+    │   # typing stops working; the Dart half is
+    │   # lib/services/keyboard_input_watchdog.dart):
+    │   #   KeyboardInputDiagnostics, KeyDeliveryMonitor,
+    │   #   MethodChannelHandler+KeyboardDiagnostics
     └── RunnerTests/          # XCTest (dispatch, LLM error parser, LLM wire
                               # formats and variants JSON, bubble policy,
-                              # App context capture and policy);
+                              # App context capture and policy, key
+                              # delivery monitor);
                               # LLMServiceTestSupport holds the scripted
                               # URLProtocol and delegate for LLMService tests
 ```
@@ -364,6 +370,18 @@ All Markdown in this repo **SHOULD** follow:
   This keeps the Flutter engine, method channel, and native shortcut handlers
   alive so global shortcuts continue working while the window is hidden. Use
   app menu Quit, Cmd+Q, or the menu bar Quit item for full termination.
+- **Keyboard diagnostics**: when a focused field ignores typing,
+  `KeyboardInputDiagnostics` writes one line to the unified log saying
+  whether the key presses never reached Flutter or reached it and produced
+  no text. Read it before restarting the app, which clears the state:
+
+  ```sh
+  log show --last 1h --predicate \
+    'subsystem == "com.makeitsoundnatural.macos" AND category == "Keyboard"'
+  ```
+
+  You MUST NOT log key codes or characters there: the watched fields include
+  API keys.
 - **Local UI verification**: do not take screenshots, click, type, or otherwise
   drive the user's active desktop for visual smoke tests unless explicitly
   requested. Prefer XCTest/AppKit assertions, process/log checks, accessibility
