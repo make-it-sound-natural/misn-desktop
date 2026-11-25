@@ -3,6 +3,10 @@ enum AppDefaults {
     /// User-facing app name used by native integrations.
     static let appName = "Make It Sound Natural"
 
+    /// Unified log subsystem of every native logger; `log show` predicates
+    /// filter on it.
+    static let logSubsystem = "com.makeitsoundnatural.macos"
+
     /// Provider used when none has been saved.
     static let apiProvider = openAiProvider
 

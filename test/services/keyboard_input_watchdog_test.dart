@@ -28,9 +28,14 @@ void main() {
         ),
       );
 
+      // Stopped here and not in a tear-down: the test binding checks for
+      // pending timers before tear-downs run.
       final watchdog = KeyboardInputWatchdog()..start();
-      await body(tester, calls);
-      watchdog.stop();
+      try {
+        await body(tester, calls);
+      } finally {
+        watchdog.stop();
+      }
     });
   }
 
@@ -55,8 +60,11 @@ void main() {
     return controller;
   }
 
-  Future<void> typeLetter(WidgetTester tester) =>
-      tester.sendKeyEvent(LogicalKeyboardKey.keyA, character: 'a');
+  Future<void> typeLetters(WidgetTester tester, int count) async {
+    for (var i = 0; i < count; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyA, character: 'a');
+    }
+  }
 
   Iterable<MethodCall> stallReports(List<MethodCall> calls) => calls.where(
     (call) => call.method == MethodChannelMethods.reportTextInputStall,
@@ -66,9 +74,7 @@ void main() {
     tester,
     calls,
   ) async {
-    for (var i = 0; i < 3; i++) {
-      await typeLetter(tester);
-    }
+    await typeLetters(tester, 3);
     expect(calls, isEmpty);
 
     await tester.pump(KeyboardInputWatchdog.acknowledgementDelay);
@@ -82,9 +88,9 @@ void main() {
     tester,
     calls,
   ) async {
-    await typeLetter(tester);
+    await typeLetters(tester, 1);
     await tester.pump(KeyboardInputWatchdog.acknowledgementDelay);
-    await typeLetter(tester);
+    await typeLetters(tester, 1);
     await tester.pump(KeyboardInputWatchdog.acknowledgementDelay);
 
     expect(calls, hasLength(2));
@@ -97,15 +103,30 @@ void main() {
     tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
     await pumpFocusedField(tester);
 
-    for (var i = 0; i < 20; i++) {
-      await typeLetter(tester);
-    }
+    await typeLetters(tester, 20);
 
     expect(stallReports(calls), hasLength(1));
     expect(stallReports(calls).single.arguments, {
       'keyPresses': KeyboardInputWatchdog.stalledKeyPressLimit,
       'lifecycleState': 'resumed',
     });
+  });
+
+  testWatchdog('reports again only after the report interval', (
+    tester,
+    calls,
+  ) async {
+    final controller = await pumpFocusedField(tester);
+    await typeLetters(tester, 6);
+    expect(stallReports(calls), hasLength(1));
+
+    controller.text = 'a';
+    await typeLetters(tester, 6);
+    expect(stallReports(calls), hasLength(1));
+
+    await tester.pump(KeyboardInputWatchdog.reportInterval);
+    await typeLetters(tester, 1);
+    expect(stallReports(calls), hasLength(2));
   });
 
   testWatchdog('stays quiet while the typed text arrives', (
@@ -115,7 +136,7 @@ void main() {
     final controller = await pumpFocusedField(tester);
 
     for (var i = 0; i < 20; i++) {
-      await typeLetter(tester);
+      await typeLetters(tester, 1);
       controller.text += 'a';
     }
 
@@ -128,13 +149,51 @@ void main() {
   ) async {
     final controller = await pumpFocusedField(tester);
 
-    for (var i = 0; i < 4; i++) {
-      await typeLetter(tester);
-    }
+    await typeLetters(tester, 4);
     controller.text = 'a';
-    for (var i = 0; i < 4; i++) {
-      await typeLetter(tester);
+    await typeLetters(tester, 5);
+    expect(stallReports(calls), isEmpty);
+
+    await typeLetters(tester, 1);
+    expect(stallReports(calls), hasLength(1));
+  });
+
+  testWatchdog('counts each field separately', (tester, calls) async {
+    final secondField = FocusNode();
+    addTearDown(secondField.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Column(
+            children: [
+              const TextField(autofocus: true),
+              TextField(focusNode: secondField),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await typeLetters(tester, 5);
+    secondField.requestFocus();
+    await tester.pump();
+    await typeLetters(tester, 5);
+    expect(stallReports(calls), isEmpty);
+
+    await typeLetters(tester, 1);
+    expect(stallReports(calls), hasLength(1));
+  });
+
+  testWatchdog('ignores the repeats of a held key', (tester, calls) async {
+    final controller = await pumpFocusedField(tester);
+
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.keyA, character: 'a');
+    controller.text = 'a';
+    for (var i = 0; i < 20; i++) {
+      await tester.sendKeyRepeatEvent(LogicalKeyboardKey.keyA, character: 'a');
     }
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.keyA);
 
     expect(stallReports(calls), isEmpty);
   });
@@ -147,9 +206,7 @@ void main() {
       await tester.sendKeyEvent(LogicalKeyboardKey.enter, character: '\r');
     }
     await tester.sendKeyDownEvent(LogicalKeyboardKey.metaLeft);
-    for (var i = 0; i < 20; i++) {
-      await typeLetter(tester);
-    }
+    await typeLetters(tester, 20);
     await tester.sendKeyUpEvent(LogicalKeyboardKey.metaLeft);
 
     expect(stallReports(calls), isEmpty);
@@ -158,9 +215,7 @@ void main() {
   testWatchdog('ignores typing into a read-only field', (tester, calls) async {
     await pumpFocusedField(tester, readOnly: true);
 
-    for (var i = 0; i < 20; i++) {
-      await typeLetter(tester);
-    }
+    await typeLetters(tester, 20);
 
     expect(stallReports(calls), isEmpty);
   });
@@ -168,9 +223,7 @@ void main() {
   testWatchdog('ignores typing with no field focused', (tester, calls) async {
     await tester.pumpWidget(const MaterialApp(home: Scaffold()));
 
-    for (var i = 0; i < 20; i++) {
-      await typeLetter(tester);
-    }
+    await typeLetters(tester, 20);
 
     expect(stallReports(calls), isEmpty);
   });

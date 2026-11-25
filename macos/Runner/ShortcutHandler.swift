@@ -40,7 +40,7 @@ class ShortcutHandler: ShortcutManagerDelegate, LLMServiceDelegate,
     private var lastShortcutLlmError: String?
 
     private let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "ShortcutHandler"
     )
 

@@ -13,17 +13,14 @@ import 'package:make_it_sound_natural/utils/logger.dart';
 /// reports both ends, and native writes the verdict to the unified log (see
 /// `KeyboardInputDiagnostics.swift`).
 ///
-/// Only counts leave this class, never the keys themselves: the fields it
-/// watches include API keys.
+/// Key codes and characters never leave this class: the fields it watches
+/// include API keys.
 class KeyboardInputWatchdog {
-  /// Creates a watchdog reporting over [channel].
-  KeyboardInputWatchdog({
-    MethodChannel channel = const MethodChannel(
-      MethodChannelMethods.channelName,
-    ),
-  }) : _channel = channel;
+  static const MethodChannel _channel = MethodChannel(
+    MethodChannelMethods.channelName,
+  );
 
-  /// Delay before an acknowledgement, so a burst of typing sends one.
+  /// Delay before an acknowledgement, so typing sends at most one per delay.
   ///
   /// Native waits several seconds before it calls presses lost, so this has
   /// to stay well under that.
@@ -35,10 +32,15 @@ class KeyboardInputWatchdog {
   /// rejects; a handful in a row is someone typing into a dead field.
   static const int stalledKeyPressLimit = 5;
 
-  final MethodChannel _channel;
+  /// Shortest time between two reports.
+  ///
+  /// Someone who cannot type tries field after field; one report says it.
+  static const Duration reportInterval = Duration(minutes: 1);
+
   final Logger _log = getLogger('KeyboardInputWatchdog');
 
   Timer? _acknowledgementTimer;
+  Timer? _reportCooldown;
   WeakReference<EditableTextState>? _watchedField;
   TextEditingValue? _valueAtLastKeyPress;
   int _stalledKeyPresses = 0;
@@ -51,13 +53,17 @@ class KeyboardInputWatchdog {
     HardwareKeyboard.instance.removeHandler(_handleKeyEvent);
     _acknowledgementTimer?.cancel();
     _acknowledgementTimer = null;
+    _reportCooldown?.cancel();
+    _reportCooldown = null;
   }
 
   bool _handleKeyEvent(KeyEvent event) {
     if (event is! KeyUpEvent) {
       _acknowledgementTimer ??= Timer(acknowledgementDelay, _acknowledge);
-      if (_isPrintable(event)) _checkFocusedField();
     }
+    // Repeats of a held key do not count: while macOS shows its accent menu
+    // they type nothing, and typing works.
+    if (event is KeyDownEvent && _isPrintable(event)) _checkFocusedField();
     // Observing only: the event still goes to whoever handles it.
     return false;
   }
@@ -75,10 +81,7 @@ class KeyboardInputWatchdog {
     if (keyboard.isMetaPressed || keyboard.isControlPressed) return false;
 
     final codePoint = character.runes.first;
-    final isControl = codePoint < 0x20 || codePoint == 0x7f;
-    // macOS reports arrows and function keys as private-use characters.
-    final isPrivateUse = codePoint >= 0xe000 && codePoint <= 0xf8ff;
-    return !isControl && !isPrivateUse;
+    return codePoint >= 0x20 && codePoint != 0x7f;
   }
 
   /// Compares the focused field with how the previous key press left it.
@@ -97,7 +100,10 @@ class KeyboardInputWatchdog {
     _valueAtLastKeyPress = value;
     _stalledKeyPresses = unchanged ? _stalledKeyPresses + 1 : 0;
 
-    if (_stalledKeyPresses == stalledKeyPressLimit) _reportStall();
+    final isCoolingDown = _reportCooldown?.isActive ?? false;
+    if (_stalledKeyPresses >= stalledKeyPressLimit && !isCoolingDown) {
+      _reportStall();
+    }
   }
 
   EditableTextState? _focusedEditableField() {
@@ -108,9 +114,10 @@ class KeyboardInputWatchdog {
   }
 
   void _reportStall() {
+    _reportCooldown = Timer(reportInterval, () {});
     unawaited(
       _invoke(MethodChannelMethods.reportTextInputStall, {
-        'keyPresses': stalledKeyPressLimit,
+        'keyPresses': _stalledKeyPresses,
         'lifecycleState':
             WidgetsBinding.instance.lifecycleState?.name ?? 'unknown',
       }),

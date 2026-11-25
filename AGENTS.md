@@ -103,10 +103,7 @@ is **not** a web or mobile target—do not add iOS, Android, or web code here.
     │   # lib/services/keyboard_input_watchdog.dart):
     │   #   KeyboardInputDiagnostics, KeyDeliveryMonitor,
     │   #   MethodChannelHandler+KeyboardDiagnostics
-    └── RunnerTests/          # XCTest (dispatch, LLM error parser, LLM wire
-                              # formats and variants JSON, bubble policy,
-                              # App context capture and policy, key
-                              # delivery monitor);
+    └── RunnerTests/          # XCTest suites for the Runner types;
                               # LLMServiceTestSupport holds the scripted
                               # URLProtocol and delegate for LLMService tests
 ```
@@ -373,7 +370,10 @@ All Markdown in this repo **SHOULD** follow:
 - **Keyboard diagnostics**: when a focused field ignores typing,
   `KeyboardInputDiagnostics` writes one line to the unified log saying
   whether the key presses never reached Flutter or reached it and produced
-  no text. Read it before restarting the app, which clears the state:
+  no text. The line is written after 6 to 8 key presses into the dead field
+  (the limits are in `KeyDeliveryMonitor` and `KeyboardInputWatchdog`), so
+  keep typing for a few seconds before restarting. It stays on disk and can
+  be read after the restart:
 
   ```sh
   log show --last 1h --predicate \

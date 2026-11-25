@@ -9,7 +9,7 @@ struct AccessibilityHelper {
     }
 
     private static let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "AccessibilityHelper"
     )
 

@@ -1,6 +1,6 @@
 import Carbon
 import Cocoa
-import os
+import os.log
 
 /// Records where key presses get lost when typing stops working.
 ///
@@ -13,17 +13,18 @@ import os
 ///   'subsystem == "com.makeitsoundnatural.macos" AND category == "Keyboard"'
 /// ```
 ///
-/// Only counts and window state are recorded, never which keys were pressed:
-/// the fields this watches include API keys.
+/// Key codes and characters are never recorded: the fields this watches
+/// include API keys.
 final class KeyboardInputDiagnostics {
     private let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "Keyboard"
     )
     private let launchedAt = Date()
     private weak var flutterWindow: NSWindow?
     private var deliveryMonitor = KeyDeliveryMonitor()
     private var eventMonitor: Any?
+    private var stallCheckTimer: Timer?
 
     init(flutterWindow: NSWindow) {
         self.flutterWindow = flutterWindow
@@ -38,6 +39,7 @@ final class KeyboardInputDiagnostics {
     }
 
     deinit {
+        stallCheckTimer?.invalidate()
         if let eventMonitor {
             NSEvent.removeMonitor(eventMonitor)
         }
@@ -58,16 +60,39 @@ final class KeyboardInputDiagnostics {
     }
 
     private func recordKeyDown() {
-        let now = Date()
-        guard deliveryMonitor.recordKeyDown(at: now) else {
+        // Closing the window only orders it out and leaves the app active, so
+        // key presses still arrive here. There is no field for them to miss.
+        guard flutterWindow?.isVisible == true else {
             return
         }
-        let seconds = Int(deliveryMonitor.stallDuration(at: now))
-        log(
-            "Key presses are not reaching Flutter: " +
-                "\(deliveryMonitor.unacknowledgedCount) unacknowledged " +
-                "in \(seconds)s."
-        )
+        deliveryMonitor.recordKeyDown(at: Date())
+        checkForStall()
+    }
+
+    private func checkForStall() {
+        let now = Date()
+        if let stall = deliveryMonitor.takeStall(at: now) {
+            log(
+                "Key presses are not reaching Flutter: " +
+                    "\(stall.keyPresses) unacknowledged " +
+                    "in \(Int(stall.duration))s."
+            )
+            return
+        }
+        // Someone who types a word and stops sends no further key-down to
+        // check on, so the deadline needs a timer.
+        guard stallCheckTimer == nil,
+              let deadline = deliveryMonitor.stallDeadline,
+              deadline > now else {
+            return
+        }
+        stallCheckTimer = Timer.scheduledTimer(
+            withTimeInterval: deadline.timeIntervalSince(now),
+            repeats: false
+        ) { [weak self] _ in
+            self?.stallCheckTimer = nil
+            self?.checkForStall()
+        }
     }
 
     private func log(_ message: String) {

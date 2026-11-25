@@ -6,7 +6,7 @@ struct OpenAIResponsesFormat: LLMWireFormat {
     private var omitsReasoning = false
 
     private static let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "OpenAIResponsesFormat"
     )
 

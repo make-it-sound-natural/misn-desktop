@@ -52,7 +52,7 @@ class LLMService {
     }
 
     private let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "LLMService"
     )
     let environment: [String: String]

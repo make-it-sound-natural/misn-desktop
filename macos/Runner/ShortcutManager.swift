@@ -16,7 +16,7 @@ class ShortcutManager {
     private weak var delegate: ShortcutManagerDelegate?
 
     private let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "ShortcutManager"
     )
 

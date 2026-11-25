@@ -5,7 +5,7 @@ import os.log
 /// Handles capturing text for context storage
 class ContextCapturer {
     private let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "ContextCapturer"
     )
 

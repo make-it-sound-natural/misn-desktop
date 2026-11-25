@@ -9,7 +9,7 @@ struct ChatCompletionsFormat: LLMWireFormat {
     var excludedParameters: Set<LLMCompatibility.Parameter> = []
 
     private static let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "ChatCompletionsFormat"
     )
 
