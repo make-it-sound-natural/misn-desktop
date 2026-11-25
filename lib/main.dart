@@ -9,6 +9,7 @@ import 'package:make_it_sound_natural/constants/app_metadata.dart';
 import 'package:make_it_sound_natural/l10n/gen/app_localizations.dart';
 import 'package:make_it_sound_natural/screens/onboarding/onboarding_gate.dart';
 import 'package:make_it_sound_natural/services/appearance_controller.dart';
+import 'package:make_it_sound_natural/services/keyboard_input_watchdog.dart';
 import 'package:make_it_sound_natural/services/model_catalog_migration.dart';
 import 'package:make_it_sound_natural/services/settings_service.dart';
 import 'package:make_it_sound_natural/services/shortcut_service.dart';
@@ -26,6 +27,9 @@ void main() async {
 
   // Initialize logging
   setupLogging();
+
+  // Lives as long as the app: typing can stop working at any point.
+  KeyboardInputWatchdog().start();
 
   // Migrate settings schema if needed
   final settingsService = SettingsService();

@@ -33,7 +33,7 @@ final class ContextSourceCollector {
     )
 
     private let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "ContextSource"
     )
 

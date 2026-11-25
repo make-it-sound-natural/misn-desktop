@@ -7,7 +7,7 @@ struct AnthropicMessagesFormat: LLMWireFormat {
     private static let messagesUrl = "https://api.anthropic.com/v1/messages"
 
     private static let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "AnthropicMessagesFormat"
     )
 

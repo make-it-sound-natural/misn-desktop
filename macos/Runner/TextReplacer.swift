@@ -5,7 +5,7 @@ import os.log
 /// Handles text replacement in the original application
 class TextReplacer {
     private let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "TextReplacer"
     )
 

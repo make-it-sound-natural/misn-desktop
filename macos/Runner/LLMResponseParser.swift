@@ -9,7 +9,7 @@ struct LLMResponseParser {
     }
 
     private static let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "LLMResponseParser"
     )
 

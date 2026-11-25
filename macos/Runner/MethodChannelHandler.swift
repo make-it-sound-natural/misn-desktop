@@ -43,6 +43,7 @@ class MethodChannelHandler {
     private var screenshotContextMode: ScreenshotContextMode = .off
     var accessibilityContextMode: AccessibilityContextMode = .off
     private let keychain = KeychainService.shared
+    var keyboardDiagnostics: KeyboardInputDiagnostics?
 
     // Delegate or callback to ShortcutHandler
     var onRegisterShortcut: (() -> Void)?
@@ -123,6 +124,8 @@ class MethodChannelHandler {
         "disableShortcuts": handleDisableShortcuts,
         "enableShortcuts": handleEnableShortcuts,
         "getDefaultPrompt": handleGetDefaultPrompt,
+        "acknowledgeKeyEvents": handleAcknowledgeKeyEvents,
+        "reportTextInputStall": handleReportTextInputStall,
         // Update-related methods
         "checkForUpdates": handleCheckForUpdates,
         "getAppVersion": handleGetAppVersion,

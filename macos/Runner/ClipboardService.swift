@@ -10,7 +10,7 @@ class ClipboardService {
     }
 
     private static let logger = OSLog(
-        subsystem: "com.makeitsoundnatural.macos",
+        subsystem: AppDefaults.logSubsystem,
         category: "ClipboardService"
     )
 
